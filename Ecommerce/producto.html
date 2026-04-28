@@ -283,6 +283,48 @@
         @media (min-width: 768px) {
             .mobile-only { display: none; } .desktop-only { display: flex; }
         }
+
+        /* === MODAL GUÍA DE TALLAS === */
+        .size-guide-btn { background: none; border: none; cursor: pointer; font-size: 0.75rem; font-weight: 700; color: var(--dark-studio); text-decoration: underline; text-underline-offset: 3px; letter-spacing: 0.5px; text-transform: uppercase; opacity: 0.7; transition: opacity 0.2s; padding: 0; }
+        .size-guide-btn:hover { opacity: 1; color: var(--rosa-intenso); }
+        
+        .size-guide-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(138, 115, 96, 0.4); backdrop-filter: blur(6px); z-index: 2000; display: flex; align-items: center; justify-content: center; padding: 1rem; opacity: 0; visibility: hidden; transition: all 0.3s ease; }
+        .size-guide-overlay.active { opacity: 1; visibility: visible; }
+        
+        .size-guide-modal { background: var(--blanco-puro); border-radius: 20px; width: 100%; max-width: 680px; max-height: 88vh; display: flex; flex-direction: column; box-shadow: 0 30px 60px rgba(138, 115, 96, 0.2); transform: translateY(20px) scale(0.97); transition: transform 0.3s ease; overflow: hidden; }
+        .size-guide-overlay.active .size-guide-modal { transform: translateY(0) scale(1); }
+        
+        .size-guide-header { padding: 1.8rem 2rem 1.2rem; border-bottom: 1px solid var(--gris-claro); display: flex; justify-content: space-between; align-items: flex-start; flex-shrink: 0; background: var(--beige-calido); }
+        .size-guide-header h3 { font-family: var(--font-display); font-size: 1.5rem; color: var(--dark-studio); font-style: italic; margin: 0; }
+        .size-guide-header p { font-size: 0.85rem; color: #888; margin: 0.3rem 0 0; }
+        .size-guide-close { background: none; border: none; font-size: 1.4rem; cursor: pointer; color: #aaa; line-height: 1; padding: 0; transition: color 0.2s; }
+        .size-guide-close:hover { color: var(--dark-studio); }
+        
+        .size-guide-tabs { display: flex; gap: 0; border-bottom: 2px solid var(--gris-claro); flex-shrink: 0; padding: 0 2rem; background: var(--blanco-puro); overflow-x: auto; }
+        .size-tab { padding: 0.9rem 1.2rem; font-size: 0.8rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; border: none; background: none; cursor: pointer; color: #aaa; border-bottom: 2px solid transparent; margin-bottom: -2px; transition: all 0.2s; white-space: nowrap; }
+        .size-tab.active { color: var(--dark-studio); border-bottom-color: var(--dark-studio); }
+        .size-tab:hover:not(.active) { color: var(--dark-studio); }
+        
+        .size-guide-body { padding: 1.5rem 2rem 2rem; overflow-y: auto; flex: 1; }
+        
+        .size-panel { display: none; }
+        .size-panel.active { display: block; }
+        
+        .size-tip { background: var(--rosa-palo); border-left: 3px solid var(--rosa-intenso); padding: 0.8rem 1rem; border-radius: 0 8px 8px 0; font-size: 0.85rem; color: var(--dark-studio); margin-bottom: 1.5rem; line-height: 1.5; }
+        
+        .size-table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+        .size-table thead tr { background: var(--beige-calido); }
+        .size-table th { padding: 0.8rem 1rem; text-align: left; font-weight: 700; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px; color: var(--dark-studio); border-bottom: 2px solid var(--gris-claro); }
+        .size-table td { padding: 0.8rem 1rem; border-bottom: 1px solid var(--rosa-palo); color: #555; font-weight: 500; }
+        .size-table tbody tr:last-child td { border-bottom: none; }
+        .size-table tbody tr:hover td { background: var(--beige-calido); }
+        .size-table .talla-col { font-weight: 800; color: var(--dark-studio); font-size: 1rem; }
+        
+        .how-to-measure { margin-top: 1.5rem; padding: 1rem; background: var(--celeste-claro); border-radius: 10px; }
+        .how-to-measure h4 { font-size: 0.85rem; font-weight: 700; color: var(--dark-studio); margin-bottom: 0.8rem; text-transform: uppercase; letter-spacing: 0.5px; }
+        .how-to-measure ul { padding-left: 1.2rem; margin: 0; }
+        .how-to-measure li { font-size: 0.82rem; color: #666; line-height: 1.7; }
+
     </style>
 </head>
 <body>
@@ -689,7 +731,7 @@
             } else if (Array.isArray(tallasData) && tallasData.length > 0) {
                 sizesHTML = `
                 <div class="variant-group">
-                    <span class="variant-label"><span>Tallas Disponibles</span></span>
+                    <span class="variant-label"><span>Tallas Disponibles</span><button class="size-guide-btn" onclick="openSizeGuide()">📏 Guía de Tallas</button></span>
                     <div class="size-options">
                         ${tallasData.map(s => {
                             const stock = parseInt(s.stock) || 0;
@@ -982,5 +1024,216 @@
         window.removeFromCart = (id) => { cart = cart.filter(i => i.id !== id); localStorage.setItem('mathsoluis_cart', JSON.stringify(cart)); renderCartUI(); };
 
     </script>
+
+    <!-- MODAL GUÍA DE TALLAS -->
+    <div id="sizeGuideOverlay" class="size-guide-overlay" onclick="closeSizeGuideOnBg(event)">
+        <div class="size-guide-modal">
+            <div class="size-guide-header">
+                <div>
+                    <h3>Guía de Tallas</h3>
+                    <p>Medidas en centímetros. Todas las telas tienen entre 2-5% de elasticidad.</p>
+                </div>
+                <button class="size-guide-close" onclick="closeSizeGuide()">✕</button>
+            </div>
+            
+            <div class="size-guide-tabs">
+                <button class="size-tab active" onclick="switchSizeTab('bebe', this)">👶 Bebé</button>
+                <button class="size-tab" onclick="switchSizeTab('adulto', this)">👗 Adulto</button>
+                <button class="size-tab" onclick="switchSizeTab('sosten', this)">👙 Sostén</button>
+                <button class="size-tab" onclick="switchSizeTab('calzon', this)">🩲 Calzón Maternal</button>
+                <button class="size-tab" onclick="switchSizeTab('bata', this)">👘 Bata</button>
+            </div>
+            
+            <div class="size-guide-body">
+
+                <!-- PANEL BEBÉ -->
+                <div class="size-panel active" id="panel-bebe">
+                    <div class="size-tip">💡 Las tallas de bebé varían según el peso y largo del bebé. Si tu bebé está entre dos tallas, recomendamos la talla mayor para mayor duración.</div>
+                    <table class="size-table">
+                        <thead>
+                            <tr>
+                                <th>Talla</th>
+                                <th>Edad Aprox.</th>
+                                <th>Peso (kg)</th>
+                                <th>Largo bebé (cm)</th>
+                                <th>Contorno pecho (cm)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr><td class="talla-col">PRE</td><td>Prematuro</td><td>hasta 2,5</td><td>hasta 44</td><td>hasta 38</td></tr>
+                            <tr><td class="talla-col">RN</td><td>Recién nacido</td><td>2,5 — 4</td><td>44 — 54</td><td>38 — 42</td></tr>
+                            <tr><td class="talla-col">0-3M</td><td>0 a 3 meses</td><td>3,5 — 6</td><td>54 — 61</td><td>42 — 46</td></tr>
+                            <tr><td class="talla-col">3-6M</td><td>3 a 6 meses</td><td>6 — 8</td><td>61 — 67</td><td>46 — 48</td></tr>
+                            <tr><td class="talla-col">6-9M</td><td>6 a 9 meses</td><td>7,5 — 9</td><td>67 — 72</td><td>46 — 50</td></tr>
+                            <tr><td class="talla-col">9-12M</td><td>9 a 12 meses</td><td>9 — 11</td><td>72 — 78</td><td>48 — 52</td></tr>
+                            <tr><td class="talla-col">12-18M</td><td>12 a 18 meses</td><td>10 — 13</td><td>78 — 84</td><td>50 — 54</td></tr>
+                            <tr><td class="talla-col">18-24M</td><td>18 a 24 meses</td><td>12 — 15</td><td>84 — 92</td><td>52 — 56</td></tr>
+                            <tr><td class="talla-col">2A</td><td>2 años</td><td>13 — 16</td><td>88 — 95</td><td>54 — 58</td></tr>
+                            <tr><td class="talla-col">3A</td><td>3 años</td><td>15 — 18</td><td>95 — 102</td><td>56 — 60</td></tr>
+                            <tr><td class="talla-col">4A</td><td>4 años</td><td>17 — 21</td><td>100 — 108</td><td>58 — 62</td></tr>
+                        </tbody>
+                    </table>
+                    <div class="how-to-measure">
+                        <h4>Cómo medir a tu bebé</h4>
+                        <ul>
+                            <li><strong>Largo:</strong> Desde la coronilla hasta los talones con bebé acostado boca arriba.</li>
+                            <li><strong>Contorno de pecho:</strong> Mide alrededor del pecho en la parte más ancha, pasando por debajo de las axilas.</li>
+                            <li><strong>Peso:</strong> Preferir la báscula del pediatra para mayor exactitud.</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- PANEL ADULTO -->
+                <div class="size-panel" id="panel-adulto">
+                    <div class="size-tip">💡 Para pijamas y ropa de descanso, si estás entre dos tallas elige la mayor para mayor comodidad al dormir.</div>
+                    <table class="size-table">
+                        <thead>
+                            <tr>
+                                <th>Talla</th>
+                                <th>Contorno pecho (cm)</th>
+                                <th>Contorno cintura (cm)</th>
+                                <th>Contorno cadera (cm)</th>
+                                <th>Equivalencia</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr><td class="talla-col">XS</td><td>78 — 82</td><td>60 — 64</td><td>84 — 88</td><td>34 / 36 EU</td></tr>
+                            <tr><td class="talla-col">S</td><td>82 — 88</td><td>64 — 68</td><td>88 — 94</td><td>36 / 38 EU</td></tr>
+                            <tr><td class="talla-col">M</td><td>88 — 94</td><td>68 — 74</td><td>94 — 100</td><td>38 / 40 EU</td></tr>
+                            <tr><td class="talla-col">L</td><td>94 — 100</td><td>74 — 80</td><td>100 — 106</td><td>40 / 42 EU</td></tr>
+                            <tr><td class="talla-col">XL</td><td>100 — 108</td><td>80 — 88</td><td>106 — 114</td><td>42 / 44 EU</td></tr>
+                            <tr><td class="talla-col">XXL</td><td>108 — 116</td><td>88 — 96</td><td>114 — 122</td><td>44 / 46 EU</td></tr>
+                            <tr><td class="talla-col">XXXL</td><td>116 — 124</td><td>96 — 104</td><td>122 — 130</td><td>46 / 48 EU</td></tr>
+                        </tbody>
+                    </table>
+                    <div class="how-to-measure">
+                        <h4>Cómo tomar tus medidas</h4>
+                        <ul>
+                            <li><strong>Pecho:</strong> Mide alrededor de la parte más ancha del busto, mantén la cinta horizontal.</li>
+                            <li><strong>Cintura:</strong> Mide en la parte más estrecha del torso, sobre el ombligo.</li>
+                            <li><strong>Cadera:</strong> Mide alrededor de la parte más ancha de las caderas y glúteos.</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- PANEL SOSTÉN MATERNAL -->
+                <div class="size-panel" id="panel-sosten">
+                    <div class="size-tip">💡 Las tallas de sostén maternal corresponden al contorno bajo el busto (banda). Durante el embarazo y lactancia el busto puede aumentar 1-2 copas — considera esto al elegir.</div>
+                    <table class="size-table">
+                        <thead>
+                            <tr>
+                                <th>Talla (banda)</th>
+                                <th>Contorno bajo busto (cm)</th>
+                                <th>Contorno busto (cm)</th>
+                                <th>Equivalencia copa aprox.</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr><td class="talla-col">42</td><td>72 — 77</td><td>90 — 96</td><td>Copa B / C</td></tr>
+                            <tr><td class="talla-col">44</td><td>77 — 82</td><td>94 — 100</td><td>Copa C / D</td></tr>
+                            <tr><td class="talla-col">46</td><td>82 — 87</td><td>98 — 106</td><td>Copa C / D</td></tr>
+                            <tr><td class="talla-col">48</td><td>87 — 92</td><td>104 — 112</td><td>Copa D / E</td></tr>
+                            <tr><td class="talla-col">50</td><td>92 — 97</td><td>110 — 118</td><td>Copa D / E</td></tr>
+                            <tr><td class="talla-col">52</td><td>97 — 102</td><td>116 — 124</td><td>Copa E / F</td></tr>
+                        </tbody>
+                    </table>
+                    <div class="how-to-measure">
+                        <h4>Cómo medir correctamente</h4>
+                        <ul>
+                            <li><strong>Banda (talla número):</strong> Mide justo bajo el busto, ajustado pero sin apretar. Ese número es tu talla.</li>
+                            <li><strong>Copa:</strong> Mide alrededor de la parte más prominente del busto. La diferencia con la medida de banda determina la copa.</li>
+                            <li>Nuestros sostenes tienen cierre ampliable de 3 posiciones para adaptarse a los cambios del embarazo y posparto.</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- PANEL CALZÓN MATERNAL -->
+                <div class="size-panel" id="panel-calzon">
+                    <div class="size-tip">💡 El calzón maternal está diseñado para sostener el abdomen durante el embarazo. Si estás en el tercer trimestre, elige la talla mayor.</div>
+                    <table class="size-table">
+                        <thead>
+                            <tr>
+                                <th>Talla</th>
+                                <th>Etapa</th>
+                                <th>Contorno cintura (cm)</th>
+                                <th>Contorno cadera (cm)</th>
+                                <th>Talla ropa equiv.</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr><td class="talla-col">0 a 6 meses</td><td>1° y 2° trimestre</td><td>70 — 90</td><td>90 — 106</td><td>S / M / L</td></tr>
+                            <tr><td class="talla-col">6 a 10 meses</td><td>3° trimestre y posparto</td><td>88 — 110</td><td>100 — 118</td><td>L / XL / XXL</td></tr>
+                        </tbody>
+                    </table>
+                    <div class="how-to-measure">
+                        <h4>Cómo elegir tu talla</h4>
+                        <ul>
+                            <li><strong>Cintura:</strong> Mide alrededor del ombligo (no en la cintura natural, sino donde crece el abdomen).</li>
+                            <li><strong>Cadera:</strong> Mide en la parte más ancha de las caderas.</li>
+                            <li>El calzón tiene panel frontal elástico que se adapta al crecimiento del vientre semana a semana.</li>
+                            <li>Si estás entre tallas, considera cuántos meses de embarazo quedan para elegir la talla que te durará más.</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- PANEL BATA / KIT MATERNAL -->
+                <div class="size-panel" id="panel-bata">
+                    <div class="size-tip">💡 La bata del Kit Maternal tiene corte holgado para comodidad en el postparto y lactancia. Si usas talla M en ropa normal, elige M en la bata.</div>
+                    <table class="size-table">
+                        <thead>
+                            <tr>
+                                <th>Talla bata</th>
+                                <th>Contorno pecho (cm)</th>
+                                <th>Contorno cadera (cm)</th>
+                                <th>Largo total (cm)</th>
+                                <th>Talla ropa equiv.</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr><td class="talla-col">S</td><td>88 — 96</td><td>92 — 100</td><td>100 — 105</td><td>36 / 38</td></tr>
+                            <tr><td class="talla-col">M</td><td>94 — 102</td><td>98 — 106</td><td>103 — 108</td><td>38 / 40</td></tr>
+                            <tr><td class="talla-col">L</td><td>100 — 110</td><td>104 — 114</td><td>105 — 110</td><td>40 / 42</td></tr>
+                            <tr><td class="talla-col">XL</td><td>108 — 118</td><td>112 — 122</td><td>107 — 112</td><td>42 / 44</td></tr>
+                            <tr><td class="talla-col">XXL</td><td>116 — 126</td><td>120 — 130</td><td>109 — 114</td><td>44 / 46</td></tr>
+                        </tbody>
+                    </table>
+                    <div class="how-to-measure">
+                        <h4>Sobre el Kit Maternal completo</h4>
+                        <ul>
+                            <li>Cada prenda del kit se talla de forma independiente — puedes elegir tallas distintas para la bata, el sostén y el calzón.</li>
+                            <li>Las pantuflas van en talla de pie: 35-36 / 37-38 / 39-40.</li>
+                            <li>La ropita del bebé se talla por edad/peso del bebé (ver pestaña Bebé).</li>
+                        </ul>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+    <!-- FIN MODAL GUÍA DE TALLAS -->
+
+    <script>
+        // === GUÍA DE TALLAS ===
+        function openSizeGuide() {
+            document.getElementById('sizeGuideOverlay').classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+        function closeSizeGuide() {
+            document.getElementById('sizeGuideOverlay').classList.remove('active');
+            document.body.style.overflow = '';
+        }
+        function closeSizeGuideOnBg(e) {
+            if (e.target === document.getElementById('sizeGuideOverlay')) closeSizeGuide();
+        }
+        function switchSizeTab(panel, btn) {
+            document.querySelectorAll('.size-panel').forEach(p => p.classList.remove('active'));
+            document.querySelectorAll('.size-tab').forEach(b => b.classList.remove('active'));
+            document.getElementById('panel-' + panel).classList.add('active');
+            btn.classList.add('active');
+        }
+        // Cerrar con Escape
+        document.addEventListener('keydown', e => { if (e.key === 'Escape') closeSizeGuide(); });
+    </script>
+
 </body>
 </html>
