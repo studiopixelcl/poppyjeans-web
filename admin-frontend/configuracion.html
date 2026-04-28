@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mathsoluis | Configuración del Sistema</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;600;700;800&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+    
+    <style>
+        /* --- STUDIO PIXEL TOKENS --- */
+        :root {
+            --blanco-puro: #FFFFFF;
+            --fondo-claro: #F4F7F6; 
+            --teal-studio: #13C2B3; 
+            --teal-claro: #E0F6F5;  
+            --dark-studio: #1E1E24; 
+            --gris-claro: #E8ECEB;
+            --danger-color: #E74C3C;
+            --danger-light: #FDEDEC;
+            
+            --font-main: 'Poppins', sans-serif;
+            --font-display: 'Montserrat', sans-serif;
+            
+            --radius-md: 12px;
+            --radius-lg: 24px;
+            --radius-pill: 50px;
+            
+            --shadow-subtle: 0 10px 30px rgba(30, 30, 36, 0.08);
+            --transition-smooth: all 0.3s ease;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body { 
+            font-family: var(--font-main); 
+            background-color: var(--fondo-claro); 
+            color: var(--dark-studio); 
+        }
+
+        /* --- ESTILOS DE PROTECCIÓN Y LOGIN --- */
+        #accessDeniedView {
+            display: none; height: 100vh; flex-direction: column; align-items: center; justify-content: center; text-align: center; background: var(--fondo-claro);
+        }
+        .denied-card { background: var(--blanco-puro); padding: 4rem; border-radius: var(--radius-md); box-shadow: var(--shadow-subtle); max-width: 500px;}
+        .denied-icon { font-size: 4rem; color: var(--danger-color); margin-bottom: 1rem; }
+
+        /* --- LOGIN VIEW --- */
+        #loginView { 
+            min-height: 100vh; display: flex; align-items: center; justify-content: center; 
+            background: linear-gradient(135deg, var(--dark-studio) 0%, #2a2a35 100%); 
+        }
+        
+        .login-card { 
+            background: var(--blanco-puro); padding: 3rem; border-radius: var(--radius-md); 
+            box-shadow: 0 20px 40px rgba(0,0,0,0.2); width: 100%; max-width: 400px; text-align: center; 
+        }
+        
+        .login-logo { font-family: var(--font-display); font-size: 1.8rem; font-weight: 800; color: var(--dark-studio); margin-bottom: 2rem; }
+        .login-logo span { color: var(--teal-studio); }
+
+        .input-group { margin-bottom: 1.5rem; text-align: left; }
+        .input-group label { display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 0.5rem; color: #666; }
+        .input-group input, .input-group select, .input-group textarea { 
+            width: 100%; padding: 0.8rem 1rem; border: 1px solid var(--gris-claro); border-radius: 8px; 
+            font-family: var(--font-main); font-size: 0.95rem; outline: none; transition: var(--transition-smooth); background: var(--fondo-claro); 
+        }
+        .input-group input:focus, .input-group select:focus, .input-group textarea:focus { 
+            border-color: var(--teal-studio); background: var(--blanco-puro); box-shadow: 0 0 0 3px var(--teal-claro); 
+        }
+
+        .btn-primary { width: 100%; background: var(--teal-studio); color: var(--blanco-puro); border: none; padding: 1rem; border-radius: 8px; font-family: var(--font-main); font-size: 1rem; font-weight: 600; cursor: pointer; transition: var(--transition-smooth); text-decoration: none; display: inline-block;}
+        .btn-primary:hover { background: #10a89b; transform: translateY(-2px); }
+        .btn-secondary { background: var(--gris-claro); color: var(--dark-studio); border: none; padding: 0.8rem 1.5rem; border-radius: 8px; font-weight: 600; cursor: pointer; transition: var(--transition-smooth); }
+        .btn-secondary:hover { background: #d5dbda; }
+        .error-msg { color: var(--danger-color); font-size: 0.85rem; margin-top: 1rem; display: none; }
+
+        /* --- DASHBOARD VIEW --- */
+        #dashboardView { display: none; min-height: 100vh; }
+        .sidebar { width: 250px; background: var(--dark-studio); color: var(--blanco-puro); position: fixed; height: 100vh; top: 0; left: 0; padding: 2rem 1.5rem; }
+        .sidebar-logo { font-family: var(--font-display); font-size: 1.5rem; font-weight: 800; margin-bottom: 3rem; }
+        .sidebar-logo span { color: var(--teal-studio); }
+        .nav-menu { list-style: none; }
+        .nav-item { margin-bottom: 0.5rem; }
+        .nav-link { display: block; color: #aaa; text-decoration: none; padding: 0.8rem 1rem; border-radius: 8px; font-weight: 500; transition: var(--transition-smooth); }
+        .nav-link:hover, .nav-link.active { background: rgba(255,255,255,0.1); color: var(--teal-studio); }
+
+        .main-content { margin-left: 250px; padding: 2rem 3rem; }
+        .topbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 3rem; }
+        .topbar h2 { font-family: var(--font-display); font-size: 1.8rem; font-weight: 700; }
+        .user-info { display: flex; align-items: center; gap: 1rem; font-weight: 600; }
+        .logout-btn { background: var(--danger-light); color: var(--danger-color); border: none; padding: 0.5rem 1rem; border-radius: 6px; cursor: pointer; font-weight: 600; }
+
+        /* --- CARDS Y TABLAS --- */
+        .card { background: var(--blanco-puro); border-radius: var(--radius-md); padding: 1.5rem; box-shadow: var(--shadow-subtle); margin-bottom: 2rem;}
+        .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; }
+        .card-header h3 { font-family: var(--font-display); font-size: 1.2rem; }
+        
+        table { width: 100%; border-collapse: collapse; text-align: left; }
+        th { padding: 1rem; border-bottom: 2px solid var(--gris-claro); color: #888; font-weight: 600; font-size: 0.85rem; text-transform: uppercase; }
+        td { padding: 1rem; border-bottom: 1px solid var(--gris-claro); font-size: 0.95rem; vertical-align: middle; }
+        tbody tr:hover { background: var(--fondo-claro); }
+        
+        .badge { padding: 0.4rem 1rem; border-radius: 50px; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;}
+        .badge-superadmin { background: var(--teal-claro); color: var(--teal-studio); border: 1px solid #A3E4D7; }
+        .badge-agente { background: #E8F0FE; color: #2980B9; border: 1px solid #D4E6F1; }
+
+        .action-btn { background: none; border: none; cursor: pointer; font-size: 1.2rem; margin-right: 0.5rem; color: #888; transition: var(--transition-smooth); }
+        .action-btn:hover { color: var(--teal-studio); }
+
+        /* --- MODAL ADMINISTRADOR --- */
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(30, 30, 36, 0.6); backdrop-filter: blur(5px); display: none; align-items: center; justify-content: center; z-index: 1000; opacity: 0; transition: opacity 0.3s ease; }
+        .modal-overlay.active { display: flex; opacity: 1; }
+        .modal-content { background: var(--blanco-puro); width: 100%; max-width: 600px; border-radius: var(--radius-lg); box-shadow: 0 25px 50px rgba(0,0,0,0.15); transform: translateY(20px); transition: transform 0.3s ease; display: flex; flex-direction: column; overflow: hidden; }
+        .modal-overlay.active .modal-content { transform: translateY(0); }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; padding: 2rem 2.5rem; border-bottom: 1px solid var(--gris-claro); background: var(--blanco-puro); z-index: 10; }
+        .modal-header h3 { font-family: var(--font-display); font-size: 1.5rem; color: var(--dark-studio); }
+        .close-modal { background: none; border: none; font-size: 1.5rem; cursor: pointer; color: #888; transition: color 0.3s ease; }
+        .close-modal:hover { color: var(--danger-color); }
+        
+        .modal-body { padding: 2rem 2.5rem; }
+        .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
+        .modal-actions { display: flex; justify-content: flex-end; gap: 1rem; padding: 1.5rem 2.5rem; border-top: 1px solid var(--gris-claro); background: var(--fondo-claro); }
+        
+    </style>
+</head>
+<body>
+
+    <!-- VISTA ACCESO DENEGADO -->
+    <div id="accessDeniedView">
+        <div class="denied-card">
+            <div class="denied-icon">🔒</div>
+            <h2 style="font-family: var(--font-display); font-size: 1.8rem; margin-bottom: 1rem;">Acceso Restringido</h2>
+            <p style="color: #666; margin-bottom: 2rem;">La configuración del sistema es exclusiva para roles de Super Administrador. Tu cuenta actual no tiene los permisos suficientes para modificar usuarios o parámetros globales.</p>
+            <a href="index.html" class="btn-primary" style="width: auto;">Volver al Inventario</a>
+        </div>
+    </div>
+
+    <!-- VISTA INICIO SESIÓN -->
+    <div id="loginView">
+        <div class="login-card">
+            <div class="login-logo">MATHSO<span>LUIS</span></div>
+            <p style="color: #888; margin-bottom: 2rem; font-size: 0.9rem;">Ingresa tus credenciales para acceder al panel corporativo.</p>
+            <form id="loginForm">
+                <div class="input-group">
+                    <label>Correo Electrónico</label>
+                    <input type="email" id="loginEmail" required placeholder="admin@mathsoluis.cl" value="admin@mathsoluis.cl">
+                </div>
+                <div class="input-group">
+                    <label>Contraseña</label>
+                    <input type="password" id="loginPassword" required placeholder="Ingresa tu contraseña">
+                </div>
+                <button type="submit" class="btn-primary" id="loginBtnText">Iniciar Sesión</button>
+                <div id="loginError" class="error-msg">Credenciales incorrectas. Intenta nuevamente.</div>
+            </form>
+        </div>
+    </div>
+
+    <!-- VISTA DASHBOARD -->
+    <div id="dashboardView">
+        <aside class="sidebar">
+            <div class="sidebar-logo">MATHSO<span>LUIS</span></div>
+            <ul class="nav-menu">
+                <li class="nav-item"><a href="index.html" class="nav-link">📦 Inventario</a></li>
+                <li class="nav-item"><a href="pedidos.html" class="nav-link">🛒 Pedidos</a></li>
+                <li class="nav-item"><a href="clientes.html" class="nav-link">👥 Clientes</a></li>
+                <li class="nav-item"><a href="configuracion.html" class="nav-link active">⚙️ Configuración</a></li>
+                <li class="nav-item" style="margin-top: 2rem;"><a href="actividades.html" class="nav-link">📊 Actividades (Admin)</a></li>
+            </ul>
+        </aside>
+
+        <main class="main-content">
+            <header class="topbar">
+                <h2>Configuración del Sistema</h2>
+                <div class="user-info">
+                    <span id="adminName">Cargando...</span>
+                    <button class="logout-btn" onclick="logout()">Salir</button>
+                </div>
+            </header>
+
+            <!-- GESTIÓN DE EQUIPO -->
+            <section class="card">
+                <div class="card-header">
+                    <h3>Equipo y Accesos (Administradores)</h3>
+                    <button class="btn-primary" style="width: auto; padding: 0.6rem 1.5rem;" onclick="openAdminModal()">+ Nuevo Integrante</button>
+                </div>
+                
+                <div style="overflow-x: auto;">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Nombre</th>
+                                <th>Correo Electrónico</th>
+                                <th>Rol de Acceso</th>
+                                <th>Fecha de Ingreso</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="adminsTableBody">
+                            <tr><td colspan="6" style="text-align: center; padding: 2rem;">Cargando equipo...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- AJUSTES GENERALES (Placeholder Visual) -->
+            <section class="card" style="opacity: 0.8;">
+                <div class="card-header">
+                    <h3>Ajustes Generales de la Tienda</h3>
+                    <span class="badge badge-agente">Próximamente</span>
+                </div>
+                <p style="color: #888; font-size: 0.9rem; margin-bottom: 1.5rem;">Configuraciones globales como costos de envío fijos, información de contacto pública y modo mantenimiento.</p>
+                <div class="form-grid">
+                    <div class="input-group">
+                        <label>Nombre Público de la Tienda</label>
+                        <input type="text" value="Mathsoluis SpA" disabled>
+                    </div>
+                    <div class="input-group">
+                        <label>Costo de Envío Base ($)</label>
+                        <input type="text" value="Por Pagar (Blue Express)" disabled>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- MODAL CREAR / EDITAR ADMINISTRADOR -->
+    <div id="adminModal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modalTitle">Añadir Administrador</h3>
+                <button class="close-modal" onclick="closeAdminModal()">✕</button>
+            </div>
+            
+            <form id="adminForm">
+                <div class="modal-body">
+                    <div class="form-grid">
+                        
+                        <div class="input-group" style="grid-column: span 2;">
+                            <label>Nombre del Colaborador *</label>
+                            <input type="text" id="admNombre" required placeholder="Ej: Camila Asistente">
+                        </div>
+                        
+                        <div class="input-group" style="grid-column: span 2;">
+                            <label>Correo Electrónico de Acceso *</label>
+                            <input type="email" id="admEmail" required placeholder="correo@mathsoluis.cl">
+                        </div>
+
+                        <div class="input-group">
+                            <label>Rol y Permisos</label>
+                            <select id="admRol">
+                                <option value="superadmin">Super Admin (Control Total)</option>
+                                <option value="agente">Agente / Editor (Limitado)</option>
+                            </select>
+                        </div>
+                        
+                        <div class="input-group">
+                            <label>Contraseña</label>
+                            <input type="password" id="admPassword" placeholder="Dejar en blanco para mantener">
+                            <small style="color: #999; font-size: 0.75rem;">Para usuarios nuevos es obligatoria.</small>
+                        </div>
+
+                    </div>
+                </div>
+                
+                <div class="modal-actions">
+                    <button type="button" class="btn-secondary" onclick="closeAdminModal()">Cancelar</button>
+                    <button type="submit" class="btn-primary" style="width: auto;" id="btnSaveAdmin">Guardar Usuario</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- LÓGICA JAVASCRIPT -->
+    <script>
+                const loginView = document.getElementById('loginView');
+        const dashboardView = document.getElementById('dashboardView');
+        const accessDeniedView = document.getElementById('accessDeniedView');
+        const loginForm = document.getElementById('loginForm');
+        const adminsTableBody = document.getElementById('adminsTableBody');
+        
+        let allAdmins = []; 
+        let editingAdminId = null; 
+
+        window.onload = () => {
+            const token = localStorage.getItem('admin_token');
+            const rol = localStorage.getItem('admin_rol');
+
+            if (token) {
+                document.getElementById('adminName').textContent = localStorage.getItem('admin_name');
+                if (rol === 'superadmin') {
+                    showDashboard();
+                } else {
+                    // Es un Agente, no puede ver configuración
+                    loginView.style.display = 'none';
+                    dashboardView.style.display = 'none';
+                    accessDeniedView.style.display = 'flex';
+                }
+            }
+        };
+
+        loginForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            document.getElementById('loginError').style.display = 'none';
+            document.getElementById('loginBtnText').textContent = 'Conectando...';
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/admin/login`, {
+                    method: 'POST', 
+                    headers: { 'Content-Type': 'application/json' }, 
+                    body: JSON.stringify({ 
+                        email: document.getElementById('loginEmail').value, 
+                        password: document.getElementById('loginPassword').value 
+                    })
+                });
+                
+                const result = await response.json();
+
+                if (result.success) {
+                    localStorage.setItem('admin_token', result.token);
+                    localStorage.setItem('admin_name', result.admin_data.nombre);
+                    localStorage.setItem('admin_rol', result.admin_data.rol);
+                    document.getElementById('adminName').textContent = result.admin_data.nombre;
+                    
+                    if (result.admin_data.rol === 'superadmin') {
+                        showDashboard();
+                    } else {
+                        loginView.style.display = 'none';
+                        dashboardView.style.display = 'none';
+                        accessDeniedView.style.display = 'flex';
+                    }
+                } else {
+                    document.getElementById('loginError').textContent = result.error || 'Credenciales incorrectas.';
+                    document.getElementById('loginError').style.display = 'block';
+                }
+            } catch (error) {
+                document.getElementById('loginError').textContent = 'Error de conexión con el servidor.';
+                document.getElementById('loginError').style.display = 'block';
+            } finally {
+                document.getElementById('loginBtnText').textContent = 'Iniciar Sesión';
+            }
+        });
+
+        function showDashboard() { 
+            loginView.style.display = 'none'; 
+            accessDeniedView.style.display = 'none';
+            dashboardView.style.display = 'block'; 
+            loadAdmins(); 
+        }
+        
+        function logout() { 
+            localStorage.clear(); 
+            window.location.href = 'configuracion.html';
+        }
+
+        // ==========================================
+        // OBTENER ADMINISTRADORES
+        // ==========================================
+        async function loadAdmins() {
+            try {
+                const response = await adminFetch('/api/admin/users');
+                if (!response) return;
+                const result = await response.json();
+                
+                if (result.success) {
+                    allAdmins = result.data;
+                    renderAdmins(allAdmins);
+                } else {
+                    adminsTableBody.innerHTML = `<tr><td colspan="6" style="color:#888; text-align:center; padding: 2rem;">Ruta de usuarios en configuración.</td></tr>`;
+                }
+            } catch (error) {
+                adminsTableBody.innerHTML = `<tr><td colspan="6" style="color:var(--danger-color); text-align:center; padding: 2rem;">Error de conexión.</td></tr>`;
+            }
+        }
+
+        function renderAdmins(admins) {
+            adminsTableBody.innerHTML = '';
+            
+            if (admins.length === 0) return;
+
+            admins.forEach(admin => {
+                const fecha = new Date(admin.fecha_creacion).toLocaleDateString('es-CL');
+                const rolBadge = admin.rol === 'superadmin' 
+                    ? `<span class="badge badge-superadmin">👑 Super Admin</span>` 
+                    : `<span class="badge badge-agente">👤 Agente</span>`;
+
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td><strong>#${admin.id}</strong></td>
+                    <td>
+                        <div style="display: flex; align-items: center; gap: 0.8rem;">
+                            <div style="width: 35px; height: 35px; border-radius: 50%; background: var(--dark-studio); color: var(--blanco-puro); display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 1rem;">
+                                ${admin.nombre.charAt(0).toUpperCase()}
+                            </div>
+                            <span style="font-weight: 600; color: var(--dark-studio);">${admin.nombre}</span>
+                        </div>
+                    </td>
+                    <td style="color: var(--teal-studio);">${admin.email}</td>
+                    <td>${rolBadge}</td>
+                    <td>${fecha}</td>
+                    <td>
+                        <button class="action-btn" onclick="openEditModal(${admin.id})" title="Editar Permisos">✏️</button>
+                        ${admin.id !== 1 ? `<button class="action-btn" style="color: var(--danger-color);" onclick="deleteAdmin(${admin.id})" title="Revocar Acceso">🗑️</button>` : ''}
+                    </td>
+                `;
+                adminsTableBody.appendChild(tr);
+            });
+        }
+
+        // ==========================================
+        // MODAL Y FORMULARIO
+        // ==========================================
+        const adminModal = document.getElementById('adminModal');
+        const adminForm = document.getElementById('adminForm');
+
+        function openAdminModal() {
+            editingAdminId = null; 
+            document.getElementById('modalTitle').textContent = 'Añadir Nuevo Administrador';
+            adminForm.reset(); 
+            adminModal.classList.add('active');
+        }
+
+        function openEditModal(id) {
+            const a = allAdmins.find(x => x.id === id);
+            if (!a) return;
+            
+            editingAdminId = id; 
+            document.getElementById('modalTitle').textContent = 'Editar Usuario #' + id;
+            
+            document.getElementById('admNombre').value = a.nombre;
+            document.getElementById('admEmail').value = a.email;
+            document.getElementById('admRol').value = a.rol || 'agente';
+            document.getElementById('admPassword').value = ''; // Vacío por seguridad
+            
+            adminModal.classList.add('active');
+        }
+
+        function closeAdminModal() { adminModal.classList.remove('active'); }
+
+        // ==========================================
+        // GUARDAR / ELIMINAR (CONEXIÓN API)
+        // ==========================================
+        adminForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btnSave = document.getElementById('btnSaveAdmin');
+            
+            btnSave.textContent = 'Guardando...'; 
+            btnSave.disabled = true;
+
+            const adminData = {
+                nombre: document.getElementById('admNombre').value,
+                email: document.getElementById('admEmail').value,
+                rol: document.getElementById('admRol').value,
+                password: document.getElementById('admPassword').value || null
+            };
+
+            if (!editingAdminId && !adminData.password) {
+                alert("Debes asignar una contraseña para el usuario nuevo.");
+                btnSave.textContent = 'Guardar Usuario'; btnSave.disabled = false;
+                return;
+            }
+
+            const method = editingAdminId ? 'PUT' : 'POST';
+            const url = editingAdminId ? `${API_BASE_URL}/api/admin/users/${editingAdminId}` : `${API_BASE_URL}/api/admin/users`;
+
+            try {
+                const response = await fetch(url, { 
+                    method: method, 
+                    headers: { 'Content-Type': 'application/json' }, 
+                    body: JSON.stringify(adminData) 
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    closeAdminModal(); 
+                    loadAdmins(); 
+                } else {
+                    alert('Error: ' + result.error);
+                }
+            } catch (error) {
+                alert('Error de red.');
+                closeAdminModal();
+            } finally {
+                btnSave.textContent = 'Guardar Usuario'; 
+                btnSave.disabled = false;
+            }
+        });
+
+        async function deleteAdmin(id) {
+            if (id === 1) return alert("No puedes eliminar al Superadministrador principal.");
+            
+            if (!confirm(`¿Seguro que deseas revocar el acceso y eliminar permanentemente al usuario #${id}?`)) return;
+            try {
+                const response = await adminFetch(`/api/admin/users/${id}`, { method: 'DELETE' });
+                if (!response) return;
+                const result = await response.json();
+                if (result.success) loadAdmins(); 
+                else alert('Error: ' + result.error);
+            } catch (error) {
+                alert('Error de conexión.');
+            }
+        }
+    </script>
+
+    <!-- ✅ AUTH HELPER v2.0 - Sesiones seguras con token UUID -->
+    <script>
+        const API_BASE_URL = 'https://mathsoluis-api.studiopixelchile.workers.dev';
+
+        function getAuthHeaders() {
+            const token = localStorage.getItem('admin_token');
+            return { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` };
+        }
+
+        async function adminFetch(endpoint, options = {}) {
+            const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+                ...options,
+                headers: { ...getAuthHeaders(), ...(options.headers || {}) }
+            });
+            if (response.status === 401) {
+                localStorage.clear();
+                alert('Tu sesión ha expirado. Por favor inicia sesión nuevamente.');
+                window.location.href = 'configuracion.html';
+                return null;
+            }
+            return response;
+        }
+
+        async function logout() {
+            try {
+                await fetch(`${API_BASE_URL}/api/admin/logout`, {
+                    method: 'POST', headers: getAuthHeaders()
+                });
+            } catch (e) { console.warn('No se pudo notificar logout al servidor:', e); }
+            finally { localStorage.clear(); window.location.href = 'configuracion.html'; }
+        }
+    </script>
+
+</body>
+</html>

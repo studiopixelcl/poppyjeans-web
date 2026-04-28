@@ -1,0 +1,8 @@
+name = "mathsoluis-api"
+main = "src/index.js"
+compatibility_date = "2024-04-08"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "mathsoluis-db"
+database_id = "dd9c2e8b-cd4b-47a7-a682-ccb08ce8d880"

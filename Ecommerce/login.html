@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ingresar | Mathsoluis</title>
+    <link rel="icon" href="./ico.jpg" type="image/jpeg">
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,600;1,600&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+
+    <style>
+        :root {
+            --blanco-puro: #FFFFFF;
+            --beige-calido: #FFFBF9;
+            --rosa-palo: #F9EBEA;
+            --rosa-intenso: #C28B8A;
+            --gris-oscuro: #4A4446;
+            --gris-claro: #F5F0F0;
+            --font-main: 'Poppins', sans-serif;
+            --font-display: 'Playfair Display', serif;
+            --transition-smooth: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+            --shadow-soft: 0 8px 24px rgba(194, 139, 138, 0.12);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: var(--font-main); background-color: var(--beige-calido); color: var(--gris-oscuro); display: flex; min-height: 100vh; overflow-x: hidden;}
+        button { border: none; background: none; font-family: inherit; cursor: pointer; outline: none;}
+
+        /* --- SPLIT LAYOUT --- */
+        .auth-container { display: flex; width: 100%; min-height: 100vh; }
+        
+        /* Mitad Izquierda: Imagen */
+        .auth-banner { display: none; width: 55%; position: relative; background: var(--rosa-palo); overflow: hidden; }
+        @media (min-width: 900px) { .auth-banner { display: block; } }
+        .auth-banner img { width: 100%; height: 100%; object-fit: cover; opacity: 0.95; }
+        .auth-banner-overlay { position: absolute; inset: 0; background: linear-gradient(180deg, rgba(74, 68, 70, 0.05) 0%, rgba(74, 68, 70, 0.7) 100%); display: flex; flex-direction: column; justify-content: flex-end; padding: 5rem; color: var(--blanco-puro); }
+        .auth-banner h2 { font-family: var(--font-display); font-size: 3rem; margin-bottom: 1rem; line-height: 1.1; font-weight: 600;}
+        
+        /* Mitad Derecha: Formulario */
+        .auth-form-wrapper { width: 100%; display: flex; flex-direction: column; justify-content: center; padding: 2rem 5%; position: relative; background: var(--blanco-puro); }
+        @media (min-width: 900px) { .auth-form-wrapper { width: 45%; padding: 4rem 10%; } }
+        
+        .back-link { position: absolute; top: 2rem; left: 2rem; font-size: 0.9rem; font-weight: 500; color: #888; text-decoration: none; display: flex; align-items: center; gap: 5px; transition: var(--transition-smooth); }
+        @media (min-width: 900px) { .back-link { left: 10%; } }
+        .back-link:hover { color: var(--rosa-intenso); transform: translateX(-3px); }
+
+        .auth-header { text-align: center; margin-bottom: 2rem; }
+        .logo { font-family: var(--font-display); font-size: 2rem; font-weight: 700; font-style: italic; color: var(--rosa-intenso); text-decoration: none; display: inline-flex; align-items: center; gap: 10px; margin-bottom: 1.5rem;}
+        .logo img { width: 45px; height: 45px; object-fit: contain; mix-blend-mode: multiply; }
+        .auth-header h1 { font-family: var(--font-display); font-size: 1.8rem; color: var(--gris-oscuro); margin-bottom: 0.5rem; font-weight: 600;}
+        .auth-header p { font-size: 0.95rem; color: #888; }
+
+        /* --- NUEVO DISEÑO DE TABS (TOGGLE PILL) --- */
+        .auth-tabs { 
+            display: flex; 
+            background: var(--fondo-claro); 
+            border-radius: 50px; 
+            padding: 0.4rem; 
+            margin-bottom: 2.5rem; 
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.02);
+        }
+        .auth-tab { 
+            flex: 1; 
+            padding: 0.9rem; 
+            text-align: center; 
+            font-weight: 600; 
+            color: #888; 
+            transition: var(--transition-smooth); 
+            font-size: 0.95rem; 
+            border-radius: 50px;
+        }
+        .auth-tab.active { 
+            background: var(--blanco-puro); 
+            color: var(--rosa-intenso); 
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+        }
+        
+        .auth-view { display: none; animation: fadeInUp 0.4s ease forwards; }
+        .auth-view.active { display: block; }
+        
+        /* --- INPUTS PREMIUM --- */
+        .input-group { margin-bottom: 1.5rem; }
+        .input-group label { display: block; font-size: 0.85rem; font-weight: 600; color: var(--gris-oscuro); margin-bottom: 0.5rem; margin-left: 0.5rem;}
+        .input-group input { 
+            width: 100%; 
+            padding: 1.1rem 1.2rem; 
+            border: 1px solid var(--gris-claro); 
+            border-radius: 12px; 
+            font-family: var(--font-main); 
+            font-size: 0.95rem; 
+            outline: none; 
+            background: var(--blanco-puro); 
+            transition: var(--transition-smooth); 
+            color: var(--gris-oscuro);
+        }
+        .input-group input::placeholder { color: #ccc; font-weight: 300;}
+        .input-group input:focus { 
+            border-color: var(--rosa-intenso); 
+            background: var(--blanco-puro); 
+            box-shadow: 0 0 0 4px rgba(194, 139, 138, 0.1); 
+        }
+
+        .btn-primary { 
+            width: 100%; 
+            background: var(--rosa-intenso); 
+            color: var(--blanco-puro); 
+            padding: 1.2rem; 
+            border-radius: 50px; 
+            border: none; 
+            font-weight: 600; 
+            font-size: 1rem; 
+            transition: var(--transition-smooth); 
+            text-transform: uppercase; 
+            letter-spacing: 1px; 
+            margin-top: 1rem; 
+            box-shadow: var(--shadow-soft);
+        }
+        .btn-primary:hover:not(:disabled) { background: #a87675; transform: translateY(-3px); box-shadow: 0 12px 25px rgba(194, 139, 138, 0.25); }
+        .btn-primary:disabled { background: #ccc; cursor: not-allowed; box-shadow: none; transform: none;}
+
+        .auth-divider { text-align: center; margin: 1.5rem 0; position: relative; }
+        .auth-divider::before { content: ''; position: absolute; top: 50%; left: 0; width: 100%; height: 1px; background: var(--gris-claro); z-index: 1; }
+        .auth-divider span { background: var(--blanco-puro); padding: 0 15px; position: relative; z-index: 2; font-size: 0.85rem; color: #999; }
+
+        .google-btn-wrapper { display: flex; justify-content: center; margin-bottom: 0.5rem; min-height: 44px; width: 100%;}
+
+        /* TOAST */
+        .toast-notification { position: fixed; bottom: -100px; left: 50%; transform: translateX(-50%); background: var(--gris-oscuro); color: var(--blanco-puro); padding: 14px 28px; border-radius: 50px; font-size: 0.95rem; font-weight: 500; box-shadow: 0 10px 30px rgba(0,0,0,0.2); z-index: 9999; transition: bottom 0.4s cubic-bezier(0.25, 0.8, 0.25, 1); display: flex; align-items: center; gap: 10px; }
+        .toast-notification.show { bottom: 30px; } 
+        .toast-notification.error { background: var(--danger-color); }
+
+        @keyframes fadeInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+    </style>
+</head>
+<body>
+
+    <div id="toastNotification" class="toast-notification"><span id="toastIcon">✨</span> <span id="toastMsg">Mensaje</span></div>
+
+    <div class="auth-container">
+        <!-- BANNER IZQUIERDO -->
+        <div class="auth-banner">
+            <img src="https://images.unsplash.com/photo-1519689680058-324335c77eba?auto=format&fit=crop&w=1000&q=80" alt="Bebé Mathsoluis">
+            <div class="auth-banner-overlay">
+                <h2>Viste sus primeros pasos con amor.</h2>
+                <p style="font-size: 1.15rem; opacity: 0.9; font-weight: 300;">Únete a la familia Mathsoluis y accede a colecciones exclusivas, guarda tus favoritos y haz seguimiento a tus pedidos en tiempo real.</p>
+            </div>
+        </div>
+
+        <!-- FORMULARIOS DERECHOS -->
+        <div class="auth-form-wrapper">
+            <a href="index.html" class="back-link">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+                Volver a la tienda
+            </a>
+
+            <div style="max-width: 420px; width: 100%; margin: 0 auto;">
+                <div class="auth-header">
+                    <a href="index.html" class="logo"><img src="./ico.jpg" alt="Logo" onerror="this.src='https://via.placeholder.com/45x45?text=M'"> Mathsoluis</a>
+                    <h1>Bienvenida a tu espacio</h1>
+                    <p>Ingresa o regístrate para continuar</p>
+                </div>
+
+                <div class="auth-tabs" id="authTabsContainer">
+                    <button class="auth-tab active" data-target="loginFormView">Iniciar Sesión</button>
+                    <button class="auth-tab" data-target="registerFormView">Crear Cuenta</button>
+                </div>
+
+                <!-- Controlador global de Google Identity (Se carga una sola vez) -->
+                <div id="g_id_onload"
+                     data-client_id="1066740303615-7r15mbch99m1p1tcf5j4j8onn9oe51ls.apps.googleusercontent.com"
+                     data-context="use"
+                     data-ux_mode="popup"
+                     data-callback="handleGoogleLogin"
+                     data-auto_prompt="false">
+                </div>
+
+                <!-- VISTA: LOGIN -->
+                <div id="loginFormView" class="auth-view active">
+                    
+                    <div class="google-btn-wrapper">
+                        <!-- Botón de Google específico para Iniciar Sesión -->
+                        <div class="g_id_signin" data-type="standard" data-size="large" data-theme="outline" data-text="sign_in_with" data-shape="pill" data-logo_alignment="left" data-width="350"></div>
+                    </div>
+                    
+                    <div class="auth-divider"><span>o ingresa con tu correo</span></div>
+                    
+                    <form onsubmit="realLogin(event)">
+                        <div class="input-group">
+                            <label>Correo Electrónico</label>
+                            <input type="email" id="loginUserEmail" required placeholder="correo@ejemplo.com">
+                        </div>
+                        <div class="input-group">
+                            <label>Contraseña</label>
+                            <input type="password" id="loginUserPass" required placeholder="••••••••">
+                        </div>
+                        <button type="submit" class="btn-primary" id="btnLogin">Ingresar a mi cuenta</button>
+                    </form>
+                </div>
+
+                <!-- VISTA: REGISTRO -->
+                <div id="registerFormView" class="auth-view">
+                    
+                    <div class="google-btn-wrapper">
+                        <!-- Botón de Google específico para Registro -->
+                        <div class="g_id_signin" data-type="standard" data-size="large" data-theme="outline" data-text="signup_with" data-shape="pill" data-logo_alignment="left" data-width="350"></div>
+                    </div>
+                    
+                    <div class="auth-divider"><span>o regístrate con tu correo</span></div>
+
+                    <form onsubmit="realRegister(event)">
+                        <div class="input-group">
+                            <label>Nombre Completo</label>
+                            <input type="text" id="regUserName" required placeholder="Ej: Camila Rojas">
+                        </div>
+                        <div class="input-group">
+                            <label>Correo Electrónico</label>
+                            <input type="email" id="regUserEmail" required placeholder="correo@ejemplo.com">
+                        </div>
+                        <div class="input-group">
+                            <label>Crea una Contraseña</label>
+                            <input type="password" id="regUserPass" required placeholder="Mínimo 6 caracteres" minlength="6">
+                        </div>
+                        <button type="submit" class="btn-primary" id="btnRegister">Registrarme ahora</button>
+                    </form>
+                    <p style="text-align: center; font-size: 0.8rem; color: #999; margin-top: 1.5rem;">Al registrarte, aceptas nuestras Políticas de Privacidad y Términos de Servicio.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SCRIPT LOGIC -->
+    <script>
+        (function() {
+            // URL del Backend API real
+            const API_BASE_URL = 'https://mathsoluis-api.studiopixelchile.workers.dev';
+
+            // Redirigir si ya está logueado
+            if (localStorage.getItem('mathsoluis_customer')) {
+                window.location.href = 'cuenta.html';
+                return;
+            }
+
+            window.showToast = function(message, type = 'success') {
+                const toast = document.getElementById('toastNotification');
+                document.getElementById('toastMsg').textContent = message;
+                document.getElementById('toastIcon').textContent = type === 'error' ? '❌' : '✨';
+                toast.className = `toast-notification show ${type}`;
+                setTimeout(() => { toast.classList.remove('show'); }, 4000);
+            }
+
+            // TABS LOGIC
+            const authTabs = document.querySelectorAll('.auth-tab');
+            const loginView = document.getElementById('loginFormView');
+            const registerView = document.getElementById('registerFormView');
+
+            authTabs.forEach(tab => {
+                tab.addEventListener('click', () => {
+                    authTabs.forEach(t => t.classList.remove('active'));
+                    loginView.classList.remove('active');
+                    registerView.classList.remove('active');
+                    tab.classList.add('active');
+                    document.getElementById(tab.dataset.target).classList.add('active');
+                });
+            });
+
+            // ==========================================================
+            // LÓGICA DE AUTENTICACIÓN REAL (CONECTADA AL BACKEND)
+            // ==========================================================
+
+            // 1. Registro Manual
+            window.realRegister = async (e) => {
+                e.preventDefault();
+                const btn = document.getElementById('btnRegister');
+                const originalText = btn.textContent;
+                
+                const name = document.getElementById('regUserName').value.trim();
+                const email = document.getElementById('regUserEmail').value.trim();
+                const pass = document.getElementById('regUserPass').value;
+
+                btn.textContent = 'Registrando...';
+                btn.disabled = true;
+
+                try {
+                    const response = await fetch(`${API_BASE_URL}/api/auth/register`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ nombre: name, email: email, password: pass })
+                    });
+                    
+                    const result = await response.json();
+
+                    if (result.success) {
+                        localStorage.setItem('mathsoluis_customer', JSON.stringify({
+                            id: result.customer.id,
+                            name: result.customer.nombre,
+                            email: result.customer.email
+                        }));
+                        
+                        showToast(`¡Cuenta creada, ${name.split(' ')[0]}! Te hemos enviado un correo de bienvenida.`);
+                        setTimeout(() => { window.location.href = 'cuenta.html'; }, 1500);
+                    } else {
+                        showToast(result.error || 'No se pudo crear la cuenta.', 'error');
+                        btn.disabled = false;
+                        btn.textContent = originalText;
+                    }
+                } catch (error) {
+                    showToast('Error de conexión con el servidor. Intenta de nuevo.', 'error');
+                    btn.disabled = false;
+                    btn.textContent = originalText;
+                }
+            };
+
+            // 2. Login Manual
+            window.realLogin = async (e) => {
+                e.preventDefault();
+                const btn = document.getElementById('btnLogin');
+                const originalText = btn.textContent;
+
+                const email = document.getElementById('loginUserEmail').value.trim();
+                const pass = document.getElementById('loginUserPass').value;
+
+                btn.textContent = 'Conectando...';
+                btn.disabled = true;
+
+                try {
+                    const response = await fetch(`${API_BASE_URL}/api/auth/login`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ email: email, password: pass })
+                    });
+                    
+                    const result = await response.json();
+
+                    if (result.success) {
+                        localStorage.setItem('mathsoluis_customer', JSON.stringify({
+                            id: result.customer.id,
+                            name: result.customer.nombre,
+                            email: result.customer.email,
+                            telefono: result.customer.telefono || '',
+                            direccion: result.customer.direccion || '',
+                            comuna: result.customer.comuna || '',
+                            region: result.customer.region || ''
+                        }));
+                        
+                        showToast(`¡Bienvenida de nuevo, ${result.customer.nombre.split(' ')[0]}!`);
+                        setTimeout(() => { window.location.href = 'cuenta.html'; }, 1000);
+                    } else {
+                        showToast(result.error || 'Correo o contraseña incorrectos.', 'error');
+                        btn.disabled = false;
+                        btn.textContent = originalText;
+                    }
+                } catch (error) {
+                    showToast('Error de conexión. Revisa tu internet e intenta de nuevo.', 'error');
+                    btn.disabled = false;
+                    btn.textContent = originalText;
+                }
+            };
+
+            // 3. Login con Google (OAuth 2.0)
+            window.handleGoogleLogin = async (response) => {
+                // response.credential contiene el Token JWT encriptado que envía Google
+                const googleToken = response.credential;
+                
+                try {
+                    const res = await fetch(`${API_BASE_URL}/api/auth/google`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ token: googleToken })
+                    });
+                    
+                    const result = await res.json();
+
+                    if (result.success) {
+                        localStorage.setItem('mathsoluis_customer', JSON.stringify({
+                            id: result.customer.id,
+                            name: result.customer.nombre,
+                            email: result.customer.email
+                        }));
+                        showToast('¡Sesión iniciada con Google!');
+                        setTimeout(() => { window.location.href = 'cuenta.html'; }, 1000);
+                    } else {
+                        showToast(result.error || 'Error al validar cuenta de Google', 'error');
+                    }
+                } catch (error) {
+                    showToast('Error de conexión. Intenta de nuevo más tarde.', 'error');
+                }
+            };
+
+        })();
+    </script>
+</body>
+</html>

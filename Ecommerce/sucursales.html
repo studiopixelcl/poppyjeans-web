@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nuestras Sucursales | Mathsoluis</title>
+    <link rel="icon" href="./ico.jpg" type="image/jpeg">
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;1,600&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+
+    <style>
+        :root {
+            --blanco-puro: #FFFFFF;
+            --beige-calido: #FFFBF9;
+            --rosa-palo: #F9EBEA;
+            --rosa-intenso: #C28B8A;
+            --azul-grisaceo: #E8ECEE;
+            --gris-oscuro: #4A4446;
+            --gris-claro: #F5F0F0;
+            --font-main: 'Poppins', sans-serif;
+            --font-display: 'Playfair Display', serif;
+            --radius-md: 16px;
+            --radius-pill: 50px;
+            --transition-smooth: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+            --shadow-subtle: 0 4px 15px rgba(194, 139, 138, 0.08);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: var(--font-main); background-color: var(--beige-calido); color: var(--gris-oscuro); display: flex; flex-direction: column; min-height: 100vh; overflow-x: hidden;}
+        a { text-decoration: none; color: inherit; }
+        button { cursor: pointer; border: none; background: none; font-family: inherit; outline: none; }
+
+        @keyframes fadeInUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+        .animate-on-load { animation: fadeInUp 0.8s cubic-bezier(0.25, 0.8, 0.25, 1) forwards; opacity: 0; }
+        .delay-1 { animation-delay: 0.2s; } .delay-2 { animation-delay: 0.4s; }
+
+        /* --- HEADER MINIMALISTA (Sincronizado con index.html) --- */
+        .header { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); padding: 1.2rem 5%; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--rosa-palo); position: sticky; top: 0; z-index: 100; box-shadow: var(--shadow-subtle);}
+        .header-container { display: flex; justify-content: space-between; align-items: center; width: 100%; max-width: 1200px; margin: 0 auto; }
+        
+        .logo { font-family: var(--font-display); font-size: 1.8rem; font-weight: 700; font-style: italic; color: var(--rosa-intenso); text-decoration: none; display: flex; align-items: center; gap: 10px; transition: var(--transition-smooth); }
+        .logo img { width: 35px; height: 35px; object-fit: contain; mix-blend-mode: multiply; }
+        .logo:hover { opacity: 0.8; }
+        
+        .header-nav { display: none; gap: 2rem; align-items: center; }
+        @media (min-width: 768px) { .header-nav { display: flex; } }
+        .nav-link { font-size: 0.95rem; font-weight: 600; color: var(--gris-oscuro); text-transform: uppercase; letter-spacing: 1px; position: relative; padding-bottom: 5px; transition: var(--transition-smooth); }
+        .nav-link::after { content: ''; position: absolute; bottom: 0; left: 0; width: 0; height: 2px; background-color: var(--rosa-intenso); transition: var(--transition-smooth); }
+        .nav-link:hover, .nav-link.active { color: var(--rosa-intenso); } 
+        .nav-link:hover::after, .nav-link.active::after { width: 100%; }
+
+        .mobile-only { display: block; } .desktop-only { display: none; }
+        @media (min-width: 768px) { .mobile-only { display: none; } .desktop-only { display: flex; } }
+
+        .header-icons { display: flex; gap: 1rem; align-items: center; }
+        .icon-btn { display: flex; align-items: center; justify-content: center; color: var(--gris-oscuro); transition: var(--transition-smooth); width: 35px; height: 35px; border-radius: 50%; border: 1px solid var(--gris-claro); background: var(--fondo-claro); position: relative;}
+        .icon-btn svg { width: 18px; height: 18px; }
+        .icon-btn:hover { color: var(--blanco-puro); background: var(--rosa-intenso); border-color: var(--rosa-intenso); transform: translateY(-2px); }
+        
+        .icon-badge { position: absolute; top: -5px; right: -8px; background-color: var(--rosa-intenso); color: var(--blanco-puro); font-size: 0.7rem; font-weight: 700; width: 18px; height: 18px; border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 5px rgba(194, 139, 138, 0.4); }
+
+        .search-container { display: flex; align-items: center; background: var(--gris-claro); border-radius: var(--radius-pill); padding: 0.2rem 0.8rem; transition: var(--transition-smooth); border: 1px solid transparent; }
+        .search-container:focus-within { border-color: var(--rosa-intenso); background: var(--blanco-puro); box-shadow: var(--shadow-subtle); }
+        .search-input { border: none; background: transparent; padding: 0.5rem; font-family: var(--font-main); font-size: 0.9rem; outline: none; width: 120px; transition: var(--transition-smooth); color: var(--gris-oscuro); }
+        .search-input:focus { width: 200px; } .search-input::placeholder { color: #999; }
+
+        /* --- HERO DE SUCURSALES (Fondo Mejorado) --- */
+        .hero-branches { 
+            padding: 6rem 5% 4rem; 
+            text-align: center; 
+            position: relative; 
+            /* Se combina un gradiente con una imagen de boutique sutil de fondo */
+            background: linear-gradient(180deg, rgba(249, 235, 234, 0.85) 0%, rgba(255, 251, 249, 1) 100%), url('https://images.unsplash.com/photo-1441986300917-64674bd600d8?auto=format&fit=crop&w=1920&q=80') center/cover no-repeat; 
+        }
+        .hero-branches-content { position: relative; z-index: 2; }
+        .hero-branches h1 { font-family: var(--font-display); font-size: 3rem; font-weight: 700; color: var(--dark-studio); margin-bottom: 1rem; letter-spacing: -0.5px;}
+        .hero-branches p { font-size: 1.1rem; color: #555; max-width: 600px; margin: 0 auto 2.5rem; }
+
+        .search-branches { max-width: 550px; margin: 0 auto; position: relative; }
+        .search-branches input { width: 100%; padding: 1.2rem 1.5rem 1.2rem 3.5rem; border-radius: var(--radius-pill); border: 2px solid var(--blanco-puro); font-family: var(--font-main); font-size: 1.05rem; outline: none; box-shadow: 0 10px 25px rgba(194, 139, 138, 0.1); transition: var(--transition-smooth); color: var(--dark-studio); }
+        .search-branches input:focus { border-color: var(--rosa-intenso); box-shadow: 0 10px 30px rgba(194, 139, 138, 0.2); }
+        .search-branches input::placeholder { color: #aaa; }
+        .search-branches svg { position: absolute; left: 1.2rem; top: 50%; transform: translateY(-50%); color: #aaa; width: 22px; height: 22px; }
+
+        /* --- GRILLA DE SUCURSALES (Diseño Premium) --- */
+        .branches-container { max-width: 1200px; margin: 0 auto; padding: 2rem 5% 6rem; flex: 1; }
+        .branches-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); gap: 2.5rem; }
+
+        .branch-card { 
+            background: var(--blanco-puro); 
+            border-radius: 20px; 
+            padding: 2.5rem; 
+            box-shadow: 0 10px 40px rgba(194, 139, 138, 0.08); 
+            border: 1px solid var(--blanco-puro); 
+            transition: var(--transition-smooth); 
+            display: flex; flex-direction: column; height: 100%; 
+            position: relative; overflow: hidden;
+        }
+        .branch-card::before {
+            content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 6px;
+            background: linear-gradient(90deg, var(--rosa-palo), var(--rosa-intenso));
+            opacity: 0; transition: var(--transition-smooth);
+        }
+        .branch-card:hover::before { opacity: 1; }
+        .branch-card:hover { transform: translateY(-8px); box-shadow: 0 20px 50px rgba(194, 139, 138, 0.15); border-color: var(--rosa-palo); }
+        
+        .branch-header { display: flex; align-items: center; gap: 1.2rem; margin-bottom: 2rem; }
+        .branch-icon { width: 60px; height: 60px; border-radius: 50%; background: var(--fondo-claro); color: var(--rosa-intenso); display: flex; align-items: center; justify-content: center; font-size: 1.8rem; flex-shrink: 0; box-shadow: inset 0 2px 10px rgba(0,0,0,0.05); }
+        .branch-title-group h3 { font-family: var(--font-display); font-size: 1.6rem; color: var(--dark-studio); line-height: 1.2; margin-bottom: 0.2rem;}
+        .branch-address { font-size: 0.95rem; color: #888; font-weight: 500; line-height: 1.4;}
+
+        .branch-body { flex: 1; background: var(--fondo-claro); border-radius: 12px; padding: 1.5rem; margin-bottom: 2rem; }
+        .schedule-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; border-bottom: 1px dashed #ccc; padding-bottom: 1rem; }
+        .schedule-row:last-of-type { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+        
+        .day-label { font-weight: 600; color: var(--gris-oscuro); font-size: 0.95rem; }
+        .time-text { font-weight: 700; color: var(--rosa-intenso); font-size: 1rem;}
+        
+        .colacion-note { margin-top: 1.5rem; padding: 0.8rem 1rem; background: var(--blanco-puro); border-radius: 8px; font-size: 0.85rem; color: #888; font-style: italic; display: flex; align-items: center; gap: 0.5rem; box-shadow: 0 2px 8px rgba(0,0,0,0.02);}
+
+        .branch-footer { margin-top: auto; }
+        .btn-map { display: flex; align-items: center; justify-content: center; gap: 0.5rem; width: 100%; padding: 1.2rem; background: transparent; color: var(--dark-studio); border-radius: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; font-size: 0.9rem; border: 2px solid var(--gris-claro); transition: var(--transition-smooth); }
+        .btn-map:hover { background: var(--dark-studio); color: var(--blanco-puro); border-color: var(--dark-studio); transform: translateY(-2px); box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1); }
+
+        /* --- FOOTER --- */
+        .footer { background-color: var(--beige-calido); padding: 4rem 1.5rem 1.5rem; text-align: center; border-top: 1px solid rgba(0,0,0,0.05); }
+        .footer-logo { display: flex; align-items: center; justify-content: center; gap: 0.8rem; font-family: var(--font-display); font-size: 2rem; font-weight: 700; font-style: italic; margin-bottom: 1.5rem; color: var(--rosa-intenso); }
+        .footer-logo-img { width: 50px; height: 50px; object-fit: contain; mix-blend-mode: multiply; }
+        .footer-links { display: flex; justify-content: center; flex-wrap: wrap; gap: 1.5rem; margin-bottom: 3rem; }
+        .footer-links a { font-size: 0.9rem; font-weight: 500; transition: var(--transition-smooth); }
+        .footer-links a:hover { color: var(--rosa-palo); }
+
+        .no-results { grid-column: 1/-1; text-align: center; padding: 5rem 2rem; background: var(--blanco-puro); border-radius: var(--radius-lg); border: 2px dashed var(--gris-claro); display: none; }
+        .no-results h3 { font-family: var(--font-display); color: var(--dark-studio); margin-bottom: 0.5rem; font-size: 1.8rem;}
+
+    </style>
+</head>
+<body>
+
+    <!-- HEADER SINCRONIZADO -->
+    <header class="header" id="navbar">
+        <div class="header-container">
+            <button class="icon-btn mobile-only" aria-label="Menú">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+            </button>
+            
+            <a href="index.html" class="logo" aria-label="Volver al inicio">
+                <img src="./ico.jpg" alt="Logo Mathsoluis" class="logo-img" onerror="this.src='https://via.placeholder.com/35x35?text=M'"> Mathsoluis
+            </a>
+            
+            <nav class="header-nav desktop-only">
+                <a href="index.html" class="nav-link">Inicio</a>
+                <a href="index.html#catalogo" class="nav-link">Catálogo</a>
+                <a href="sucursales.html" class="nav-link active">Sucursales</a>
+            </nav>
+            
+            <div class="header-icons">
+                <div class="search-container desktop-only">
+                    <span class="search-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                    </span>
+                    <input type="text" class="search-input" placeholder="Buscar prendas..." onkeydown="if(event.key==='Enter') window.location.href='index.html#catalogo'">
+                </div>
+                
+                <!-- Icono de Favoritos -->
+                <button class="icon-btn" aria-label="Favoritos" onclick="window.location.href='cuenta.html'">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
+                </button>
+
+                <!-- Icono de Usuario -->
+                <button class="icon-btn" id="authOpenBtn" aria-label="Mi Cuenta" onclick="window.location.href='login.html'">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                </button>
+                
+                <!-- Icono de Carrito -->
+                <div class="cart-wrapper">
+                    <button class="icon-btn" aria-label="Carrito" onclick="window.location.href='index.html'">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path><line x1="3" y1="6" x2="21" y2="6"></line><path d="M16 10a4 4 0 0 1-8 0"></path></svg>
+                    </button>
+                    <span class="icon-badge" id="cartCount">0</span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main>
+        <section class="hero-branches">
+            <div class="hero-branches-content animate-on-load">
+                <h1>Encuéntranos Cerca de Ti</h1>
+                <p>Conoce nuestras tiendas físicas a lo largo de todo Chile. Te esperamos con la mejor atención y calidad premium para tu bebé.</p>
+                
+                <div class="search-branches">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                    <input type="text" id="branchSearch" placeholder="Busca por ciudad o región (Ej: Serena, Sur)...">
+                </div>
+            </div>
+        </section>
+
+        <section class="branches-container">
+            <div class="branches-grid animate-on-load delay-1" id="branchesGrid">
+                
+                <!-- LA SERENA -->
+                <div class="branch-card" data-city="la serena coquimbo norte">
+                    <div class="branch-header">
+                        <div class="branch-icon">📍</div>
+                        <div class="branch-title-group">
+                            <h3>La Serena</h3>
+                            <p class="branch-address">Eduardo de la Barra 391</p>
+                        </div>
+                    </div>
+                    <div class="branch-body">
+                        <div class="schedule-row">
+                            <span class="day-label">Lunes a Viernes</span>
+                            <span class="time-text">10:30 - 19:00</span>
+                        </div>
+                        <div class="schedule-row">
+                            <span class="day-label">Sábados</span>
+                            <span class="time-text">10:30 - 18:00</span>
+                        </div>
+                        <div class="colacion-note">
+                            <span>☕</span> Hora de Colación: 15:00 a 16:00 hrs.
+                        </div>
+                    </div>
+                    <div class="branch-footer">
+                        <a href="https://www.google.com/maps/search/?api=1&query=Eduardo+de+la+Barra+391,+La+Serena,+Chile" target="_blank" class="btn-map">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+                            Ver en Google Maps
+                        </a>
+                    </div>
+                </div>
+
+                <!-- VIÑA DEL MAR -->
+                <div class="branch-card" data-city="viña del mar valparaiso v region centro">
+                    <div class="branch-header">
+                        <div class="branch-icon">📍</div>
+                        <div class="branch-title-group">
+                            <h3>Viña del Mar</h3>
+                            <p class="branch-address">Av. Valparaíso 363, Local 123</p>
+                        </div>
+                    </div>
+                    <div class="branch-body">
+                        <div class="schedule-row">
+                            <span class="day-label">Lunes a Viernes</span>
+                            <span class="time-text">10:30 - 19:00</span>
+                        </div>
+                        <div class="schedule-row">
+                            <span class="day-label">Sábados</span>
+                            <span class="time-text">10:30 - 18:00</span>
+                        </div>
+                        <div class="colacion-note">
+                            <span>☕</span> Hora de Colación: 14:00 a 15:00 hrs.
+                        </div>
+                    </div>
+                    <div class="branch-footer">
+                        <a href="https://www.google.com/maps/search/?api=1&query=Av.+Valparaíso+363,+Viña+del+Mar,+Chile" target="_blank" class="btn-map">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+                            Ver en Google Maps
+                        </a>
+                    </div>
+                </div>
+
+                <!-- PROVIDENCIA -->
+                <div class="branch-card" data-city="providencia santiago rm metropolitana centro">
+                    <div class="branch-header">
+                        <div class="branch-icon">📍</div>
+                        <div class="branch-title-group">
+                            <h3>Providencia</h3>
+                            <p class="branch-address">Av. Ricardo Lyon 100, Local 50</p>
+                        </div>
+                    </div>
+                    <div class="branch-body">
+                        <div class="schedule-row">
+                            <span class="day-label">Lunes a Viernes</span>
+                            <span class="time-text">10:30 - 19:00</span>
+                        </div>
+                        <div class="schedule-row">
+                            <span class="day-label">Sábados</span>
+                            <span class="time-text">10:30 - 18:00</span>
+                        </div>
+                        <div class="colacion-note">
+                            <span>☕</span> Hora de Colación: 14:00 a 15:00 hrs.
+                        </div>
+                    </div>
+                    <div class="branch-footer">
+                        <a href="https://www.google.com/maps/search/?api=1&query=Av.+Ricardo+Lyon+100,+Providencia,+Santiago,+Chile" target="_blank" class="btn-map">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+                            Ver en Google Maps
+                        </a>
+                    </div>
+                </div>
+
+                <!-- SANTIAGO CENTRO -->
+                <div class="branch-card" data-city="santiago centro rm metropolitana centro">
+                    <div class="branch-header">
+                        <div class="branch-icon">📍</div>
+                        <div class="branch-title-group">
+                            <h3>Santiago Centro</h3>
+                            <p class="branch-address">Bascuñán Guerrero 79, Local 59</p>
+                        </div>
+                    </div>
+                    <div class="branch-body">
+                        <div class="schedule-row">
+                            <span class="day-label">Lunes a Viernes</span>
+                            <span class="time-text">09:00 - 18:00</span>
+                        </div>
+                        <div class="schedule-row">
+                            <span class="day-label">Sábados</span>
+                            <span class="time-text">09:30 - 17:00</span>
+                        </div>
+                        <div class="colacion-note" style="background: rgba(19, 194, 179, 0.1); border-left: 3px solid var(--teal-studio);">
+                            <span>✨</span> Horario Continuado
+                        </div>
+                    </div>
+                    <div class="branch-footer">
+                        <a href="https://www.google.com/maps/search/?api=1&query=Bascuñán+Guerrero+79,+Santiago,+Chile" target="_blank" class="btn-map">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+                            Ver en Google Maps
+                        </a>
+                    </div>
+                </div>
+
+                <!-- CONCEPCIÓN -->
+                <div class="branch-card" data-city="concepcion biobio sur">
+                    <div class="branch-header">
+                        <div class="branch-icon">📍</div>
+                        <div class="branch-title-group">
+                            <h3>Concepción</h3>
+                            <p class="branch-address">O'Higgins 465, Local 45</p>
+                        </div>
+                    </div>
+                    <div class="branch-body">
+                        <div class="schedule-row">
+                            <span class="day-label">Lunes a Viernes</span>
+                            <span class="time-text">10:00 - 19:00</span>
+                        </div>
+                        <div class="schedule-row">
+                            <span class="day-label">Sábados</span>
+                            <span class="time-text">10:30 - 15:00</span>
+                        </div>
+                        <div class="colacion-note">
+                            <span>☕</span> Hora de Colación: 14:00 a 15:00 hrs.
+                        </div>
+                    </div>
+                    <div class="branch-footer">
+                        <a href="https://www.google.com/maps/search/?api=1&query=O'Higgins+465,+Concepción,+Chile" target="_blank" class="btn-map">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+                            Ver en Google Maps
+                        </a>
+                    </div>
+                </div>
+
+                <!-- TEMUCO -->
+                <div class="branch-card" data-city="temuco araucania sur">
+                    <div class="branch-header">
+                        <div class="branch-icon">📍</div>
+                        <div class="branch-title-group">
+                            <h3>Temuco</h3>
+                            <p class="branch-address">Portales 1085 (Frente a Rosen)</p>
+                        </div>
+                    </div>
+                    <div class="branch-body">
+                        <div class="schedule-row">
+                            <span class="day-label">Lunes a Viernes</span>
+                            <span class="time-text">10:30 - 19:00</span>
+                        </div>
+                        <div class="schedule-row">
+                            <span class="day-label">Sábados</span>
+                            <span class="time-text">10:30 - 18:00</span>
+                        </div>
+                        <div class="colacion-note" style="background: rgba(19, 194, 179, 0.1); border-left: 3px solid var(--teal-studio);">
+                            <span>✨</span> Horario Continuado
+                        </div>
+                    </div>
+                    <div class="branch-footer">
+                        <a href="https://www.google.com/maps/search/?api=1&query=Portales+1085,+Temuco,+Chile" target="_blank" class="btn-map">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+                            Ver en Google Maps
+                        </a>
+                    </div>
+                </div>
+
+                <!-- PUERTO MONTT -->
+                <div class="branch-card" data-city="puerto montt los lagos sur">
+                    <div class="branch-header">
+                        <div class="branch-icon">📍</div>
+                        <div class="branch-title-group">
+                            <h3>Puerto Montt</h3>
+                            <p class="branch-address">Antonio Varas 453</p>
+                        </div>
+                    </div>
+                    <div class="branch-body">
+                        <div class="schedule-row">
+                            <span class="day-label">Lunes a Viernes</span>
+                            <span class="time-text">10:30 - 19:00</span>
+                        </div>
+                        <div class="schedule-row">
+                            <span class="day-label">Sábados</span>
+                            <span class="time-text">10:30 - 18:00</span>
+                        </div>
+                        <div class="colacion-note">
+                            <span>☕</span> Hora de Colación: 14:00 a 15:00 hrs.
+                        </div>
+                    </div>
+                    <div class="branch-footer">
+                        <a href="https://www.google.com/maps/search/?api=1&query=Antonio+Varas+453,+Puerto+Montt,+Chile" target="_blank" class="btn-map">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+                            Ver en Google Maps
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Estado de No Resultados -->
+                <div class="no-results" id="noResultsMsg">
+                    <h3 style="font-family: var(--font-display); color: var(--dark-studio); margin-bottom: 0.5rem; font-size: 1.8rem;">No encontramos sucursales en esa zona</h3>
+                    <p style="color: #888;">Intenta buscar por ciudad como "Santiago", "Concepción" o "La Serena".</p>
+                </div>
+
+            </div>
+        </section>
+    </main>
+
+    <footer class="footer">
+        <div style="font-family: var(--font-display); font-size: 2rem; font-weight: 700; font-style: italic; color: var(--rosa-intenso); margin-bottom: 1rem;">Mathsoluis</div>
+        <p style="font-size: 0.85rem; color: #888;">Desarrollado con excelencia por <strong>Studio Pixel</strong></p>
+    </footer>
+
+    <script>
+        // Actualizar el estado de sesión visualmente
+        const currentCustomer = JSON.parse(localStorage.getItem('mathsoluis_customer'));
+        if (currentCustomer) {
+            const authBtn = document.getElementById('authOpenBtn');
+            authBtn.innerHTML = `<div style="width:28px; height:28px; border-radius:50%; background:var(--rosa-intenso); color:white; display:flex; align-items:center; justify-content:center; font-size:0.85rem; font-weight:bold;">${currentCustomer.name.charAt(0).toUpperCase()}</div>`;
+            authBtn.onclick = () => window.location.href = 'cuenta.html';
+        }
+
+        // Búsqueda en tiempo real de sucursales
+        document.getElementById('branchSearch').addEventListener('input', function(e) {
+            const searchTerm = e.target.value.toLowerCase().trim();
+            const branchCards = document.querySelectorAll('.branch-card');
+            let visibleCount = 0;
+
+            branchCards.forEach(card => {
+                const searchData = card.getAttribute('data-city');
+                if (searchData.includes(searchTerm)) {
+                    card.style.display = 'flex';
+                    visibleCount++;
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+
+            const noResultsMsg = document.getElementById('noResultsMsg');
+            if (visibleCount === 0) {
+                noResultsMsg.style.display = 'block';
+            } else {
+                noResultsMsg.style.display = 'none';
+            }
+        });
+
+        // Actualizar Badge del Carrito (Si hay ítems en LocalStorage)
+        const cart = JSON.parse(localStorage.getItem('mathsoluis_cart')) || [];
+        const cartBadge = document.getElementById('cartCount');
+        if (cartBadge) {
+            let totalItems = 0;
+            cart.forEach(item => totalItems += item.quantity);
+            cartBadge.textContent = totalItems;
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Finalizar Compra | Mathsoluis</title>
+    <link rel="icon" href="./ico.jpg" type="image/jpeg">
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;1,600&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --blanco-puro: #FFFFFF;
+            --beige-calido: #FFFBF9;
+            --rosa-palo: #F9EBEA;
+            --rosa-intenso: #C28B8A;
+            --gris-oscuro: #4A4446;
+            --gris-claro: #F5F0F0;
+            --font-main: 'Poppins', sans-serif;
+            --font-display: 'Playfair Display', serif;
+            --radius-md: 16px;
+            --transition-smooth: all 0.3s ease;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: var(--font-main); background-color: var(--beige-calido); color: var(--gris-oscuro); display: flex; flex-direction: column; min-height: 100vh; }
+        
+        /* HEADER MINIMALISTA */
+        header { background: var(--blanco-puro); padding: 1.5rem 5%; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--rosa-palo); }
+        .logo { font-family: var(--font-display); font-size: 1.5rem; font-weight: 700; font-style: italic; color: var(--rosa-intenso); text-decoration: none; display: flex; align-items: center; gap: 10px; }
+        .logo img { width: 30px; height: 30px; object-fit: contain; mix-blend-mode: multiply; }
+        .back-link { font-size: 0.9rem; font-weight: 500; color: #888; text-decoration: none; transition: var(--transition-smooth); display: flex; align-items: center; gap: 5px;}
+        .back-link:hover { color: var(--rosa-intenso); transform: translateX(-3px);}
+
+        /* LAYOUT PRINCIPAL */
+        .checkout-container { display: flex; flex-direction: column-reverse; max-width: 1200px; margin: 0 auto; width: 100%; flex: 1; }
+        @media (min-width: 900px) { .checkout-container { flex-direction: row; } }
+
+        /* COLUMNA IZQUIERDA: FORMULARIOS */
+        .checkout-main { flex: 1; padding: 2rem 5%; background: var(--blanco-puro); border-right: 1px solid var(--rosa-palo); }
+        @media (min-width: 900px) { .checkout-main { padding: 4rem 8%; } }
+        
+        .step-container { margin-bottom: 3rem; opacity: 0.35; transition: var(--transition-smooth); pointer-events: none; position: relative; }
+        .step-container.active { opacity: 1; pointer-events: auto; }
+        .step-header { display: flex; align-items: center; gap: 1rem; margin-bottom: 1.8rem; }
+        .step-number { width: 32px; height: 32px; background: var(--gris-claro); color: #888; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.9rem; transition: var(--transition-smooth);}
+        .step-container.active .step-number { background: var(--rosa-intenso); color: var(--blanco-puro); box-shadow: 0 0 0 4px var(--rosa-palo); }
+        .step-title { font-family: var(--font-display); font-size: 1.5rem; color: var(--gris-oscuro); }
+
+        /* INPUTS PREMIUM */
+        .input-group { margin-bottom: 1.2rem; position: relative; }
+        .input-group label { display: block; font-size: 0.85rem; font-weight: 600; color: #777; margin-bottom: 0.5rem; }
+        .input-group input, .input-group select { 
+            width: 100%; padding: 1rem 1.2rem; 
+            border: 1.5px solid var(--gris-claro); 
+            border-radius: 10px; 
+            font-family: var(--font-main); font-size: 0.95rem; 
+            outline: none; background: var(--blanco-puro); 
+            color: var(--gris-oscuro);
+            transition: var(--transition-smooth); 
+        }
+        
+        .input-group input:focus, .input-group select:focus { 
+            border-color: var(--rosa-intenso); 
+            box-shadow: 0 0 0 4px rgba(194, 139, 138, 0.15); 
+            background: var(--blanco-puro);
+        }
+        .input-group input::placeholder { color: #BBB; font-weight: 300;}
+
+        /* CUSTOM SELECT PARA REGIONES */
+        .custom-select-wrapper { position: relative; }
+        .custom-select-wrapper select {
+            appearance: none; /* Oculta la flecha por defecto */
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            cursor: pointer;
+            padding-right: 2.5rem;
+        }
+        .custom-select-arrow {
+            position: absolute; top: 50%; right: 1.2rem;
+            transform: translateY(-50%); pointer-events: none;
+            color: #888; display: flex; align-items: center;
+        }
+
+        .row { display: flex; gap: 1.2rem; flex-wrap: wrap;}
+        .row > * { flex: 1; min-width: 200px;}
+
+        /* BOTONES */
+        .btn-primary { 
+            width: 100%; background: var(--rosa-intenso); color: var(--blanco-puro); 
+            padding: 1.2rem; border-radius: 10px; border: none; font-weight: 600; font-size: 1rem; 
+            cursor: pointer; transition: var(--transition-smooth); text-transform: uppercase; letter-spacing: 1px; margin-top: 1rem; 
+        }
+        .btn-primary:hover { background: #a87675; transform: translateY(-2px); box-shadow: 0 8px 25px rgba(194, 139, 138, 0.3); }
+        .btn-secondary {
+            background: var(--gris-claro); color: var(--gris-oscuro); border: none;
+            padding: 1.2rem; border-radius: 10px; font-weight: 600; font-size: 1rem;
+            cursor: pointer; transition: var(--transition-smooth); text-transform: uppercase; letter-spacing: 1px; margin-top: 1rem;
+        }
+        .btn-secondary:hover { background: #DDD; }
+
+        /* COLUMNA DERECHA: RESUMEN */
+        .checkout-sidebar { width: 100%; padding: 2rem 5%; background: var(--beige-calido); position: sticky; top: 0; height: max-content; }
+        @media (min-width: 900px) { .checkout-sidebar { width: 450px; padding: 4rem 3rem; border-left: 1px solid var(--rosa-palo); } }
+        
+        .summary-header { font-family: var(--font-display); font-size: 1.4rem; margin-bottom: 2rem; color: var(--dark-studio); border-bottom: 2px solid var(--rosa-palo); padding-bottom: 1rem;}
+        
+        .summary-item { display: flex; gap: 1.2rem; align-items: center; margin-bottom: 1.5rem; }
+        .summary-img-wrap { position: relative; width: 70px; height: 85px; border-radius: 10px; background: var(--blanco-puro); border: 1px solid var(--rosa-palo); display: flex; align-items: center; justify-content: center; overflow: hidden; box-shadow: var(--shadow-subtle);}
+        .summary-img-wrap img { width: 100%; height: 100%; object-fit: cover; }
+        .summary-qty { position: absolute; top: -8px; right: -8px; background: var(--gris-oscuro); color: white; width: 22px; height: 22px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 700; z-index: 2; border: 2px solid var(--beige-calido);}
+        
+        .summary-info { flex: 1; }
+        .summary-title { font-size: 0.95rem; font-weight: 600; color: var(--gris-oscuro); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; line-height: 1.3;}
+        .summary-price { font-weight: 700; color: var(--rosa-intenso); margin-top: 0.3rem; font-size: 1.05rem;}
+
+        .summary-totals { border-top: 2px solid var(--rosa-palo); padding-top: 1.5rem; margin-top: 2rem; }
+        .total-row { display: flex; justify-content: space-between; margin-bottom: 0.8rem; font-size: 0.95rem; color: #666; font-weight: 500;}
+        .total-row.final { font-size: 1.5rem; font-weight: 800; color: var(--dark-studio); border-top: 1px solid #EAEAEA; padding-top: 1.2rem; margin-top: 0.5rem; align-items: center; }
+
+        /* --- TOAST NOTIFICATIONS --- */
+        .toast-notification { position: fixed; bottom: -100px; left: 50%; transform: translateX(-50%); background: var(--gris-oscuro); color: var(--blanco-puro); padding: 14px 28px; border-radius: var(--radius-pill); font-size: 0.95rem; font-weight: 500; box-shadow: 0 10px 30px rgba(0,0,0,0.2); z-index: 9999; transition: bottom 0.4s cubic-bezier(0.25, 0.8, 0.25, 1); display: flex; align-items: center; gap: 10px; }
+        .toast-notification.show { bottom: 30px; } .toast-notification.error { background: var(--danger-color); } .toast-notification.success { background: #2ecc71; }
+        .spinner { width: 20px; height: 20px; border: 2px solid rgba(255,255,255,0.3); border-top-color: #fff; border-radius: 50%; animation: spin 1s linear infinite; display: inline-block; vertical-align: middle; margin-right: 10px; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+    </style>
+</head>
+<body>
+
+    <div id="toastNotification" class="toast-notification"><span id="toastIcon">✨</span> <span id="toastMsg">Mensaje</span></div>
+
+    <header>
+        <a href="index.html" class="logo"><img src="./ico.jpg" alt="Logo"> Mathsoluis</a>
+        <a href="index.html" class="back-link">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+            Volver a la tienda
+        </a>
+    </header>
+
+    <div class="checkout-container">
+        
+        <!-- COLUMNA IZQUIERDA: FORMULARIOS -->
+        <div class="checkout-main">
+            
+            <!-- PASO 1: CONTACTO -->
+            <div class="step-container active" id="step1">
+                <div class="step-header">
+                    <div class="step-number">1</div>
+                    <h2 class="step-title">Información de Contacto</h2>
+                </div>
+                <div style="background: var(--beige-calido); padding: 1.2rem; border-radius: 10px; margin-bottom: 2rem; font-size: 0.9rem; border: 1px dashed var(--rosa-intenso); display: none;" id="loggedInAlert">
+                    Conectado de forma segura como <strong id="loggedNameLabel" style="color: var(--rosa-intenso);"></strong>.
+                </div>
+                <div class="row">
+                    <div class="input-group">
+                        <label>Nombre Completo *</label>
+                        <input type="text" id="chkName" placeholder="Ej: Camila Rojas">
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="input-group">
+                        <label>Correo Electrónico * (Para enviar tu boleta)</label>
+                        <input type="email" id="chkEmail" placeholder="correo@ejemplo.com">
+                    </div>
+                    <div class="input-group">
+                        <label>Teléfono (Opcional)</label>
+                        <input type="text" id="chkPhone" placeholder="+56 9...">
+                    </div>
+                </div>
+                <button class="btn-primary" onclick="goToStep(2)">Continuar al Envío</button>
+            </div>
+
+            <!-- PASO 2: ENVÍO -->
+            <div class="step-container" id="step2">
+                <div class="step-header">
+                    <div class="step-number">2</div>
+                    <h2 class="step-title">Dirección de Despacho</h2>
+                </div>
+                <div class="input-group">
+                    <label>Dirección Exacta *</label>
+                    <input type="text" id="chkAddress" placeholder="Ej: Av. Las Condes 1234, Depto 45">
+                </div>
+                <div class="row">
+                    <div class="input-group">
+                        <label>Comuna *</label>
+                        <input type="text" id="chkComuna" placeholder="Ej: Las Condes">
+                    </div>
+                    <div class="input-group custom-select-wrapper">
+                        <label>Región *</label>
+                        <select id="chkRegion" required>
+                            <option value="" disabled selected>Selecciona tu región...</option>
+                            <option value="Región Metropolitana" style="font-weight: bold; background: var(--fondo-claro);">⭐ Región Metropolitana</option>
+                            <option disabled>──────────</option>
+                            <option value="Arica y Parinacota">Arica y Parinacota</option>
+                            <option value="Tarapacá">Tarapacá</option>
+                            <option value="Antofagasta">Antofagasta</option>
+                            <option value="Atacama">Atacama</option>
+                            <option value="Coquimbo">Coquimbo</option>
+                            <option value="Valparaíso">Valparaíso</option>
+                            <option value="O'Higgins">O'Higgins</option>
+                            <option value="Maule">Maule</option>
+                            <option value="Ñuble">Ñuble</option>
+                            <option value="Biobío">Biobío</option>
+                            <option value="La Araucanía">La Araucanía</option>
+                            <option value="Los Ríos">Los Ríos</option>
+                            <option value="Los Lagos">Los Lagos</option>
+                            <option value="Aysén">Aysén</option>
+                            <option value="Magallanes">Magallanes y Antártica</option>
+                        </select>
+                        <div class="custom-select-arrow">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                        </div>
+                    </div>
+                </div>
+                <div class="row" style="margin-top: 1rem;">
+                    <button class="btn-secondary" style="flex: 0.5;" onclick="goToStep(1)">Atrás</button>
+                    <button class="btn-primary" style="flex: 1.5; margin-top: 1rem;" onclick="goToStep(3)">Continuar al Pago</button>
+                </div>
+            </div>
+
+            <!-- PASO 3: PAGO -->
+            <div class="step-container" id="step3">
+                <div class="step-header">
+                    <div class="step-number">3</div>
+                    <h2 class="step-title">Pago Seguro</h2>
+                </div>
+                <p style="font-size: 0.9rem; color: #666; margin-bottom: 2rem;">Al hacer clic en pagar, serás redirigido a la plataforma encriptada de Webpay Plus para procesar tu pago de forma segura.</p>
+                
+                <div style="border: 2px solid var(--teal-claro); border-radius: 12px; padding: 2rem; text-align: center; background: var(--blanco-puro); box-shadow: var(--shadow-subtle);">
+                    <img src="https://transbank.cl/public/img/logo-webpay-plus.png" alt="Webpay" style="height: 45px; margin: 0 auto 1.5rem; filter: grayscale(100%); opacity: 0.8;">
+                    <div style="font-size: 1rem; color: #888; font-weight: 500;">Monto a Pagar</div>
+                    <div style="font-size: 2.2rem; font-weight: 800; color: var(--dark-studio); margin-bottom: 1.5rem; font-family: var(--font-display);" id="finalPayAmount">$0</div>
+                    
+                    <button class="btn-primary" id="btnPay" style="background: #00A499; margin: 0; padding: 1.5rem; font-size: 1.1rem; box-shadow: 0 8px 25px rgba(0, 164, 153, 0.3);" onclick="processPayment()">
+                        💳 PAGAR AHORA
+                    </button>
+                </div>
+                
+                <div style="text-align: center; margin-top: 1.5rem;">
+                    <button style="background:transparent; border:none; color: #888; font-weight: 600; text-decoration: underline; cursor: pointer; font-family: var(--font-main);" onclick="goToStep(2)">Volver a Modificar Envío</button>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- COLUMNA DERECHA: RESUMEN -->
+        <div class="checkout-sidebar">
+            <h3 class="summary-header">Resumen de Compra</h3>
+            
+            <div id="summaryItemsContainer">
+                <!-- Items inyectados por JS -->
+            </div>
+
+            <div class="summary-totals">
+                <div class="total-row">
+                    <span>Subtotal de Prendas</span>
+                    <span id="summSubtotal">$0</span>
+                </div>
+                <div class="total-row">
+                    <span>Envío (Blue Express)</span>
+                    <span style="color: #888; font-size: 0.85rem; background: var(--gris-claro); padding: 0.2rem 0.6rem; border-radius: 5px;">Por Cobrar</span>
+                </div>
+                <div class="total-row final">
+                    <span>Total</span>
+                    <span id="summTotal" style="color: var(--rosa-intenso);">$0</span>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- LÓGICA JAVASCRIPT -->
+    <script>
+        function showToast(message, type = 'success') {
+            const toast = document.getElementById('toastNotification');
+            document.getElementById('toastMsg').textContent = message;
+            document.getElementById('toastIcon').textContent = type === 'error' ? '❌' : '✨';
+            toast.className = `toast-notification show ${type}`;
+            setTimeout(() => { toast.classList.remove('show'); }, 3500);
+        }
+
+        const formatCurrency = (amount) => '$' + amount.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+
+        // 1. CARGAR MEMORIA (CARRITO Y CLIENTE LOGUEADO)
+        const cart = JSON.parse(localStorage.getItem('mathsoluis_cart')) || [];
+        const currentCustomer = JSON.parse(localStorage.getItem('mathsoluis_customer')) || null;
+        let cartTotal = 0;
+
+        window.onload = () => {
+            if (cart.length === 0) {
+                alert("Tu carrito está vacío. Serás redirigido a la tienda.");
+                window.location.href = 'index.html';
+                return;
+            }
+
+            // Pre-llenar datos si el usuario inició sesión en el Index
+            if (currentCustomer) {
+                document.getElementById('loggedInAlert').style.display = 'block';
+                document.getElementById('loggedNameLabel').textContent = currentCustomer.name;
+                document.getElementById('chkName').value = currentCustomer.name;
+                document.getElementById('chkEmail').value = currentCustomer.email;
+            }
+
+            renderSummary();
+        };
+
+        // 2. RENDERIZAR RESUMEN (COLUMNA DERECHA)
+        function renderSummary() {
+            const container = document.getElementById('summaryItemsContainer');
+            container.innerHTML = '';
+            cartTotal = 0;
+
+            cart.forEach(item => {
+                cartTotal += item.price * item.quantity;
+                container.insertAdjacentHTML('beforeend', `
+                    <div class="summary-item">
+                        <div class="summary-img-wrap">
+                            <span class="summary-qty">${item.quantity}</span>
+                            <img src="${item.img}" alt="Producto">
+                        </div>
+                        <div class="summary-info">
+                            <div class="summary-title">${item.name}</div>
+                        </div>
+                        <div class="summary-price">${formatCurrency(item.price * item.quantity)}</div>
+                    </div>
+                `);
+            });
+
+            const formattedTotal = formatCurrency(cartTotal);
+            document.getElementById('summSubtotal').textContent = formattedTotal;
+            document.getElementById('summTotal').textContent = formattedTotal;
+            document.getElementById('finalPayAmount').textContent = formattedTotal;
+        }
+
+        // 3. NAVEGACIÓN MULTIPASO Y VALIDACIÓN
+        window.goToStep = (stepNumber) => {
+            // Validar Paso 1 -> 2
+            if (stepNumber > 1) {
+                const name = document.getElementById('chkName').value.trim();
+                const email = document.getElementById('chkEmail').value.trim();
+                if (!name || !email) return showToast('Ingresa tu Nombre y Correo para continuar.', 'error');
+            }
+            
+            // Validar Paso 2 -> 3
+            if (stepNumber > 2) {
+                const addr = document.getElementById('chkAddress').value.trim();
+                const comuna = document.getElementById('chkComuna').value.trim();
+                const region = document.getElementById('chkRegion').value;
+                
+                if (!addr || !comuna) return showToast('La dirección y la comuna son obligatorias.', 'error');
+                if (!region) return showToast('Por favor, selecciona tu Región en la lista.', 'error');
+            }
+
+            // Cambiar UI Activa
+            document.querySelectorAll('.step-container').forEach((el, index) => {
+                if (index + 1 === stepNumber) el.classList.add('active');
+                else el.classList.remove('active');
+            });
+        };
+
+        // 4. PROCESAR PAGO Y CONECTAR CON LA API
+        window.processPayment = async () => {
+            const btn = document.getElementById('btnPay');
+            btn.innerHTML = '<div class="spinner"></div> Conectando de forma segura...';
+            btn.disabled = true;
+
+            const customerData = {
+                nombre: document.getElementById('chkName').value.trim(),
+                email: document.getElementById('chkEmail').value.trim(),
+                telefono: document.getElementById('chkPhone').value.trim(),
+                direccion: document.getElementById('chkAddress').value.trim(),
+                comuna: document.getElementById('chkComuna').value.trim(),
+                region: document.getElementById('chkRegion').value
+            };
+
+            const payload = {
+                customer: customerData,
+                cart: cart,
+                total: cartTotal
+            };
+
+            try {
+                // LLAMADA REAL AL BACKEND
+                const response = await fetch('https://mathsoluis-api.studiopixelchile.workers.dev/api/checkout', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                
+                const result = await response.json();
+
+                if (result.success) {
+                    showToast('¡Pago Autorizado! Creando tu pedido...', 'success');
+                    
+                    setTimeout(() => {
+                        // Vaciar memoria
+                        localStorage.removeItem('mathsoluis_cart');
+                        
+                        // Mensaje de éxito final
+                        document.querySelector('.checkout-main').innerHTML = `
+                            <div style="text-align:center; padding: 4rem 2rem;">
+                                <div style="font-size: 5rem; margin-bottom:1rem; animation: fadeInUp 0.5s ease;">🎉</div>
+                                <h1 style="font-family: var(--font-display); color: var(--dark-studio); margin-bottom: 1rem; font-size: 2.5rem;">¡Tu pedido está en camino!</h1>
+                                <p style="color: #666; margin-bottom: 2.5rem; font-size: 1.1rem; max-width: 400px; margin-left: auto; margin-right: auto;">El número de tu orden es el <strong style="color: var(--rosa-intenso);">#${result.order_id}</strong>. Hemos enviado tu boleta y la confirmación a ${customerData.email}.</p>
+                                <a href="index.html" class="btn-primary" style="text-decoration:none; display: inline-block; width: auto; padding: 1rem 3rem;">Volver a la Tienda</a>
+                            </div>
+                        `;
+                    }, 2000);
+                } else {
+                    showToast('Error en el servidor: ' + result.error, 'error');
+                    btn.innerHTML = '💳 Pagar Ahora con Webpay';
+                    btn.disabled = false;
+                }
+            } catch (error) {
+                showToast('Error de conexión. Intenta nuevamente.', 'error');
+                btn.innerHTML = '💳 Pagar Ahora con Webpay';
+                btn.disabled = false;
+            }
+        };
+    </script>
+</body>
+</html>

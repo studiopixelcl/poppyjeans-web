@@ -1,0 +1,25 @@
+### Obtener todas las categorías
+GET https://mathsoluis-api.studiopixelchile.workers.dev/api/admin/categories
+
+### Obtener todos los productos
+GET https://mathsoluis-api.studiopixelchile.workers.dev/api/admin/products
+
+### Crear un nuevo producto
+POST https://mathsoluis-api.studiopixelchile.workers.dev/api/admin/products
+Content-Type: application/json
+
+### Actualizar el producto con ID 1 (Cambiarle el precio)
+PUT https://mathsoluis-api.studiopixelchile.workers.dev/api/admin/products/1
+Content-Type: application/json
+
+### Eliminar el producto con ID 2 (La mochila que acabas de crear)
+DELETE https://mathsoluis-api.studiopixelchile.workers.dev/api/admin/products/2
+
+### Iniciar sesión en el panel (Login)
+POST https://mathsoluis-api.studiopixelchile.workers.dev/api/admin/login
+Content-Type: application/json
+
+{
+  "email": "admin@mathsoluis.cl",
+  "password": "SuperPassword2024"
+}

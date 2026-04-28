@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mathsoluis | Registro de Actividades</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;600;700;800&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+    
+    <style>
+        /* --- STUDIO PIXEL TOKENS --- */
+        :root {
+            --blanco-puro: #FFFFFF;
+            --fondo-claro: #F4F7F6; 
+            --teal-studio: #13C2B3; 
+            --teal-claro: #E0F6F5;  
+            --dark-studio: #1E1E24; 
+            --gris-claro: #E8ECEB;
+            --danger-color: #E74C3C;
+            --warning-color: #F39C12;
+            
+            --font-main: 'Poppins', sans-serif;
+            --font-display: 'Montserrat', sans-serif;
+            
+            --radius-md: 12px;
+            --radius-lg: 24px;
+            --radius-pill: 50px;
+            
+            --shadow-subtle: 0 10px 30px rgba(30, 30, 36, 0.08);
+            --transition-smooth: all 0.3s ease;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body { 
+            font-family: var(--font-main); 
+            background-color: var(--fondo-claro); 
+            color: var(--dark-studio); 
+        }
+
+        /* --- ESTILOS DE PROTECCIÓN Y LOGIN --- */
+        #accessDeniedView {
+            display: none; height: 100vh; flex-direction: column; align-items: center; justify-content: center; text-align: center; background: var(--fondo-claro);
+        }
+        .denied-card { background: var(--blanco-puro); padding: 4rem; border-radius: var(--radius-md); box-shadow: var(--shadow-subtle); max-width: 500px;}
+        .denied-icon { font-size: 4rem; color: var(--danger-color); margin-bottom: 1rem; }
+        
+        /* --- DASHBOARD VIEW --- */
+        #dashboardView { display: none; min-height: 100vh; }
+        .sidebar { width: 250px; background: var(--dark-studio); color: var(--blanco-puro); position: fixed; height: 100vh; top: 0; left: 0; padding: 2rem 1.5rem; }
+        .sidebar-logo { font-family: var(--font-display); font-size: 1.5rem; font-weight: 800; margin-bottom: 3rem; }
+        .sidebar-logo span { color: var(--teal-studio); }
+        .nav-menu { list-style: none; }
+        .nav-item { margin-bottom: 0.5rem; }
+        .nav-link { display: block; color: #aaa; text-decoration: none; padding: 0.8rem 1rem; border-radius: 8px; font-weight: 500; transition: var(--transition-smooth); }
+        .nav-link:hover, .nav-link.active { background: rgba(255,255,255,0.1); color: var(--teal-studio); }
+
+        .main-content { margin-left: 250px; padding: 2rem 3rem; }
+        .topbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 3rem; }
+        .topbar h2 { font-family: var(--font-display); font-size: 1.8rem; font-weight: 700; }
+        .user-info { display: flex; align-items: center; gap: 1rem; font-weight: 600; }
+        .logout-btn { background: #FDEDEC; color: var(--danger-color); border: none; padding: 0.5rem 1rem; border-radius: 6px; cursor: pointer; font-weight: 600; }
+
+        /* --- DATA TABLE --- */
+        .card { background: var(--blanco-puro); border-radius: var(--radius-md); padding: 1.5rem; box-shadow: var(--shadow-subtle); margin-bottom: 2rem;}
+        .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; }
+        .card-header h3 { font-family: var(--font-display); font-size: 1.2rem; }
+        
+        table { width: 100%; border-collapse: collapse; text-align: left; }
+        th { padding: 1rem; border-bottom: 2px solid var(--gris-claro); color: #888; font-weight: 600; font-size: 0.85rem; text-transform: uppercase; }
+        td { padding: 1rem; border-bottom: 1px solid var(--gris-claro); font-size: 0.95rem; vertical-align: middle; }
+        tbody tr:hover { background: var(--fondo-claro); }
+        
+        .badge { padding: 0.4rem 1rem; border-radius: 50px; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;}
+        .badge-crear { background: var(--teal-claro); color: var(--teal-studio); border: 1px solid #A3E4D7; }
+        .badge-editar { background: #FEF5E7; color: var(--warning-color); border: 1px solid #FDEBD0; }
+        .badge-eliminar { background: #FDEDEC; color: var(--danger-color); border: 1px solid #F5B7B1; }
+
+        .search-input { padding: 0.6rem 1.2rem; border: 1px solid var(--gris-claro); border-radius: var(--radius-pill); font-family: var(--font-main); font-size: 0.9rem; outline: none; width: 300px; transition: var(--transition-smooth); background: var(--fondo-claro); }
+        .search-input:focus { border-color: var(--teal-studio); box-shadow: 0 0 0 3px var(--teal-claro); background: var(--blanco-puro); }
+        
+        .btn-primary { background: var(--teal-studio); color: var(--blanco-puro); border: none; padding: 0.8rem 1.5rem; border-radius: 8px; font-family: var(--font-main); font-size: 1rem; font-weight: 600; cursor: pointer; transition: var(--transition-smooth); text-decoration: none; display: inline-block;}
+        .btn-primary:hover { background: #10a89b; transform: translateY(-2px); }
+
+    </style>
+</head>
+<body>
+
+    <!-- VISTA ACCESO DENEGADO -->
+    <div id="accessDeniedView">
+        <div class="denied-card">
+            <div class="denied-icon">🔒</div>
+            <h2 style="font-family: var(--font-display); font-size: 1.8rem; margin-bottom: 1rem;">Acceso Restringido</h2>
+            <p style="color: #666; margin-bottom: 2rem;">Esta sección (Caja Negra) es confidencial y exclusiva para roles de Super Administrador. Tu cuenta actual no tiene los permisos suficientes.</p>
+            <a href="index.html" class="btn-primary">Volver al Inventario</a>
+        </div>
+    </div>
+
+    <!-- VISTA DASHBOARD -->
+    <div id="dashboardView">
+        <aside class="sidebar">
+            <div class="sidebar-logo">MATHSO<span>LUIS</span></div>
+            <ul class="nav-menu">
+                <li class="nav-item"><a href="index.html" class="nav-link">📦 Inventario</a></li>
+                <li class="nav-item"><a href="pedidos.html" class="nav-link">🛒 Pedidos</a></li>
+                <li class="nav-item"><a href="clientes.html" class="nav-link">👥 Clientes</a></li>
+                <li class="nav-item"><a href="configuracion.html" class="nav-link">⚙️ Configuración</a></li>
+                <li class="nav-item" style="margin-top: 2rem;"><a href="actividades.html" class="nav-link active">📊 Actividades (Admin)</a></li>
+            </ul>
+        </aside>
+
+        <main class="main-content">
+            <header class="topbar">
+                <h2>Caja Negra de Actividades</h2>
+                <div class="user-info">
+                    <span id="adminName">Cargando...</span>
+                    <button class="logout-btn" onclick="logout()">Salir</button>
+                </div>
+            </header>
+
+            <!-- REGISTRO DE EVENTOS -->
+            <section class="card">
+                <div class="card-header">
+                    <h3>Historial de Movimientos de Agentes</h3>
+                    <input type="text" id="searchInput" class="search-input" placeholder="🔍 Buscar por nombre de agente o producto...">
+                </div>
+                
+                <div style="overflow-x: auto;">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Fecha y Hora</th>
+                                <th>Agente Responsable</th>
+                                <th>Acción Realizada</th>
+                                <th>Módulo</th>
+                                <th>Detalle / Producto</th>
+                            </tr>
+                        </thead>
+                        <tbody id="logsTableBody">
+                            <tr><td colspan="5" style="text-align: center; padding: 2rem;">Cargando registros...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- LÓGICA JAVASCRIPT -->
+    <script>
+                let allLogs = []; 
+
+        window.onload = () => {
+            const token = localStorage.getItem('admin_token');
+            const rol = localStorage.getItem('admin_rol'); // Validamos el Rol guardado en Login
+            
+            if (!token) {
+                window.location.href = 'configuracion.html'; // Si no hay sesión, al inicio
+                return;
+            }
+
+            if (rol !== 'superadmin') {
+                document.getElementById('accessDeniedView').style.display = 'flex';
+                return;
+            }
+
+            // Es superadmin, damos acceso
+            document.getElementById('adminName').textContent = localStorage.getItem('admin_name');
+            document.getElementById('dashboardView').style.display = 'block';
+            loadActivities();
+        };
+
+        // logout() definido en auth-helper al final del body
+
+        // ==========================================
+        // OBTENER REGISTROS DE CAJA NEGRA
+        // ==========================================
+        async function loadActivities() {
+            try {
+                const response = await adminFetch('/api/admin/activities');
+                if (!response) return;
+                const result = await response.json();
+                
+                if (result.success) {
+                    allLogs = result.data;
+                    renderLogs(allLogs);
+                } else {
+                    document.getElementById('logsTableBody').innerHTML = `<tr><td colspan="5" style="color:#888; text-align:center; padding: 2rem;">Aún no hay movimientos registrados.</td></tr>`;
+                }
+            } catch (error) {
+                document.getElementById('logsTableBody').innerHTML = `<tr><td colspan="5" style="color:var(--danger-color); text-align:center; padding: 2rem;">Error conectando con la Base de Datos.</td></tr>`;
+            }
+        }
+
+        function renderLogs(logs) {
+            const tbody = document.getElementById('logsTableBody');
+            tbody.innerHTML = '';
+            
+            if (logs.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="5" style="color:#888; text-align:center; padding: 2rem;">No se encontraron registros.</td></tr>`;
+                return;
+            }
+
+            logs.forEach(log => {
+                let badgeClass = '';
+                if (log.action === 'CREAR') badgeClass = 'badge-crear';
+                if (log.action === 'EDITAR') badgeClass = 'badge-editar';
+                if (log.action === 'ELIMINAR') badgeClass = 'badge-eliminar';
+
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td style="color: #666; font-size: 0.85rem; font-weight: 500;">${log.fecha}</td>
+                    <td><strong>${log.admin_name}</strong></td>
+                    <td><span class="badge ${badgeClass}">${log.action}</span></td>
+                    <td style="color: #888;">${log.entity_type} (#${log.entity_id})</td>
+                    <td style="max-width: 250px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="${log.details}">${log.details}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        // Búsqueda rápida
+        document.getElementById('searchInput').addEventListener('input', function(e) {
+            const term = e.target.value.toLowerCase().trim();
+            const filtered = allLogs.filter(l => 
+                l.admin_name?.toLowerCase().includes(term) || 
+                l.details?.toLowerCase().includes(term) ||
+                l.action?.toLowerCase().includes(term)
+            );
+            renderLogs(filtered);
+        });
+
+    </script>
+
+    <!-- ✅ AUTH HELPER v2.0 - Sesiones seguras con token UUID -->
+    <script>
+        const API_BASE_URL = 'https://mathsoluis-api.studiopixelchile.workers.dev';
+
+        function getAuthHeaders() {
+            const token = localStorage.getItem('admin_token');
+            return { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` };
+        }
+
+        async function adminFetch(endpoint, options = {}) {
+            const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+                ...options,
+                headers: { ...getAuthHeaders(), ...(options.headers || {}) }
+            });
+            if (response.status === 401) {
+                localStorage.clear();
+                alert('Tu sesión ha expirado. Por favor inicia sesión nuevamente.');
+                window.location.href = 'configuracion.html';
+                return null;
+            }
+            return response;
+        }
+
+        async function logout() {
+            try {
+                await fetch(`${API_BASE_URL}/api/admin/logout`, {
+                    method: 'POST', headers: getAuthHeaders()
+                });
+            } catch (e) { console.warn('No se pudo notificar logout al servidor:', e); }
+            finally { localStorage.clear(); window.location.href = 'configuracion.html'; }
+        }
+    </script>
+
+</body>
+</html>

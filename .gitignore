@@ -1,0 +1,12 @@
+# Ignorar dependencias pesadas
+node_modules/
+
+# Ignorar configuraciones locales de Cloudflare
+.wrangler/
+
+# Ignorar archivos del sistema operativo
+.DS_Store
+Thumbs.db
+
+# Ignorar logs
+*.log

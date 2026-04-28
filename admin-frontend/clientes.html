@@ -1,0 +1,619 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mathsoluis | Gestión de Clientes</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;600;700;800&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+    
+    <style>
+        /* --- STUDIO PIXEL TOKENS --- */
+        :root {
+            --blanco-puro: #FFFFFF;
+            --fondo-claro: #F4F7F6; 
+            --teal-studio: #13C2B3; 
+            --teal-claro: #E0F6F5;  
+            --dark-studio: #1E1E24; 
+            --gris-claro: #E8ECEB;
+            --danger-color: #E74C3C;
+            --danger-light: #FDEDEC;
+            
+            --font-main: 'Poppins', sans-serif;
+            --font-display: 'Montserrat', sans-serif;
+            
+            --radius-md: 12px;
+            --radius-lg: 24px;
+            --radius-pill: 50px;
+            
+            --shadow-subtle: 0 10px 30px rgba(30, 30, 36, 0.08);
+            --transition-smooth: all 0.3s ease;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body { 
+            font-family: var(--font-main); 
+            background-color: var(--fondo-claro); 
+            color: var(--dark-studio); 
+        }
+
+        /* --- LOGIN VIEW --- */
+        #loginView { 
+            min-height: 100vh; display: flex; align-items: center; justify-content: center; 
+            background: linear-gradient(135deg, var(--dark-studio) 0%, #2a2a35 100%); 
+        }
+        
+        .login-card { 
+            background: var(--blanco-puro); padding: 3rem; border-radius: var(--radius-md); 
+            box-shadow: 0 20px 40px rgba(0,0,0,0.2); width: 100%; max-width: 400px; text-align: center; 
+        }
+        
+        .login-logo { font-family: var(--font-display); font-size: 1.8rem; font-weight: 800; color: var(--dark-studio); margin-bottom: 2rem; }
+        .login-logo span { color: var(--teal-studio); }
+
+        .input-group { margin-bottom: 1.5rem; text-align: left; }
+        .input-group label { display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 0.5rem; color: #666; }
+        .input-group input[type="text"], .input-group input[type="number"], .input-group input[type="email"], 
+        .input-group input[type="password"], .input-group select, .input-group textarea { 
+            width: 100%; padding: 0.8rem 1rem; border: 1px solid var(--gris-claro); border-radius: 8px; 
+            font-family: var(--font-main); font-size: 0.95rem; outline: none; transition: var(--transition-smooth); background: var(--fondo-claro); 
+        }
+        .input-group input:focus, .input-group select:focus, .input-group textarea:focus { 
+            border-color: var(--teal-studio); background: var(--blanco-puro); box-shadow: 0 0 0 3px var(--teal-claro); 
+        }
+
+        .btn-primary { width: 100%; background: var(--teal-studio); color: var(--blanco-puro); border: none; padding: 1rem; border-radius: 8px; font-family: var(--font-main); font-size: 1rem; font-weight: 600; cursor: pointer; transition: var(--transition-smooth); }
+        .btn-primary:hover { background: #10a89b; transform: translateY(-2px); }
+        .btn-secondary { background: var(--gris-claro); color: var(--dark-studio); border: none; padding: 0.8rem 1.5rem; border-radius: 8px; font-weight: 600; cursor: pointer; transition: var(--transition-smooth); }
+        .btn-secondary:hover { background: #d5dbda; }
+        .error-msg { color: var(--danger-color); font-size: 0.85rem; margin-top: 1rem; display: none; }
+
+        /* --- DASHBOARD VIEW --- */
+        #dashboardView { display: none; min-height: 100vh; }
+        .sidebar { width: 250px; background: var(--dark-studio); color: var(--blanco-puro); position: fixed; height: 100vh; top: 0; left: 0; padding: 2rem 1.5rem; }
+        .sidebar-logo { font-family: var(--font-display); font-size: 1.5rem; font-weight: 800; margin-bottom: 3rem; }
+        .sidebar-logo span { color: var(--teal-studio); }
+        .nav-menu { list-style: none; }
+        .nav-item { margin-bottom: 0.5rem; }
+        
+        .nav-link { display: block; color: #aaa; text-decoration: none; padding: 0.8rem 1rem; border-radius: 8px; font-weight: 500; transition: var(--transition-smooth); }
+        .nav-link:hover, .nav-link.active { background: rgba(255,255,255,0.1); color: var(--teal-studio); }
+
+        .main-content { margin-left: 250px; padding: 2rem 3rem; }
+        .topbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 3rem; }
+        .topbar h2 { font-family: var(--font-display); font-size: 1.8rem; font-weight: 700; }
+        .user-info { display: flex; align-items: center; gap: 1rem; font-weight: 600; }
+        .logout-btn { background: var(--danger-light); color: var(--danger-color); border: none; padding: 0.5rem 1rem; border-radius: 6px; cursor: pointer; font-weight: 600; }
+
+        /* --- DATA TABLE --- */
+        .card { background: var(--blanco-puro); border-radius: var(--radius-md); padding: 1.5rem; box-shadow: var(--shadow-subtle); }
+        .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; }
+        .card-header h3 { font-family: var(--font-display); font-size: 1.2rem; }
+        
+        table { width: 100%; border-collapse: collapse; text-align: left; }
+        th { padding: 1rem; border-bottom: 2px solid var(--gris-claro); color: #888; font-weight: 600; font-size: 0.85rem; text-transform: uppercase; }
+        td { padding: 1rem; border-bottom: 1px solid var(--gris-claro); font-size: 0.95rem; vertical-align: middle; }
+        tbody tr:hover { background: var(--fondo-claro); }
+        
+        .badge { padding: 0.3rem 0.8rem; border-radius: 50px; font-size: 0.75rem; font-weight: 600; }
+        .badge-google { background: #E8F0FE; color: #2980B9; border: 1px solid #D4E6F1; }
+        .badge-manual { background: var(--fondo-claro); color: #888; border: 1px solid var(--gris-claro); }
+        
+        .action-btn { background: none; border: none; cursor: pointer; font-size: 1.2rem; margin-right: 0.5rem; color: #888; transition: var(--transition-smooth); display: inline-flex; align-items: center; justify-content: center;}
+        .action-btn:hover { color: var(--teal-studio); }
+        .action-btn.disabled { opacity: 0.4; cursor: not-allowed; }
+        .action-btn.disabled:hover { color: #888; }
+
+        .controls-row { display: flex; gap: 1rem; align-items: center; }
+        .search-input { padding: 0.6rem 1.2rem; border: 1px solid var(--gris-claro); border-radius: var(--radius-pill); font-family: var(--font-main); font-size: 0.9rem; outline: none; width: 300px; transition: var(--transition-smooth); background: var(--fondo-claro); }
+        .search-input:focus { border-color: var(--teal-studio); box-shadow: 0 0 0 3px var(--teal-claro); background: var(--blanco-puro); }
+        th.sortable { cursor: pointer; user-select: none; transition: color 0.2s; white-space: nowrap; }
+        th.sortable:hover { color: var(--teal-studio); }
+        .sort-icon { font-size: 0.7rem; margin-left: 5px; opacity: 0.3; transition: opacity 0.2s; }
+        th.sortable.active { color: var(--teal-studio); }
+        th.sortable.active .sort-icon { opacity: 1; }
+
+        /* --- MODAL CLIENTE --- */
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(30, 30, 36, 0.6); backdrop-filter: blur(5px); display: none; align-items: center; justify-content: center; z-index: 1000; opacity: 0; transition: opacity 0.3s ease; }
+        .modal-overlay.active { display: flex; opacity: 1; }
+        .modal-content { background: var(--blanco-puro); width: 100%; max-width: 600px; max-height: 90vh; border-radius: var(--radius-lg); box-shadow: 0 25px 50px rgba(0,0,0,0.15); transform: translateY(20px); transition: transform 0.3s ease; display: flex; flex-direction: column; overflow: hidden; }
+        .modal-overlay.active .modal-content { transform: translateY(0); }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; padding: 2rem 2.5rem; border-bottom: 1px solid var(--gris-claro); background: var(--blanco-puro); z-index: 10; }
+        .modal-header h3 { font-family: var(--font-display); font-size: 1.5rem; color: var(--dark-studio); }
+        .close-modal { background: none; border: none; font-size: 1.5rem; cursor: pointer; color: #888; transition: color 0.3s ease; }
+        .close-modal:hover { color: var(--danger-color); }
+        
+        #clientForm { display: flex; flex-direction: column; overflow: hidden; height: 100%; }
+        .modal-body-scroll { padding: 2rem 2.5rem; overflow-y: auto; flex: 1; }
+        .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
+        .modal-actions { display: flex; justify-content: flex-end; gap: 1rem; padding: 1.5rem 2.5rem; border-top: 1px solid var(--gris-claro); background: var(--fondo-claro); z-index: 10; }
+        .section-divider { grid-column: span 2; margin-top: 0.5rem; border-bottom: 2px solid var(--gris-claro); padding-bottom: 0.5rem; font-family: var(--font-display); font-weight: 700; color: var(--dark-studio); font-size: 1.2rem;}
+
+    </style>
+</head>
+<body>
+
+    <!-- VISTA INICIO SESIÓN -->
+    <div id="loginView">
+        <div class="login-card">
+            <div class="login-logo">MATHSO<span>LUIS</span></div>
+            <p style="color: #888; margin-bottom: 2rem; font-size: 0.9rem;">Ingresa tus credenciales para acceder al panel corporativo.</p>
+            <form id="loginForm">
+                <div class="input-group">
+                    <label>Correo Electrónico</label>
+                    <input type="email" id="loginEmail" required placeholder="admin@mathsoluis.cl" value="admin@mathsoluis.cl">
+                </div>
+                <div class="input-group">
+                    <label>Contraseña</label>
+                    <input type="password" id="loginPassword" required placeholder="Ingresa tu contraseña">
+                </div>
+                <button type="submit" class="btn-primary" id="loginBtnText">Iniciar Sesión</button>
+                <div id="loginError" class="error-msg">Credenciales incorrectas. Intenta nuevamente.</div>
+            </form>
+        </div>
+    </div>
+
+    <!-- VISTA DASHBOARD -->
+    <div id="dashboardView">
+        <aside class="sidebar">
+            <div class="sidebar-logo">MATHSO<span>LUIS</span></div>
+            <ul class="nav-menu">
+                <li class="nav-item"><a href="index.html" class="nav-link">📦 Inventario</a></li>
+                <li class="nav-item"><a href="pedidos.html" class="nav-link">🛒 Pedidos</a></li>
+                <li class="nav-item"><a href="clientes.html" class="nav-link active">👥 Clientes</a></li>
+                <li class="nav-item"><a href="configuracion.html" class="nav-link">⚙️ Configuración</a></li>
+                <li class="nav-item" style="margin-top: 2rem;"><a href="actividades.html" class="nav-link">📊 Actividades (Admin)</a></li>
+            </ul>
+        </aside>
+
+        <main class="main-content">
+            <header class="topbar">
+                <h2>Directorio de Clientes</h2>
+                <div class="user-info">
+                    <span id="adminName">Cargando...</span>
+                    <button class="logout-btn" onclick="logout()">Salir</button>
+                </div>
+            </header>
+
+            <section class="card">
+                <div class="card-header">
+                    <h3>Base de Datos de Clientes</h3>
+                    <div class="controls-row">
+                        <input type="text" id="searchInput" class="search-input" placeholder="🔍 Buscar por nombre, correo o teléfono...">
+                        <button class="btn-primary" style="width: auto; padding: 0.6rem 1.5rem;" onclick="openClientModal()">+ Nuevo Cliente</button>
+                    </div>
+                </div>
+                
+                <div style="overflow-x: auto;">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th class="sortable" onclick="sortData('id')">ID <span class="sort-icon" id="sort-id">↕️</span></th>
+                                <th class="sortable" onclick="sortData('nombre')">Cliente <span class="sort-icon" id="sort-nombre">↕️</span></th>
+                                <th class="sortable" onclick="sortData('email')">Correo <span class="sort-icon" id="sort-email">↕️</span></th>
+                                <th class="sortable" onclick="sortData('telefono')">Teléfono <span class="sort-icon" id="sort-telefono">↕️</span></th>
+                                <th class="sortable" onclick="sortData('comuna')">Ubicación <span class="sort-icon" id="sort-comuna">↕️</span></th>
+                                <th class="sortable" onclick="sortData('fecha_registro')">Registro <span class="sort-icon" id="sort-fecha_registro">↕️</span></th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="clientsTableBody">
+                            <tr><td colspan="7" style="text-align: center; padding: 2rem;">Cargando base de datos de clientes...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- MODAL CREAR / EDITAR CLIENTE -->
+    <div id="clientModal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modalTitle">Registrar Nuevo Cliente</h3>
+                <button class="close-modal" onclick="closeClientModal()">✕</button>
+            </div>
+            
+            <form id="clientForm">
+                <div class="modal-body-scroll">
+                    <div class="form-grid">
+                        
+                        <div class="section-divider">Datos Personales</div>
+
+                        <div class="input-group">
+                            <label>Nombre Completo *</label>
+                            <input type="text" id="cliNombre" required placeholder="Ej: Camila Rojas">
+                        </div>
+                        <div class="input-group">
+                            <label>Correo Electrónico *</label>
+                            <input type="email" id="cliEmail" required placeholder="correo@ejemplo.com">
+                        </div>
+                        <div class="input-group">
+                            <label>Teléfono (WhatsApp)</label>
+                            <input type="text" id="cliTelefono" placeholder="+56 9...">
+                        </div>
+                        
+                        <div class="input-group">
+                            <label>Origen del Registro</label>
+                            <input type="text" id="cliOrigen" value="Registro Manual" readonly style="background-color: var(--gris-claro); color:#888;">
+                        </div>
+
+                        <div class="section-divider">Datos de Despacho (Blue Express)</div>
+
+                        <div class="input-group">
+                            <label>Región</label>
+                            <select id="cliRegion">
+                                <option value="">Selecciona una región...</option>
+                                <option value="Región Metropolitana">Región Metropolitana</option>
+                                <option value="Arica y Parinacota">Arica y Parinacota</option>
+                                <option value="Tarapacá">Tarapacá</option>
+                                <option value="Antofagasta">Antofagasta</option>
+                                <option value="Atacama">Atacama</option>
+                                <option value="Coquimbo">Coquimbo</option>
+                                <option value="Valparaíso">Valparaíso</option>
+                                <option value="O'Higgins">O'Higgins</option>
+                                <option value="Maule">Maule</option>
+                                <option value="Ñuble">Ñuble</option>
+                                <option value="Biobío">Biobío</option>
+                                <option value="La Araucanía">La Araucanía</option>
+                                <option value="Los Ríos">Los Ríos</option>
+                                <option value="Los Lagos">Los Lagos</option>
+                                <option value="Aysén">Aysén</option>
+                                <option value="Magallanes">Magallanes y Antártica</option>
+                                <option value="Otra">Otra Región</option>
+                            </select>
+                        </div>
+                        <div class="input-group">
+                            <label>Comuna</label>
+                            <input type="text" id="cliComuna" placeholder="Ej: Las Condes">
+                        </div>
+                        <div class="input-group" style="grid-column: span 2;">
+                            <label>Dirección Exacta</label>
+                            <input type="text" id="cliDireccion" placeholder="Ej: Av. Apoquindo 1234, Depto 45">
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="modal-actions">
+                    <button type="button" class="btn-secondary" onclick="closeClientModal()">Cancelar</button>
+                    <button type="submit" class="btn-primary" style="width: auto;" id="btnSaveClient">Guardar Cliente</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- LÓGICA JAVASCRIPT -->
+    <script>
+                // DOM Elements
+        const loginView = document.getElementById('loginView');
+        const dashboardView = document.getElementById('dashboardView');
+        const loginForm = document.getElementById('loginForm');
+        const clientsTableBody = document.getElementById('clientsTableBody');
+        
+        let allClients = []; 
+        let filteredClients = []; 
+        let currentSortColumn = 'id'; 
+        let sortAscending = false; 
+        let editingClientId = null; 
+
+        window.onload = () => {
+            const token = localStorage.getItem('admin_token');
+            if (token) {
+                document.getElementById('adminName').textContent = localStorage.getItem('admin_name');
+                showDashboard();
+            }
+        };
+
+        loginForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            document.getElementById('loginError').style.display = 'none';
+            document.getElementById('loginBtnText').textContent = 'Conectando...';
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/admin/login`, {
+                    method: 'POST', 
+                    headers: { 'Content-Type': 'application/json' }, 
+                    body: JSON.stringify({ 
+                        email: document.getElementById('loginEmail').value, 
+                        password: document.getElementById('loginPassword').value 
+                    })
+                });
+                
+                const result = await response.json();
+
+                if (result.success) {
+                    localStorage.setItem('admin_token', result.token);
+                    localStorage.setItem('admin_name', result.admin_data.nombre);
+                    localStorage.setItem('admin_rol', result.admin_data.rol);
+                    document.getElementById('adminName').textContent = result.admin_data.nombre;
+                    showDashboard();
+                } else {
+                    document.getElementById('loginError').textContent = result.error || 'Credenciales incorrectas.';
+                    document.getElementById('loginError').style.display = 'block';
+                }
+            } catch (error) {
+                document.getElementById('loginError').textContent = 'Error de conexión con el servidor.';
+                document.getElementById('loginError').style.display = 'block';
+            } finally {
+                document.getElementById('loginBtnText').textContent = 'Iniciar Sesión';
+            }
+        });
+
+        function showDashboard() { 
+            loginView.style.display = 'none'; 
+            dashboardView.style.display = 'block'; 
+            loadClients(); 
+        }
+        
+        function logout() { 
+            localStorage.clear(); 
+            dashboardView.style.display = 'none'; 
+            loginView.style.display = 'flex'; 
+        }
+
+        // ==========================================
+        // OBTENER CLIENTES (CONECTADO A LA API)
+        // ==========================================
+        async function loadClients() {
+            try {
+                const response = await adminFetch('/api/admin/customers');
+                if (!response) return;
+                const result = await response.json();
+                
+                if (result.success) {
+                    allClients = result.data;
+                    filteredClients = [...allClients];
+                    applySort(currentSortColumn, sortAscending);
+                } else {
+                    clientsTableBody.innerHTML = `<tr><td colspan="7" style="color:#888; text-align:center; padding: 2rem;">No hay clientes registrados aún.</td></tr>`;
+                }
+            } catch (error) {
+                clientsTableBody.innerHTML = `<tr><td colspan="7" style="color:var(--danger-color); text-align:center; padding: 2rem;">Error de conexión. Verifica que el API esté en línea.</td></tr>`;
+            }
+        }
+
+        function renderClients(clients) {
+            clientsTableBody.innerHTML = '';
+            
+            if (clients.length === 0) { 
+                clientsTableBody.innerHTML = `<tr><td colspan="7" style="text-align: center; padding: 3rem; color: #888;">No se encontraron resultados.</td></tr>`; 
+                return; 
+            }
+
+            // LEER EL ROL DEL USUARIO ACTUAL PARA SEGURIDAD
+            const adminRol = localStorage.getItem('admin_rol') || 'agente';
+
+            clients.forEach(client => {
+                const fecha = new Date(client.fecha_registro).toLocaleDateString('es-CL');
+                
+                const originBadge = client.google_id 
+                    ? `<span class="badge badge-google">G</span>` 
+                    : `<span class="badge badge-manual">Manual</span>`;
+
+                // VALIDACIÓN DE SEGURIDAD VISUAL
+                // Si el rol es superadmin, mostramos la papelera roja. Si es agente, mostramos un candado inactivo.
+                const deleteButtonHTML = adminRol === 'superadmin' 
+                    ? `<button class="action-btn" style="color: var(--danger-color);" onclick="deleteClient(${client.id})" title="Eliminar Cliente y Borrar Compras">🗑️</button>`
+                    : `<button class="action-btn disabled" title="Solo los Super Administradores pueden eliminar clientes">🔒</button>`;
+
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td><strong>#${client.id}</strong></td>
+                    <td>
+                        <div style="display: flex; align-items: center; gap: 0.8rem;">
+                            <div style="width: 35px; height: 35px; border-radius: 50%; background: var(--teal-claro); color: var(--teal-studio); display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 1rem;">
+                                ${client.nombre.charAt(0).toUpperCase()}
+                            </div>
+                            <div style="display: flex; flex-direction: column;">
+                                <span style="font-weight: 600; color: var(--dark-studio);">${client.nombre}</span>
+                                <div style="margin-top: 2px;">${originBadge}</div>
+                            </div>
+                        </div>
+                    </td>
+                    <td><a href="mailto:${client.email}" style="color: var(--teal-studio); text-decoration: none;">${client.email}</a></td>
+                    <td>${client.telefono || '<span style="color:#aaa;">No registrado</span>'}</td>
+                    <td>${client.comuna ? `${client.comuna}, ${client.region}` : '<span style="color:#aaa;">No registrada</span>'}</td>
+                    <td>${fecha}</td>
+                    <td>
+                        <button class="action-btn" onclick="openEditModal(${client.id})" title="Editar Datos de Despacho">✏️</button>
+                        ${deleteButtonHTML}
+                    </td>
+                `;
+                clientsTableBody.appendChild(tr);
+            });
+        }
+
+        // ==========================================
+        // BÚSQUEDA Y ORDENAMIENTO
+        // ==========================================
+        document.getElementById('searchInput').addEventListener('input', function(e) {
+            const term = e.target.value.toLowerCase().trim();
+            filteredClients = allClients.filter(c => {
+                return (c.nombre?.toLowerCase().includes(term) || 
+                        c.email?.toLowerCase().includes(term) || 
+                        c.telefono?.toLowerCase().includes(term) ||
+                        c.comuna?.toLowerCase().includes(term));
+            });
+            applySort(currentSortColumn, sortAscending);
+        });
+
+        function sortData(column) {
+            sortAscending = currentSortColumn === column ? !sortAscending : true;
+            currentSortColumn = column;
+            applySort(column, sortAscending);
+        }
+
+        function applySort(column, isAscending) {
+            filteredClients.sort((a, b) => {
+                let vA = a[column] || ''; let vB = b[column] || '';
+                if (typeof vA === 'string') { vA = vA.toLowerCase(); vB = vB.toLowerCase(); }
+                if (vA < vB) return isAscending ? -1 : 1;
+                if (vA > vB) return isAscending ? 1 : -1;
+                return 0;
+            });
+            
+            document.querySelectorAll('th.sortable').forEach(th => {
+                th.classList.remove('active');
+                th.querySelector('.sort-icon').textContent = '↕️';
+            });
+            
+            const currentIcon = document.getElementById(`sort-${column}`);
+            if(currentIcon) {
+                currentIcon.textContent = sortAscending ? '⬆️' : '⬇️';
+                currentIcon.parentElement.classList.add('active');
+            }
+
+            renderClients(filteredClients);
+        }
+
+        // ==========================================
+        // MODAL Y FORMULARIO
+        // ==========================================
+        const clientModal = document.getElementById('clientModal');
+        const clientForm = document.getElementById('clientForm');
+
+        function openClientModal() {
+            editingClientId = null; 
+            document.getElementById('modalTitle').textContent = 'Registrar Nuevo Cliente';
+            clientForm.reset(); 
+            document.getElementById('cliOrigen').value = 'Registro Manual';
+            clientModal.classList.add('active');
+        }
+
+        function openEditModal(id) {
+            const c = allClients.find(x => x.id === id);
+            if (!c) return;
+            
+            editingClientId = id; 
+            document.getElementById('modalTitle').textContent = 'Editar Cliente #' + id;
+            
+            document.getElementById('cliNombre').value = c.nombre;
+            document.getElementById('cliEmail').value = c.email;
+            document.getElementById('cliTelefono').value = c.telefono || '';
+            document.getElementById('cliRegion').value = c.region || '';
+            document.getElementById('cliComuna').value = c.comuna || '';
+            document.getElementById('cliDireccion').value = c.direccion || '';
+            
+            document.getElementById('cliOrigen').value = c.google_id ? 'Google Account' : 'Registro Manual';
+            
+            clientModal.classList.add('active');
+        }
+
+        function closeClientModal() { clientModal.classList.remove('active'); }
+
+        // ==========================================
+        // GUARDAR / ELIMINAR (CONEXIÓN API REAL)
+        // ==========================================
+        clientForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btnSave = document.getElementById('btnSaveClient');
+            
+            btnSave.textContent = 'Guardando...'; 
+            btnSave.disabled = true;
+
+            const clientData = {
+                admin_name: localStorage.getItem('admin_name'), // Enviamos el nombre del agente a la caja negra
+                nombre: document.getElementById('cliNombre').value,
+                email: document.getElementById('cliEmail').value,
+                telefono: document.getElementById('cliTelefono').value || null,
+                region: document.getElementById('cliRegion').value || null,
+                comuna: document.getElementById('cliComuna').value || null,
+                direccion: document.getElementById('cliDireccion').value || null
+            };
+
+            const method = editingClientId ? 'PUT' : 'POST';
+            const url = editingClientId ? `${API_BASE_URL}/api/admin/customers/${editingClientId}` : `${API_BASE_URL}/api/admin/customers`;
+
+            try {
+                const response = await fetch(url, { 
+                    method: method, 
+                    headers: { 'Content-Type': 'application/json' }, 
+                    body: JSON.stringify(clientData) 
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    closeClientModal(); 
+                    loadClients(); 
+                } else {
+                    alert('Error: ' + result.error);
+                }
+            } catch (error) {
+                alert('Error de red al intentar guardar.');
+                closeClientModal();
+            } finally {
+                btnSave.textContent = 'Guardar Cliente'; 
+                btnSave.disabled = false;
+            }
+        });
+
+        // FUNCIÓN DE SEGURIDAD PARA ELIMINAR
+        async function deleteClient(id) {
+            // Doble Validación de Seguridad por si un agente intenta hackear la consola del navegador
+            if (localStorage.getItem('admin_rol') !== 'superadmin') {
+                alert("Acceso denegado: Solo un Super Administrador puede eliminar clientes.");
+                return;
+            }
+
+            const clientObj = allClients.find(c => c.id === id);
+            const clientName = clientObj ? clientObj.nombre : `Cliente #${id}`;
+
+            // Advertencia Crítica al Super Administrador
+            const warningMsg = `⚠️ ADVERTENCIA CRÍTICA ⚠️\n\nEstás a punto de eliminar a: ${clientName}\n\nSi este cliente tiene PEDIDOS en el sistema (pendientes o entregados), TODO su historial de compras será borrado de la base de datos de forma permanente junto con su cuenta.\n\n¿Estás completamente seguro de continuar con la eliminación?`;
+
+            if (!confirm(warningMsg)) return;
+
+            try {
+                const adminName = localStorage.getItem('admin_name') || 'Desconocido';
+                const response = await adminFetch(`/api/admin/customers/${id}`, { method: 'DELETE' });
+                if (!response) return;
+                const result = await response.json();
+                
+                if (result.success) {
+                    loadClients(); 
+                } else {
+                    alert('Error: ' + result.error);
+                }
+            } catch (error) {
+                alert('Error de conexión al intentar eliminar el cliente.');
+            }
+        }
+    </script>
+
+    <!-- ✅ AUTH HELPER v2.0 - Sesiones seguras con token UUID -->
+    <script>
+        const API_BASE_URL = 'https://mathsoluis-api.studiopixelchile.workers.dev';
+
+        function getAuthHeaders() {
+            const token = localStorage.getItem('admin_token');
+            return { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` };
+        }
+
+        async function adminFetch(endpoint, options = {}) {
+            const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+                ...options,
+                headers: { ...getAuthHeaders(), ...(options.headers || {}) }
+            });
+            if (response.status === 401) {
+                localStorage.clear();
+                alert('Tu sesión ha expirado. Por favor inicia sesión nuevamente.');
+                window.location.href = 'configuracion.html';
+                return null;
+            }
+            return response;
+        }
+
+        async function logout() {
+            try {
+                await fetch(`${API_BASE_URL}/api/admin/logout`, {
+                    method: 'POST', headers: getAuthHeaders()
+                });
+            } catch (e) { console.warn('No se pudo notificar logout al servidor:', e); }
+            finally { localStorage.clear(); window.location.href = 'configuracion.html'; }
+        }
+    </script>
+
+</body>
+</html>
