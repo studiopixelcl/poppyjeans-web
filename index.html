@@ -905,31 +905,64 @@
             
             // Mostrar/Ocultar flechas dependiendo de cantidad de imágenes
             const imgCount = [variant.imagen_1, variant.imagen_2, variant.imagen_3, variant.imagen_4, variant.imagen_5].filter(Boolean).length;
-            card.querySelector('.card-nav-prev').style.display = imgCount > 1 ? 'flex' : 'none';
-            card.querySelector('.card-nav-next').style.display = imgCount > 1 ? 'flex' : 'none';
+            const product2 = storeCatalog.find(p => p.id === productId);
+            const totalVariants2 = product2 ? product2.variantes.length : 1;
+            const showArrows = imgCount > 1 || totalVariants2 > 1;
+            card.querySelector('.card-nav-prev').style.display = showArrows ? 'flex' : 'none';
+            card.querySelector('.card-nav-next').style.display = showArrows ? 'flex' : 'none';
             
             // Actualizar overlay de tallas
             card.querySelector('.card-sizes-overlay').innerHTML = getVariantSizesHTML(variant);
         };
 
-        // Función para mover el mini-carrusel de la tarjeta con loop inteligente
+        // Función para mover el mini-carrusel de la tarjeta con loop entre variantes
         window.scrollCardGallery = (productId, direction) => {
-            const gallery = document.querySelector(`#product-card-${productId} .card-gallery`);
+            const card = document.getElementById(`product-card-${productId}`);
+            const gallery = card ? card.querySelector('.card-gallery') : null;
             if (!gallery) return;
 
             const scrollAmount = gallery.clientWidth;
             const maxScroll = gallery.scrollWidth - gallery.clientWidth;
-            
-            // Permite un margen de error de 5px para cálculos de píxeles
-            if (direction === 1 && gallery.scrollLeft >= maxScroll - 5) {
-                // Está al final y hace click en siguiente -> Vuelve al inicio
-                gallery.scrollTo({ left: 0, behavior: 'smooth' });
-            } else if (direction === -1 && gallery.scrollLeft <= 5) {
-                // Está al inicio y hace click en atrás -> Va al final
-                gallery.scrollTo({ left: maxScroll, behavior: 'smooth' });
+
+            // Obtener variantes del producto y variante activa actual
+            const product = storeCatalog.find(p => p.id === productId);
+            if (!product || !product.variantes) return;
+            const totalVariants = product.variantes.length;
+
+            // Detectar índice de variante activa por el color-dot marcado como active
+            const dots = card.querySelectorAll('.color-dot');
+            let activeVariantIndex = 0;
+            dots.forEach((dot, i) => { if (dot.classList.contains('active')) activeVariantIndex = i; });
+
+            if (direction === 1) {
+                if (gallery.scrollLeft >= maxScroll - 5) {
+                    // Última imagen de esta variante -> pasar a la siguiente variante
+                    const nextVariantIndex = (activeVariantIndex + 1) % totalVariants;
+                    const nextDot = dots[nextVariantIndex];
+                    if (nextDot) {
+                        updateCardVariant(productId, nextVariantIndex, nextDot);
+                        // Pequeño delay para que se carguen las imágenes antes de ir al inicio
+                        setTimeout(() => { gallery.scrollTo({ left: 0, behavior: 'smooth' }); }, 50);
+                    }
+                } else {
+                    gallery.scrollBy({ left: scrollAmount, behavior: 'smooth' });
+                }
             } else {
-                // Scroll normal
-                gallery.scrollBy({ left: direction * scrollAmount, behavior: 'smooth' });
+                if (gallery.scrollLeft <= 5) {
+                    // Primera imagen de esta variante -> ir a la variante anterior
+                    const prevVariantIndex = (activeVariantIndex - 1 + totalVariants) % totalVariants;
+                    const prevDot = dots[prevVariantIndex];
+                    if (prevDot) {
+                        updateCardVariant(productId, prevVariantIndex, prevDot);
+                        // Ir a la última imagen de la variante anterior
+                        setTimeout(() => {
+                            const newMaxScroll = gallery.scrollWidth - gallery.clientWidth;
+                            gallery.scrollTo({ left: newMaxScroll, behavior: 'smooth' });
+                        }, 80);
+                    }
+                } else {
+                    gallery.scrollBy({ left: -scrollAmount, behavior: 'smooth' });
+                }
             }
         };
 
@@ -1005,7 +1038,7 @@
                 
                 // Mostrar flechas solo si hay más de 1 imagen en la variante 0
                 const initialImgCount = firstVariant ? [firstVariant.imagen_1, firstVariant.imagen_2, firstVariant.imagen_3, firstVariant.imagen_4, firstVariant.imagen_5].filter(Boolean).length : 0;
-                const navArrowsStyle = initialImgCount > 1 ? 'flex' : 'none';
+                const navArrowsStyle = initialImgCount > 1 || product.variantes.length > 1 ? 'flex' : 'none';
 
                 let colorDotsHTML = '';
                 if(product.variantes && product.variantes.length > 0) {

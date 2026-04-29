@@ -325,6 +325,86 @@
         .how-to-measure ul { padding-left: 1.2rem; margin: 0; }
         .how-to-measure li { font-size: 0.82rem; color: #666; line-height: 1.7; }
 
+
+        /* === DESCRIPCIÓN ENRIQUECIDA === */
+        .product-description { margin-bottom: 2rem; }
+
+        .desc-intro { font-size: 1rem; color: #555; line-height: 1.8; margin-bottom: 1.2rem; padding-bottom: 1.2rem; border-bottom: 1px solid var(--gris-claro); }
+
+        .desc-specs { display: flex; flex-direction: column; gap: 0.6rem; margin-bottom: 1.2rem; padding-bottom: 1.2rem; border-bottom: 1px solid var(--gris-claro); }
+
+        .spec-row { display: flex; align-items: flex-start; gap: 0.7rem; font-size: 0.9rem; }
+        .spec-icon { font-size: 1rem; flex-shrink: 0; margin-top: 1px; }
+        .spec-label { font-weight: 700; color: var(--dark-studio); white-space: nowrap; }
+        .spec-value { color: #666; }
+
+        .desc-colors-section { margin-bottom: 0; }
+        .desc-colors-label { font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; color: #aaa; margin-bottom: 0.6rem; }
+        .desc-color-pills { display: flex; flex-wrap: wrap; gap: 0.4rem; }
+        .desc-color-pill { background: var(--beige-calido); border: 1px solid var(--gris-claro); padding: 0.25rem 0.7rem; border-radius: 50px; font-size: 0.8rem; color: #666; font-weight: 500; }
+
+
+        /* === SECCIÓN DESCRIPCIÓN INFERIOR === */
+        .product-details-section {
+            padding: 4rem 5%;
+            background: var(--blanco-puro);
+            border-top: 1px solid var(--rosa-palo);
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .details-tabs {
+            display: flex;
+            gap: 0;
+            border-bottom: 2px solid var(--gris-claro);
+            margin-bottom: 2.5rem;
+        }
+        .details-tab {
+            padding: 0.9rem 2rem;
+            font-family: var(--font-main);
+            font-size: 0.85rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            border: none;
+            background: none;
+            cursor: pointer;
+            color: #aaa;
+            border-bottom: 2px solid transparent;
+            margin-bottom: -2px;
+            transition: all 0.2s;
+        }
+        .details-tab.active { color: var(--dark-studio); border-bottom-color: var(--dark-studio); }
+        .details-tab:hover:not(.active) { color: var(--dark-studio); }
+
+        .details-panel { display: none; }
+        .details-panel.active { display: grid; grid-template-columns: 1fr 1fr; gap: 3rem; align-items: start; }
+        .details-panel.active.single-col { display: block; max-width: 700px; }
+
+        .desc-intro { font-size: 1rem; color: #555; line-height: 1.9; margin-bottom: 1.5rem; }
+        .desc-specs { display: flex; flex-direction: column; gap: 0.8rem; }
+        .spec-row { display: flex; align-items: flex-start; gap: 0.8rem; font-size: 0.92rem; padding: 0.6rem 0; border-bottom: 1px solid var(--rosa-palo); }
+        .spec-row:last-child { border-bottom: none; }
+        .spec-icon { font-size: 1.1rem; flex-shrink: 0; }
+        .spec-label { font-weight: 700; color: var(--dark-studio); min-width: 110px; flex-shrink: 0; }
+        .spec-value { color: #666; }
+
+        .desc-colors-section { margin-top: 1.5rem; }
+        .desc-colors-label { font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; color: #aaa; margin-bottom: 0.8rem; }
+        .desc-color-pills { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+        .desc-color-pill { background: var(--beige-calido); border: 1px solid var(--gris-claro); padding: 0.3rem 0.9rem; border-radius: 50px; font-size: 0.82rem; color: #666; font-weight: 500; }
+
+        .care-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 1rem; }
+        .care-item { display: flex; flex-direction: column; align-items: center; text-align: center; padding: 1.5rem 1rem; background: var(--beige-calido); border-radius: 12px; gap: 0.6rem; }
+        .care-item-icon { font-size: 1.8rem; }
+        .care-item-title { font-weight: 700; font-size: 0.82rem; text-transform: uppercase; letter-spacing: 0.5px; color: var(--dark-studio); }
+        .care-item-desc { font-size: 0.8rem; color: #888; line-height: 1.4; }
+
+        @media (max-width: 768px) {
+            .details-panel.active { grid-template-columns: 1fr; gap: 2rem; }
+            .details-tab { padding: 0.8rem 1rem; font-size: 0.78rem; }
+        }
+
     </style>
 </head>
 <body>
@@ -430,10 +510,6 @@
                     </button>
                 </div>
 
-                <div class="product-description" id="prodDesc">
-                    <!-- Descripción -->
-                </div>
-
                 <div class="trust-badges">
                     <div class="trust-row">
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
@@ -449,6 +525,69 @@
                     </div>
                 </div>
 
+            </div>
+        </div>
+
+
+        <!-- SECCIÓN DESCRIPCIÓN + DETALLES -->
+        <div class="product-details-section">
+            <div class="details-tabs">
+                <button class="details-tab active" onclick="switchDetailsTab('descripcion', this)">📋 Descripción</button>
+                <button class="details-tab" onclick="switchDetailsTab('cuidados', this)">🫧 Cuidados</button>
+                <button class="details-tab" onclick="switchDetailsTab('envio', this)">🚚 Envío</button>
+            </div>
+
+            <!-- Panel Descripción -->
+            <div class="details-panel active single-col" id="details-descripcion">
+                <div id="prodDesc"><!-- Inyectado por JS --></div>
+            </div>
+
+            <!-- Panel Cuidados -->
+            <div class="details-panel" id="details-cuidados">
+                <div class="care-grid">
+                    <div class="care-item">
+                        <span class="care-item-icon">🌊</span>
+                        <span class="care-item-title">Lavado a mano</span>
+                        <span class="care-item-desc">Agua fría con jabón neutro, sin restregar</span>
+                    </div>
+                    <div class="care-item">
+                        <span class="care-item-icon">🌡️</span>
+                        <span class="care-item-title">Máquina fría</span>
+                        <span class="care-item-desc">Ciclo delicado, máximo 30°C</span>
+                    </div>
+                    <div class="care-item">
+                        <span class="care-item-icon">🚫</span>
+                        <span class="care-item-title">Sin blanqueador</span>
+                        <span class="care-item-desc">No usar cloro ni productos agresivos</span>
+                    </div>
+                    <div class="care-item">
+                        <span class="care-item-icon">👗</span>
+                        <span class="care-item-title">Secar a la sombra</span>
+                        <span class="care-item-desc">Extender horizontal, evitar sol directo</span>
+                    </div>
+                    <div class="care-item">
+                        <span class="care-item-icon">🔆</span>
+                        <span class="care-item-title">Plancha baja</span>
+                        <span class="care-item-desc">Temperatura baja, del revés</span>
+                    </div>
+                    <div class="care-item">
+                        <span class="care-item-icon">✨</span>
+                        <span class="care-item-title">Algodón premium</span>
+                        <span class="care-item-desc">Suave con pieles sensibles de bebé</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Panel Envío -->
+            <div class="details-panel" id="details-envio">
+                <div class="desc-specs">
+                    <div class="spec-row"><span class="spec-icon">🚚</span><span class="spec-label">Courier:</span><span class="spec-value">Blue Express — despacho a todo Chile</span></div>
+                    <div class="spec-row"><span class="spec-icon">📦</span><span class="spec-label">Preparación:</span><span class="spec-value">1 a 2 días hábiles tras confirmación del pago</span></div>
+                    <div class="spec-row"><span class="spec-icon">🕐</span><span class="spec-label">Tiempos:</span><span class="spec-value">RM: 1-2 días hábiles · Regiones: 2-4 días hábiles</span></div>
+                    <div class="spec-row"><span class="spec-icon">🔍</span><span class="spec-label">Seguimiento:</span><span class="spec-value">Te enviamos el código de rastreo por correo al despachar</span></div>
+                    <div class="spec-row"><span class="spec-icon">🏪</span><span class="spec-label">Retiro:</span><span class="spec-value">Disponible en nuestras sucursales sin costo adicional</span></div>
+                    <div class="spec-row"><span class="spec-icon">💬</span><span class="spec-label">Consultas:</span><span class="spec-value">WhatsApp +56 9 3033 8773 · Lunes a Sábado 10:00-19:00</span></div>
+                </div>
             </div>
         </div>
 
@@ -586,7 +725,80 @@
             document.getElementById('tagsContainer').innerHTML = tagsHTML;
 
             document.getElementById('prodTitle').textContent = currentProduct.nombre;
-            document.getElementById('prodDesc').innerHTML = `<p>${(currentProduct.descripcion || '').replace(/\n/g, '<br>')}</p>`;
+            // Renderizado inteligente de descripción
+            (function renderDesc(rawDesc) {
+                if (!rawDesc) { document.getElementById('prodDesc').innerHTML = ''; return; }
+                const lines = rawDesc.split('\n').map(l => l.trim()).filter(Boolean);
+                
+                // Claves que se convierten en spec rows con ícono
+                const specKeys = {
+                    'medidas': { icon: '📐', label: 'Medidas' },
+                    'medida':  { icon: '📐', label: 'Medidas' },
+                    'peso':    { icon: '⚖️', label: 'Peso' },
+                    'material':{ icon: '🧵', label: 'Material' },
+                    'tela':    { icon: '🧵', label: 'Tela' },
+                    'colores': { icon: '🎨', label: 'Colores disponibles' },
+                    'color':   { icon: '🎨', label: 'Colores disponibles' },
+                    'contenido':{ icon: '📦', label: 'Contenido' },
+                    'incluye': { icon: '📦', label: 'Incluye' },
+                    'lavado':  { icon: '🫧', label: 'Cuidado' },
+                    'cuidado': { icon: '🫧', label: 'Cuidado' },
+                    'talla':   { icon: '📏', label: 'Tallas' },
+                    'tallas':  { icon: '📏', label: 'Tallas' },
+                    'edad':    { icon: '👶', label: 'Edad recomendada' },
+                };
+
+                let introLines = [], specLines = [], colorValues = null;
+
+                lines.forEach(line => {
+                    const colonIdx = line.indexOf(':');
+                    if (colonIdx > 0) {
+                        const key = line.substring(0, colonIdx).trim().toLowerCase();
+                        const val = line.substring(colonIdx + 1).trim();
+                        const spec = specKeys[key];
+                        if (spec) {
+                            if (key === 'colores' || key === 'color') {
+                                colorValues = val;
+                            } else {
+                                specLines.push({ ...spec, value: val });
+                            }
+                            return;
+                        }
+                    }
+                    introLines.push(line);
+                });
+
+                let html = '';
+
+                // Párrafo introductorio
+                if (introLines.length > 0) {
+                    html += `<div class="desc-intro">${introLines.join('<br>')}</div>`;
+                }
+
+                // Specs con íconos
+                if (specLines.length > 0) {
+                    html += `<div class="desc-specs">`;
+                    specLines.forEach(s => {
+                        html += `<div class="spec-row">
+                            <span class="spec-icon">${s.icon}</span>
+                            <span class="spec-label">${s.label}:</span>
+                            <span class="spec-value">${s.value}</span>
+                        </div>`;
+                    });
+                    html += `</div>`;
+                }
+
+                // Colores como pills
+                if (colorValues) {
+                    const pills = colorValues.split(',').map(c => c.trim()).filter(Boolean);
+                    html += `<div class="desc-colors-section">
+                        <div class="desc-colors-label">🎨 Colores disponibles</div>
+                        <div class="desc-color-pills">${pills.map(c => `<span class="desc-color-pill">${c}</span>`).join('')}</div>
+                    </div>`;
+                }
+
+                document.getElementById('prodDesc').innerHTML = html || `<p>${rawDesc}</p>`;
+            })(currentProduct.descripcion || '');
             
             let priceHTML = `<span class="price-current">${formatCurrency(currentProduct.precio_normal)}</span>`;
             if (currentProduct.en_oferta === 1) {
@@ -1213,6 +1425,14 @@
     <!-- FIN MODAL GUÍA DE TALLAS -->
 
     <script>
+
+        function switchDetailsTab(panel, btn) {
+            document.querySelectorAll('.details-panel').forEach(p => p.classList.remove('active'));
+            document.querySelectorAll('.details-tab').forEach(b => b.classList.remove('active'));
+            document.getElementById('details-' + panel).classList.add('active');
+            btn.classList.add('active');
+        }
+
         // === GUÍA DE TALLAS ===
         function openSizeGuide() {
             document.getElementById('sizeGuideOverlay').classList.add('active');
