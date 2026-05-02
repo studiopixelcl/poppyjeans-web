@@ -6,3 +6,10 @@ compatibility_date = "2024-04-08"
 binding = "DB"
 database_name = "mathsoluis-db"
 database_id = "dd9c2e8b-cd4b-47a7-a682-ccb08ce8d880"
+
+[[r2_buckets]]
+binding = "IMAGES"
+bucket_name = "mathsoluis-images"
+
+[vars]
+PUBLIC_IMAGES_URL = "https://images.mathsoluis.cl"

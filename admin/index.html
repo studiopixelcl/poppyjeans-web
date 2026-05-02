@@ -968,29 +968,56 @@
             const reader = new FileReader();
             reader.onload = function(e) {
                 const img = new Image();
-                img.onload = function() {
+                img.onload = async function() {
                     const canvas = document.createElement('canvas');
-                    
-                    const MAX_DIM = 1000; 
+
+                    // Subimos a 1600px (más resolución que antes — R2 no penaliza tamaño)
+                    const MAX_DIM = 1600;
                     let scale = 1;
                     if (img.width > MAX_DIM || img.height > MAX_DIM) {
                         scale = MAX_DIM / Math.max(img.width, img.height);
                     }
-                    
-                    canvas.width = img.width * scale; 
+
+                    canvas.width = img.width * scale;
                     canvas.height = img.height * scale;
-                    
+
                     const ctx = canvas.getContext('2d');
-                    ctx.fillStyle = "#FFFFFF"; 
+                    ctx.fillStyle = "#FFFFFF";
                     ctx.fillRect(0, 0, canvas.width, canvas.height);
                     ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-                    
-                    let quality = 0.82; 
-                    let base64 = canvas.toDataURL('image/jpeg', quality); 
-                    
+
+                    // Calidad alta: como ya no va dentro de D1, podemos permitirnos más peso
+                    const quality = 0.9;
+                    const base64 = canvas.toDataURL('image/jpeg', quality);
+
                     const variant = productVariants.find(v => v.id === vId);
-                    if(variant) {
-                        variant.images[imgIndex] = base64;
+                    if(!variant) return;
+
+                    // Vista previa inmediata (data URL local) mientras se sube a R2
+                    variant.images[imgIndex] = base64;
+                    renderVariantImages(vId);
+
+                    // Buscar el nombre de color de la variante para naming legible en R2
+                    const colorInput = document.querySelector(`#variantCard_${vId} .variant-color-name`);
+                    const colorName = (colorInput && colorInput.value) ? colorInput.value : (variant.color_name || 'color');
+                    const productId = (typeof editingProductId !== 'undefined' && editingProductId) ? editingProductId : null;
+
+                    // Subir a R2 (adminFetch ya prepende API_BASE_URL e inyecta el token)
+                    try {
+                        const resp = await adminFetch('/api/admin/upload-image', {
+                            method: 'POST',
+                            body: JSON.stringify({ data: base64, productId, color: colorName })
+                        });
+                        if (!resp) return; // sesión expirada — adminFetch ya redirigió
+                        const result = await resp.json();
+                        if (!resp.ok || !result.success) throw new Error(result.error || 'Upload falló');
+
+                        // Reemplazar Base64 por URL pública (lo que se guardará en D1)
+                        variant.images[imgIndex] = result.url;
+                        renderVariantImages(vId);
+                    } catch (err) {
+                        alert('Error subiendo imagen: ' + err.message);
+                        variant.images[imgIndex] = "";
                         renderVariantImages(vId);
                     }
                 };

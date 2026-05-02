@@ -27,6 +27,44 @@ function parseJwtPayload(token) {
 const formatCurrency = (amount) => '$' + amount.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
 
 // ============================================================================
+// HELPER: Subida de imagen Base64 a Cloudflare R2
+// Devuelve la URL pública (PUBLIC_IMAGES_URL/key) que se guarda en D1.
+// ============================================================================
+async function uploadBase64ToR2(env, dataUrl, meta = {}) {
+  // Parsear "data:image/jpeg;base64,XXXX..."
+  const match = dataUrl.match(/^data:(image\/[a-zA-Z+]+);base64,(.+)$/);
+  if (!match) throw new Error("Formato Base64 inválido");
+  const mime = match[1];
+  const base64 = match[2];
+
+  const ext = mime === 'image/jpeg' ? 'jpg'
+            : mime === 'image/png'  ? 'png'
+            : mime === 'image/webp' ? 'webp'
+            : mime === 'image/gif'  ? 'gif'
+            : 'bin';
+
+  // Decodificar Base64 a bytes
+  const binary = atob(base64);
+  const bytes = new Uint8Array(binary.length);
+  for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+
+  // Slug del color para URL legible
+  const colorSlug = (meta.color || 'img').toString().toLowerCase()
+    .normalize('NFD').replace(/[̀-ͯ]/g, '')
+    .replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 30) || 'img';
+  const productPart = meta.productId ? `p${meta.productId}` : 'p0';
+  const rand = crypto.randomUUID().slice(0, 8);
+  const key = `productos/${productPart}/${colorSlug}-${Date.now()}-${rand}.${ext}`;
+
+  await env.IMAGES.put(key, bytes, {
+    httpMetadata: { contentType: mime, cacheControl: 'public, max-age=31536000, immutable' }
+  });
+
+  const baseUrl = (env.PUBLIC_IMAGES_URL || '').replace(/\/$/, '');
+  return `${baseUrl}/${key}`;
+}
+
+// ============================================================================
 // MIDDLEWARE DE AUTENTICACIÓN ADMIN
 // Verifica que el token Bearer sea válido y no haya expirado (8 horas)
 // ============================================================================
@@ -420,6 +458,78 @@ export default {
       // El nombre del admin viene del servidor (no del cliente — más seguro)
       const adminName = session.admin_name;
       const adminRol = session.admin_rol;
+
+      // ---- IMÁGENES (R2) ----
+      // Sube una imagen al bucket R2 y devuelve la URL pública.
+      // Body: { data: "data:image/jpeg;base64,...", productId?, color? }
+      if (url.pathname === "/api/admin/upload-image" && request.method === "POST") {
+        try {
+          if (!env.IMAGES) return Response.json({ success: false, error: "R2 no configurado" }, { status: 500, headers: corsHeaders });
+          const { data, productId, color } = await request.json();
+          if (!data || typeof data !== 'string') return Response.json({ success: false, error: "Falta data Base64" }, { status: 400, headers: corsHeaders });
+
+          const url = await uploadBase64ToR2(env, data, { productId, color });
+          return Response.json({ success: true, url }, { headers: corsHeaders });
+        } catch (error) { return Response.json({ success: false, error: error.message }, { status: 500, headers: corsHeaders }); }
+      }
+
+      // Migra imágenes existentes Base64 → R2. Procesa 5 variantes por llamada.
+      // Devuelve { processed, pending, total } para que el cliente lo llame en loop hasta pending=0.
+      // Solo superadmin (operación destructiva sobre la base de datos).
+      if (url.pathname === "/api/admin/migrate-images-batch" && request.method === "POST") {
+        if (adminRol !== 'superadmin') return Response.json({ success: false, error: "Solo superadmin" }, { status: 403, headers: corsHeaders });
+        try {
+          if (!env.IMAGES) return Response.json({ success: false, error: "R2 no configurado" }, { status: 500, headers: corsHeaders });
+
+          // Buscar variantes con al menos una imagen Base64 (que empiece con "data:")
+          const { results: pending } = await env.DB.prepare(`
+            SELECT id, product_id FROM ProductVariants
+            WHERE substr(COALESCE(imagen_1,''),1,5) = 'data:'
+               OR substr(COALESCE(imagen_2,''),1,5) = 'data:'
+               OR substr(COALESCE(imagen_3,''),1,5) = 'data:'
+               OR substr(COALESCE(imagen_4,''),1,5) = 'data:'
+               OR substr(COALESCE(imagen_5,''),1,5) = 'data:'
+            LIMIT 5
+          `).all();
+
+          let processed = 0;
+          for (const v of pending) {
+            const variant = await env.DB.prepare("SELECT * FROM ProductVariants WHERE id = ?").bind(v.id).first();
+            const updates = {};
+            for (const col of ['imagen_1','imagen_2','imagen_3','imagen_4','imagen_5']) {
+              const val = variant[col];
+              if (val && typeof val === 'string' && val.startsWith('data:')) {
+                try {
+                  const newUrl = await uploadBase64ToR2(env, val, { productId: variant.product_id, color: variant.color_name });
+                  updates[col] = newUrl;
+                } catch (e) {
+                  console.error(`Error migrando ${col} de variante ${v.id}:`, e);
+                }
+              }
+            }
+            const cols = Object.keys(updates);
+            if (cols.length > 0) {
+              const setClause = cols.map(c => `${c} = ?`).join(', ');
+              const values = cols.map(c => updates[c]);
+              await env.DB.prepare(`UPDATE ProductVariants SET ${setClause} WHERE id = ?`).bind(...values, v.id).run();
+              processed++;
+            }
+          }
+
+          // Conteo de las que aún faltan tras este batch
+          const remaining = await env.DB.prepare(`
+            SELECT COUNT(*) as c FROM ProductVariants
+            WHERE substr(COALESCE(imagen_1,''),1,5) = 'data:'
+               OR substr(COALESCE(imagen_2,''),1,5) = 'data:'
+               OR substr(COALESCE(imagen_3,''),1,5) = 'data:'
+               OR substr(COALESCE(imagen_4,''),1,5) = 'data:'
+               OR substr(COALESCE(imagen_5,''),1,5) = 'data:'
+          `).first();
+
+          ctx.waitUntil(logActivity(env, adminName, 'MIGRAR', 'Imagenes', 0, `Batch: ${processed} variantes migradas, faltan ${remaining.c}`));
+          return Response.json({ success: true, processed, pending: remaining.c }, { headers: corsHeaders });
+        } catch (error) { return Response.json({ success: false, error: error.message }, { status: 500, headers: corsHeaders }); }
+      }
 
       // ---- INVENTARIO ----
       if (url.pathname === "/api/admin/categories" && request.method === "GET") {

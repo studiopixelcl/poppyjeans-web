@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mathsoluis | Migración de Imágenes a R2</title>
+
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;600;700;800&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --blanco-puro: #FFFFFF;
+            --fondo-claro: #F4F7F6;
+            --teal-studio: #13C2B3;
+            --teal-claro: #E0F6F5;
+            --dark-studio: #1E1E24;
+            --gris-claro: #E8ECEB;
+            --danger-color: #E74C3C;
+            --warning-color: #F39C12;
+
+            --font-main: 'Poppins', sans-serif;
+            --font-display: 'Montserrat', sans-serif;
+            --radius-md: 12px;
+            --radius-lg: 24px;
+            --shadow-subtle: 0 10px 30px rgba(30, 30, 36, 0.08);
+            --transition-smooth: all 0.3s ease;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: var(--font-main); background-color: var(--fondo-claro); color: var(--dark-studio); }
+
+        #accessDeniedView { display: none; height: 100vh; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
+        .denied-card { background: var(--blanco-puro); padding: 4rem; border-radius: var(--radius-md); box-shadow: var(--shadow-subtle); max-width: 500px;}
+
+        #dashboardView { display: none; min-height: 100vh; }
+        .sidebar { width: 250px; background: var(--dark-studio); color: var(--blanco-puro); position: fixed; height: 100vh; top: 0; left: 0; padding: 2rem 1.5rem; }
+        .sidebar-logo { font-family: var(--font-display); font-size: 1.5rem; font-weight: 800; margin-bottom: 3rem; }
+        .sidebar-logo span { color: var(--teal-studio); }
+        .nav-menu { list-style: none; }
+        .nav-item { margin-bottom: 0.5rem; }
+        .nav-link { display: block; color: #aaa; text-decoration: none; padding: 0.8rem 1rem; border-radius: 8px; font-weight: 500; transition: var(--transition-smooth); }
+        .nav-link:hover, .nav-link.active { background: rgba(255,255,255,0.1); color: var(--teal-studio); }
+
+        .main-content { margin-left: 250px; padding: 2rem 3rem; }
+        .topbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 3rem; }
+        .topbar h2 { font-family: var(--font-display); font-size: 1.8rem; font-weight: 700; }
+        .user-info { display: flex; align-items: center; gap: 1rem; font-weight: 600; }
+        .logout-btn { background: #FDEDEC; color: var(--danger-color); border: none; padding: 0.5rem 1rem; border-radius: 6px; cursor: pointer; font-weight: 600; }
+
+        .card { background: var(--blanco-puro); border-radius: var(--radius-md); padding: 2rem; box-shadow: var(--shadow-subtle); margin-bottom: 2rem; }
+        .card h3 { font-family: var(--font-display); font-size: 1.2rem; margin-bottom: 1rem; }
+
+        .btn-primary { background: var(--teal-studio); color: var(--blanco-puro); border: none; padding: 0.9rem 2rem; border-radius: 8px; font-family: var(--font-main); font-size: 1rem; font-weight: 600; cursor: pointer; transition: var(--transition-smooth); }
+        .btn-primary:hover:not(:disabled) { background: #10a89b; transform: translateY(-2px); }
+        .btn-primary:disabled { background: #aaa; cursor: not-allowed; transform: none; }
+
+        .btn-danger { background: var(--danger-color); color: var(--blanco-puro); border: none; padding: 0.6rem 1.2rem; border-radius: 8px; font-weight: 600; cursor: pointer; }
+
+        .progress-wrap { margin-top: 1.5rem; }
+        .progress-bar { width: 100%; height: 24px; background: var(--gris-claro); border-radius: 12px; overflow: hidden; }
+        .progress-fill { height: 100%; background: linear-gradient(90deg, var(--teal-studio), #1abc9c); width: 0%; transition: width 0.4s ease; display: flex; align-items: center; justify-content: center; color: white; font-size: 0.75rem; font-weight: 700; }
+
+        .stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin: 1.5rem 0; }
+        .stat-box { background: var(--fondo-claro); padding: 1.25rem; border-radius: 8px; text-align: center; }
+        .stat-box .label { font-size: 0.75rem; color: #888; text-transform: uppercase; font-weight: 600; }
+        .stat-box .value { font-family: var(--font-display); font-size: 2rem; font-weight: 800; color: var(--dark-studio); margin-top: 0.3rem; }
+
+        .log-area { background: #1E1E24; color: #b8e8e3; padding: 1rem; border-radius: 8px; font-family: 'Courier New', monospace; font-size: 0.82rem; max-height: 320px; overflow-y: auto; margin-top: 1.5rem; line-height: 1.6; }
+        .log-area .ok { color: #2ecc71; }
+        .log-area .err { color: #e74c3c; }
+        .log-area .info { color: #b8e8e3; }
+
+        .info-banner { background: var(--teal-claro); border: 1px solid #A3E4D7; padding: 1rem 1.5rem; border-radius: 8px; color: #0e8074; margin-bottom: 1.5rem; font-size: 0.9rem; line-height: 1.5; }
+        .warn-banner { background: #FEF5E7; border: 1px solid #FDEBD0; padding: 1rem 1.5rem; border-radius: 8px; color: #b9770e; margin-bottom: 1.5rem; font-size: 0.9rem; line-height: 1.5; }
+    </style>
+</head>
+<body>
+
+    <div id="accessDeniedView">
+        <div class="denied-card">
+            <div style="font-size: 4rem; color: var(--danger-color); margin-bottom: 1rem;">🔒</div>
+            <h2 style="font-family: var(--font-display); font-size: 1.8rem; margin-bottom: 1rem;">Acceso Restringido</h2>
+            <p style="color: #666; margin-bottom: 2rem;">Esta herramienta es exclusiva para Super Administradores.</p>
+            <a href="index.html" class="btn-primary" style="text-decoration: none; display: inline-block;">Volver al Inventario</a>
+        </div>
+    </div>
+
+    <div id="dashboardView">
+        <aside class="sidebar">
+            <div class="sidebar-logo">MATHSO<span>LUIS</span></div>
+            <ul class="nav-menu">
+                <li class="nav-item"><a href="index.html" class="nav-link">📦 Inventario</a></li>
+                <li class="nav-item"><a href="pedidos.html" class="nav-link">🛒 Pedidos</a></li>
+                <li class="nav-item"><a href="clientes.html" class="nav-link">👥 Clientes</a></li>
+                <li class="nav-item"><a href="configuracion.html" class="nav-link">⚙️ Configuración</a></li>
+                <li class="nav-item" style="margin-top: 2rem;"><a href="actividades.html" class="nav-link">📊 Actividades (Admin)</a></li>
+                <li class="nav-item"><a href="migracion.html" class="nav-link active">☁️ Migración R2</a></li>
+            </ul>
+        </aside>
+
+        <main class="main-content">
+            <header class="topbar">
+                <h2>Migración de Imágenes a Cloudflare R2</h2>
+                <div class="user-info">
+                    <span id="adminName">Cargando...</span>
+                    <button class="logout-btn" onclick="logout()">Salir</button>
+                </div>
+            </header>
+
+            <section class="card">
+                <h3>¿Qué hace esta herramienta?</h3>
+                <div class="info-banner">
+                    Mueve todas las imágenes de productos que están guardadas como <strong>Base64 dentro de la base de datos</strong> al bucket <strong>mathsoluis-images</strong> en Cloudflare R2. La base de datos queda con solo URLs (~80 bytes en lugar de ~800 KB por imagen). El catálogo carga muchísimo más rápido y la calidad de las imágenes <strong>no se altera</strong>.
+                </div>
+                <div class="warn-banner">
+                    Es seguro ejecutar esto varias veces — solo procesa imágenes que aún sean Base64. Las que ya están en R2 se omiten. Procesa <strong>5 variantes a la vez</strong> y se llama en bucle hasta terminar.
+                </div>
+
+                <button id="startBtn" class="btn-primary" onclick="startMigration()">🚀 Iniciar migración</button>
+                <button id="stopBtn" class="btn-danger" onclick="stopMigration()" style="display:none;">⏸ Detener</button>
+
+                <div class="stats-grid">
+                    <div class="stat-box">
+                        <div class="label">Variantes procesadas</div>
+                        <div class="value" id="statProcessed">0</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="label">Pendientes</div>
+                        <div class="value" id="statPending">—</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="label">Lotes ejecutados</div>
+                        <div class="value" id="statBatches">0</div>
+                    </div>
+                </div>
+
+                <div class="progress-wrap">
+                    <div class="progress-bar"><div class="progress-fill" id="progressFill">0%</div></div>
+                </div>
+
+                <div class="log-area" id="logArea">
+                    <div class="info">[esperando inicio]</div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script>
+        let isRunning = false;
+        let stopRequested = false;
+        let totalAtStart = 0;
+        let totalProcessed = 0;
+        let batchCount = 0;
+
+        window.onload = () => {
+            const token = localStorage.getItem('admin_token');
+            const rol = localStorage.getItem('admin_rol');
+
+            if (!token) { window.location.href = 'configuracion.html'; return; }
+            if (rol !== 'superadmin') {
+                document.getElementById('accessDeniedView').style.display = 'flex';
+                return;
+            }
+
+            document.getElementById('adminName').textContent = localStorage.getItem('admin_name') || 'Admin';
+            document.getElementById('dashboardView').style.display = 'block';
+        };
+
+        function log(msg, cls = 'info') {
+            const area = document.getElementById('logArea');
+            const time = new Date().toLocaleTimeString('es-CL');
+            const line = document.createElement('div');
+            line.className = cls;
+            line.textContent = `[${time}] ${msg}`;
+            area.appendChild(line);
+            area.scrollTop = area.scrollHeight;
+        }
+
+        function updateProgress() {
+            const fill = document.getElementById('progressFill');
+            const pct = totalAtStart > 0 ? Math.min(100, Math.round((totalProcessed / totalAtStart) * 100)) : 0;
+            fill.style.width = pct + '%';
+            fill.textContent = pct + '%';
+            document.getElementById('statProcessed').textContent = totalProcessed;
+            document.getElementById('statBatches').textContent = batchCount;
+        }
+
+        async function startMigration() {
+            if (isRunning) return;
+            isRunning = true;
+            stopRequested = false;
+            totalProcessed = 0;
+            batchCount = 0;
+
+            document.getElementById('startBtn').disabled = true;
+            document.getElementById('startBtn').style.display = 'none';
+            document.getElementById('stopBtn').style.display = 'inline-block';
+            document.getElementById('logArea').innerHTML = '';
+
+            log('Iniciando migración...', 'info');
+
+            // Primera llamada para conocer el total
+            try {
+                const first = await callBatch();
+                if (!first) return;
+                totalAtStart = first.processed + first.pending;
+                totalProcessed = first.processed;
+                batchCount = 1;
+                document.getElementById('statPending').textContent = first.pending;
+                updateProgress();
+                log(`Total a migrar: ${totalAtStart} variantes. Lote 1: ${first.processed} migradas, faltan ${first.pending}.`, 'ok');
+
+                if (totalAtStart === 0) {
+                    log('No hay nada que migrar. Todas las imágenes ya están en R2.', 'ok');
+                    finish();
+                    return;
+                }
+
+                // Loop hasta terminar
+                while (!stopRequested) {
+                    const r = await callBatch();
+                    if (!r) return;
+                    batchCount++;
+                    totalProcessed += r.processed;
+                    document.getElementById('statPending').textContent = r.pending;
+                    updateProgress();
+                    log(`Lote ${batchCount}: ${r.processed} migradas, faltan ${r.pending}.`, 'ok');
+                    if (r.pending === 0) {
+                        log('✅ Migración completada. Todas las imágenes están ahora en R2.', 'ok');
+                        finish();
+                        return;
+                    }
+                    if (r.processed === 0) {
+                        log('⚠ Lote sin avance — puede haber imágenes corruptas. Revisa el log del Worker.', 'err');
+                        finish();
+                        return;
+                    }
+                    // pequeña pausa para no saturar
+                    await new Promise(r => setTimeout(r, 200));
+                }
+                if (stopRequested) {
+                    log('⏸ Migración detenida por el usuario. Puedes reanudarla con "Iniciar migración".', 'info');
+                    finish();
+                }
+            } catch (err) {
+                log('❌ Error: ' + err.message, 'err');
+                finish();
+            }
+        }
+
+        async function callBatch() {
+            const resp = await adminFetch('/api/admin/migrate-images-batch', { method: 'POST' });
+            if (!resp) return null; // sesión expirada
+            const result = await resp.json();
+            if (!resp.ok || !result.success) throw new Error(result.error || `HTTP ${resp.status}`);
+            return result;
+        }
+
+        function stopMigration() { stopRequested = true; }
+
+        function finish() {
+            isRunning = false;
+            document.getElementById('startBtn').disabled = false;
+            document.getElementById('startBtn').style.display = 'inline-block';
+            document.getElementById('stopBtn').style.display = 'none';
+        }
+    </script>
+
+    <!-- AUTH HELPER -->
+    <script>
+        const API_BASE_URL = 'https://mathsoluis-api.studiopixelchile.workers.dev';
+
+        function getAuthHeaders() {
+            const token = localStorage.getItem('admin_token');
+            return { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` };
+        }
+
+        async function adminFetch(endpoint, options = {}) {
+            const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+                ...options,
+                headers: { ...getAuthHeaders(), ...(options.headers || {}) }
+            });
+            if (response.status === 401) {
+                localStorage.clear();
+                alert('Tu sesión ha expirado. Por favor inicia sesión nuevamente.');
+                window.location.href = 'configuracion.html';
+                return null;
+            }
+            return response;
+        }
+
+        async function logout() {
+            try {
+                await fetch(`${API_BASE_URL}/api/admin/logout`, { method: 'POST', headers: getAuthHeaders() });
+            } catch (e) {}
+            finally { localStorage.clear(); window.location.href = 'configuracion.html'; }
+        }
+    </script>
+</body>
+</html>
