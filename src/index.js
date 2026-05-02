@@ -40,26 +40,12 @@ async function verifyAdminToken(request, env) {
   const token = authHeader.substring(7); // Extraer token después de "Bearer "
 
   try {
-    // Asegurar que la tabla de sesiones exista
-    await env.DB.prepare(`
-      CREATE TABLE IF NOT EXISTS AdminSessions (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        token TEXT NOT NULL UNIQUE,
-        admin_id INTEGER NOT NULL,
-        admin_name TEXT NOT NULL,
-        admin_rol TEXT NOT NULL,
-        expires_at DATETIME NOT NULL,
-        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-        FOREIGN KEY (admin_id) REFERENCES Admins(id) ON DELETE CASCADE
-      )
-    `).run();
-
-    // Buscar sesión activa y no expirada
+    // Buscar sesión activa y no expirada (la tabla se crea en /api/admin/login)
     const session = await env.DB.prepare(
       `SELECT * FROM AdminSessions WHERE token = ? AND expires_at > datetime('now')`
     ).bind(token).first();
 
-    return session || null; // Retorna la sesión o null si no es válida
+    return session || null;
   } catch (e) {
     console.error("Error verificando token:", e);
     return null;
@@ -295,17 +281,56 @@ export default {
     }
 
     // Rutas públicas del ecommerce (catálogo)
+    // LISTADO LIVIANO: solo imagen_1 por variante. Las imágenes 2-5 se piden por /api/products/:id
     if (url.pathname === "/api/products" && request.method === "GET") {
         try {
             const query = `SELECT p.*, c.nombre as categoria_nombre FROM Products p LEFT JOIN Categories c ON p.categoria_id = c.id WHERE p.visible = 1 ORDER BY p.en_oferta DESC, p.id DESC`;
             const { results: products } = await env.DB.prepare(query).all();
             let variants = [];
-            try { variants = (await env.DB.prepare("SELECT * FROM ProductVariants").all()).results; } catch (e) {}
+            try {
+                variants = (await env.DB.prepare(
+                    `SELECT id, product_id, color_name, color_hex, tallas, stock, imagen_1,
+                     ((CASE WHEN imagen_1 IS NOT NULL AND imagen_1 != '' THEN 1 ELSE 0 END) +
+                      (CASE WHEN imagen_2 IS NOT NULL AND imagen_2 != '' THEN 1 ELSE 0 END) +
+                      (CASE WHEN imagen_3 IS NOT NULL AND imagen_3 != '' THEN 1 ELSE 0 END) +
+                      (CASE WHEN imagen_4 IS NOT NULL AND imagen_4 != '' THEN 1 ELSE 0 END) +
+                      (CASE WHEN imagen_5 IS NOT NULL AND imagen_5 != '' THEN 1 ELSE 0 END)) as imagen_count
+                     FROM ProductVariants`
+                ).all()).results;
+            } catch (e) {}
             products.forEach(p => {
                 p.variantes = variants.filter(v => v.product_id === p.id);
                 if(p.variantes.length === 0 && p.imagen_url) p.variantes = [{ color_name: 'Único', color_hex: '#cccccc', tallas: p.tallas || '', stock: p.stock || 0, imagen_1: p.imagen_url }];
             });
-            return Response.json({ success: true, data: products }, { headers: corsHeaders });
+            return Response.json({ success: true, data: products }, {
+                headers: { ...corsHeaders, "Cache-Control": "public, max-age=60, s-maxage=60" }
+            });
+        } catch (error) { return Response.json({ success: false, error: error.message }, { status: 500, headers: corsHeaders }); }
+    }
+
+    // DETALLE: producto único con TODAS las imágenes (1-5) de cada variante
+    const publicProductMatch = url.pathname.match(/^\/api\/products\/(\d+)$/);
+    if (publicProductMatch && request.method === "GET") {
+        try {
+            const pId = parseInt(publicProductMatch[1], 10);
+            const product = await env.DB.prepare(
+                `SELECT p.*, c.nombre as categoria_nombre FROM Products p LEFT JOIN Categories c ON p.categoria_id = c.id WHERE p.id = ? AND p.visible = 1`
+            ).bind(pId).first();
+            if (!product) return Response.json({ success: false, error: "Producto no encontrado" }, { status: 404, headers: corsHeaders });
+
+            let variants = [];
+            try {
+                variants = (await env.DB.prepare(
+                    "SELECT * FROM ProductVariants WHERE product_id = ?"
+                ).bind(pId).all()).results;
+            } catch (e) {}
+            product.variantes = variants;
+            if (product.variantes.length === 0 && product.imagen_url) {
+                product.variantes = [{ color_name: 'Único', color_hex: '#cccccc', tallas: product.tallas || '', stock: product.stock || 0, imagen_1: product.imagen_url }];
+            }
+            return Response.json({ success: true, data: product }, {
+                headers: { ...corsHeaders, "Cache-Control": "public, max-age=60, s-maxage=60" }
+            });
         } catch (error) { return Response.json({ success: false, error: error.message }, { status: 500, headers: corsHeaders }); }
     }
 

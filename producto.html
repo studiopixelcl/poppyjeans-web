@@ -630,7 +630,27 @@
 
     <script>
         const API_BASE_URL = 'https://mathsoluis-api.studiopixelchile.workers.dev';
-        
+
+        // Fetch robusto: timeout 12 s + 2 reintentos con backoff exponencial (solo GET).
+        async function fetchWithRetry(url, opts = {}, retries = 2, baseDelay = 400) {
+            const isGet = !opts.method || opts.method.toUpperCase() === 'GET';
+            for (let attempt = 0; attempt <= retries; attempt++) {
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 12000);
+                try {
+                    const resp = await fetch(url, { ...opts, signal: controller.signal });
+                    clearTimeout(timeoutId);
+                    if (resp.ok) return resp;
+                    if (resp.status >= 400 && resp.status < 500) return resp;
+                    if (!isGet || attempt === retries) return resp;
+                } catch (err) {
+                    clearTimeout(timeoutId);
+                    if (!isGet || attempt === retries) throw err;
+                }
+                await new Promise(r => setTimeout(r, baseDelay * Math.pow(2, attempt)));
+            }
+        }
+
         let currentProduct = null;
         let allProducts = [];
         let selectedVariantIndex = 0;
@@ -688,23 +708,35 @@
 
         async function fetchData(targetId) {
             try {
-                const response = await fetch(`${API_BASE_URL}/api/products`);
-                const result = await response.json();
-                
-                if (result.success) {
-                    allProducts = result.data.filter(p => p.visible === 1);
-                    currentProduct = allProducts.find(p => p.id === targetId);
-                    
-                    if (!currentProduct) {
-                        alert("El producto ya no está disponible.");
-                        window.location.href = 'index.html';
-                        return;
-                    }
+                // 1. Detalle completo del producto actual (con todas sus imágenes)
+                const detailResp = await fetchWithRetry(`${API_BASE_URL}/api/products/${targetId}`);
 
-                    renderProductPage();
-                    renderSuggestedProducts(targetId);
+                if (detailResp.status === 404) {
+                    alert("El producto ya no está disponible.");
+                    window.location.href = 'index.html';
+                    return;
                 }
-            } catch (error) { alert("Error cargando la tienda."); }
+
+                if (!detailResp.ok) throw new Error(`HTTP ${detailResp.status}`);
+                const detailResult = await detailResp.json();
+                if (!detailResult.success || !detailResult.data) throw new Error(detailResult.error || 'Respuesta inválida');
+
+                currentProduct = detailResult.data;
+                renderProductPage();
+
+                // 2. Listado liviano (solo imagen_1) para los sugeridos — en paralelo, no bloquea
+                fetchWithRetry(`${API_BASE_URL}/api/products`)
+                    .then(r => r.ok ? r.json() : null)
+                    .then(listResult => {
+                        if (listResult && listResult.success) {
+                            allProducts = listResult.data.filter(p => p.visible === 1);
+                            renderSuggestedProducts(targetId);
+                        }
+                    })
+                    .catch(() => { /* sugeridos opcionales: no romper la página */ });
+            } catch (error) {
+                alert("Error cargando el producto. Revisa tu conexión e intenta nuevamente.");
+            }
         }
 
         function renderProductPage() {

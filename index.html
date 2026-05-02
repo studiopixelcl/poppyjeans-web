@@ -824,20 +824,75 @@
         // =========================================================
         // CONEXIÓN API Y RENDERIZADO DEL CATÁLOGO
         // =========================================================
-        const API_URL = 'https://mathsoluis-api.studiopixelchile.workers.dev/api/products';
+        const API_BASE_URL = 'https://mathsoluis-api.studiopixelchile.workers.dev';
+        const API_URL = `${API_BASE_URL}/api/products`;
         let storeCatalog = [];
         let countdownInterval;
+        const _imagesLoadingPromises = {}; // Cache de promesas en vuelo por productId
+
+        // Fetch robusto: timeout 12 s + 2 reintentos con backoff exponencial (solo GET).
+        // No reintenta 4xx (errores del cliente) — solo errores de red o 5xx.
+        async function fetchWithRetry(url, opts = {}, retries = 2, baseDelay = 400) {
+            const isGet = !opts.method || opts.method.toUpperCase() === 'GET';
+            for (let attempt = 0; attempt <= retries; attempt++) {
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 12000);
+                try {
+                    const resp = await fetch(url, { ...opts, signal: controller.signal });
+                    clearTimeout(timeoutId);
+                    if (resp.ok) return resp;
+                    if (resp.status >= 400 && resp.status < 500) return resp; // no reintentar 4xx
+                    if (!isGet || attempt === retries) return resp;
+                } catch (err) {
+                    clearTimeout(timeoutId);
+                    if (!isGet || attempt === retries) throw err;
+                }
+                await new Promise(r => setTimeout(r, baseDelay * Math.pow(2, attempt)));
+            }
+        }
+
+        // Lazy-load: descarga imágenes 2-5 de un producto bajo demanda y actualiza storeCatalog
+        async function ensureProductImagesLoaded(productId) {
+            const product = storeCatalog.find(p => p.id === productId);
+            if (!product) return null;
+            if (product._fullImagesLoaded) return product;
+            if (_imagesLoadingPromises[productId]) return _imagesLoadingPromises[productId];
+
+            _imagesLoadingPromises[productId] = (async () => {
+                try {
+                    const resp = await fetchWithRetry(`${API_BASE_URL}/api/products/${productId}`);
+                    const result = await resp.json();
+                    if (result.success && result.data && result.data.variantes) {
+                        // Hacer merge: reemplazar variantes preservando el orden por id
+                        product.variantes = result.data.variantes;
+                        product._fullImagesLoaded = true;
+                    }
+                } catch (e) { /* silencio: la imagen_1 ya se ve */ }
+                delete _imagesLoadingPromises[productId];
+                return product;
+            })();
+            return _imagesLoadingPromises[productId];
+        }
 
         async function fetchCatalog() {
+            const grid = document.getElementById('productsGrid');
             try {
-                const response = await fetch(API_URL);
+                const response = await fetchWithRetry(API_URL);
+                if (!response.ok) throw new Error(`HTTP ${response.status}`);
                 const result = await response.json();
                 if(result.success) {
                     storeCatalog = result.data.filter(p => p.visible === 1);
                     renderCatalog(storeCatalog);
+                } else {
+                    throw new Error(result.error || 'Respuesta inválida');
                 }
             } catch (error) {
-                document.getElementById('productsGrid').innerHTML = '<div style="grid-column: 1/-1; text-align:center; color:red;">Error de conexión. Recarga la página.</div>';
+                grid.innerHTML = `
+                    <div style="grid-column: 1/-1; text-align:center; padding: 40px 20px;">
+                        <p style="color: var(--dark-studio); font-family: 'Playfair Display', serif; font-size: 1.3rem; margin-bottom: 8px;">No pudimos cargar la vitrina</p>
+                        <p style="color: #A09389; font-size: 0.95rem; margin-bottom: 20px;">Verifica tu conexión o intenta nuevamente.</p>
+                        <button onclick="fetchCatalog()" style="background: var(--celeste-bebe); color: var(--dark-studio); border: none; padding: 12px 30px; border-radius: 50px; font-weight: 600; cursor: pointer; font-family: 'Poppins', sans-serif;">Reintentar</button>
+                    </div>`;
             }
         }
 
@@ -884,55 +939,71 @@
         }
 
         // Actualiza TODA la tarjeta al hacer clic en un color
-        window.updateCardVariant = (productId, vIndex, dotElem) => {
+        window.updateCardVariant = async (productId, vIndex, dotElem) => {
             const card = document.getElementById(`product-card-${productId}`);
             if (!card) return;
-            
+
             // Actualizar botones de color
             const dots = card.querySelectorAll('.color-dot');
             dots.forEach(d => d.classList.remove('active'));
             dotElem.classList.add('active');
-            
-            // Obtener variante actual
+
+            // Lazy-load de imágenes 2-5 si aún no están en caché
+            await ensureProductImagesLoaded(productId);
+
+            // Obtener variante actual (ya con todas sus imágenes si existen)
             const product = storeCatalog.find(p => p.id === productId);
             if(!product) return;
             const variant = product.variantes[vIndex];
-            
+            if (!variant) return;
+
             // Actualizar Galería y Resetear Scroll
             const gallery = card.querySelector('.card-gallery');
             gallery.innerHTML = getVariantGalleryHTML(variant);
-            gallery.scrollLeft = 0; 
-            
+            gallery.scrollLeft = 0;
+
             // Mostrar/Ocultar flechas dependiendo de cantidad de imágenes
             const imgCount = [variant.imagen_1, variant.imagen_2, variant.imagen_3, variant.imagen_4, variant.imagen_5].filter(Boolean).length;
-            const product2 = storeCatalog.find(p => p.id === productId);
-            const totalVariants2 = product2 ? product2.variantes.length : 1;
+            const totalVariants2 = product.variantes.length;
             const showArrows = imgCount > 1 || totalVariants2 > 1;
             card.querySelector('.card-nav-prev').style.display = showArrows ? 'flex' : 'none';
             card.querySelector('.card-nav-next').style.display = showArrows ? 'flex' : 'none';
-            
+
             // Actualizar overlay de tallas
             card.querySelector('.card-sizes-overlay').innerHTML = getVariantSizesHTML(variant);
         };
 
         // Función para mover el mini-carrusel de la tarjeta con loop entre variantes
-        window.scrollCardGallery = (productId, direction) => {
+        window.scrollCardGallery = async (productId, direction) => {
             const card = document.getElementById(`product-card-${productId}`);
             const gallery = card ? card.querySelector('.card-gallery') : null;
             if (!gallery) return;
 
-            const scrollAmount = gallery.clientWidth;
-            const maxScroll = gallery.scrollWidth - gallery.clientWidth;
-
             // Obtener variantes del producto y variante activa actual
             const product = storeCatalog.find(p => p.id === productId);
             if (!product || !product.variantes) return;
-            const totalVariants = product.variantes.length;
 
             // Detectar índice de variante activa por el color-dot marcado como active
             const dots = card.querySelectorAll('.color-dot');
             let activeVariantIndex = 0;
             dots.forEach((dot, i) => { if (dot.classList.contains('active')) activeVariantIndex = i; });
+
+            // Lazy-load: si la variante activa todavía no tiene sus imágenes 2-5, descargarlas y repintar la galería
+            const activeVariant = product.variantes[activeVariantIndex];
+            const declaredCount = activeVariant && activeVariant.imagen_count ? activeVariant.imagen_count : 1;
+            const loadedCount = activeVariant ? [activeVariant.imagen_1, activeVariant.imagen_2, activeVariant.imagen_3, activeVariant.imagen_4, activeVariant.imagen_5].filter(Boolean).length : 0;
+            if (declaredCount > loadedCount && !product._fullImagesLoaded) {
+                await ensureProductImagesLoaded(productId);
+                const refreshed = product.variantes[activeVariantIndex];
+                if (refreshed) {
+                    gallery.innerHTML = getVariantGalleryHTML(refreshed);
+                    gallery.scrollLeft = 0;
+                }
+            }
+
+            const scrollAmount = gallery.clientWidth;
+            const maxScroll = gallery.scrollWidth - gallery.clientWidth;
+            const totalVariants = product.variantes.length;
 
             if (direction === 1) {
                 if (gallery.scrollLeft >= maxScroll - 5) {
@@ -1036,8 +1107,13 @@
                 const galleryHTML = firstVariant ? getVariantGalleryHTML(firstVariant) : '<img src="./ico.jpg">';
                 const sizesHTML = firstVariant ? getVariantSizesHTML(firstVariant) : '<span class="card-size-pill">Estándar</span>';
                 
-                // Mostrar flechas solo si hay más de 1 imagen en la variante 0
-                const initialImgCount = firstVariant ? [firstVariant.imagen_1, firstVariant.imagen_2, firstVariant.imagen_3, firstVariant.imagen_4, firstVariant.imagen_5].filter(Boolean).length : 0;
+                // Mostrar flechas si hay más de 1 imagen declarada en la variante 0 (imagen_count viene del backend)
+                // o si hay más de 1 variante de color
+                const initialImgCount = firstVariant
+                    ? (firstVariant.imagen_count != null
+                        ? firstVariant.imagen_count
+                        : [firstVariant.imagen_1, firstVariant.imagen_2, firstVariant.imagen_3, firstVariant.imagen_4, firstVariant.imagen_5].filter(Boolean).length)
+                    : 0;
                 const navArrowsStyle = initialImgCount > 1 || product.variantes.length > 1 ? 'flex' : 'none';
 
                 let colorDotsHTML = '';

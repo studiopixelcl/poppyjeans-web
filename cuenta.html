@@ -281,6 +281,26 @@
     <script>
         const API_BASE_URL = 'https://mathsoluis-api.studiopixelchile.workers.dev';
 
+        // Fetch robusto: timeout 12 s + 2 reintentos con backoff exponencial (solo GET).
+        async function fetchWithRetry(url, opts = {}, retries = 2, baseDelay = 400) {
+            const isGet = !opts.method || opts.method.toUpperCase() === 'GET';
+            for (let attempt = 0; attempt <= retries; attempt++) {
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 12000);
+                try {
+                    const resp = await fetch(url, { ...opts, signal: controller.signal });
+                    clearTimeout(timeoutId);
+                    if (resp.ok) return resp;
+                    if (resp.status >= 400 && resp.status < 500) return resp;
+                    if (!isGet || attempt === retries) return resp;
+                } catch (err) {
+                    clearTimeout(timeoutId);
+                    if (!isGet || attempt === retries) throw err;
+                }
+                await new Promise(r => setTimeout(r, baseDelay * Math.pow(2, attempt)));
+            }
+        }
+
         function showToast(message, type = 'success') {
             const toast = document.getElementById('toastNotification');
             document.getElementById('toastMsg').textContent = message;
@@ -353,7 +373,8 @@
             const container = document.getElementById('ordersContainer');
             try {
                 // Hacemos el llamado a la API
-                const response = await fetch(`${API_BASE_URL}/api/orders`);
+                const response = await fetchWithRetry(`${API_BASE_URL}/api/orders`);
+                if (!response.ok) throw new Error(`HTTP ${response.status}`);
                 const result = await response.json();
                 
                 if (result.success) {
@@ -476,7 +497,8 @@
 
             try {
                 // Consulta al catálogo
-                const response = await fetch(`${API_BASE_URL}/api/products`);
+                const response = await fetchWithRetry(`${API_BASE_URL}/api/products`);
+                if (!response.ok) throw new Error(`HTTP ${response.status}`);
                 const result = await response.json();
                 
                 if (result.success) {
