@@ -182,7 +182,7 @@
                                 <th class="sortable" onclick="sortData('cliente_nombre')">Cliente <span class="sort-icon" id="sort-cliente_nombre">↕️</span></th>
                                 <th class="sortable" onclick="sortData('total')">Monto Total <span class="sort-icon" id="sort-total">↕️</span></th>
                                 <th class="sortable" onclick="sortData('estado')">Estado Operativo <span class="sort-icon" id="sort-estado">↕️</span></th>
-                                <th>Blue Express</th>
+                                <th>Courier / Tracking</th>
                                 <th>Acciones</th>
                             </tr>
                         </thead>
@@ -259,8 +259,29 @@
                             </select>
                         </div>
                         <div class="input-group">
-                            <label>Nº de Seguimiento (Blue Express)</label>
+                            <label>Courier / Transportista</label>
+                            <select id="ordCourier" onchange="toggleCourierOther(this.value)">
+                                <option value="">— Sin asignar —</option>
+                                <option value="Blue Express">Blue Express</option>
+                                <option value="Starken">Starken</option>
+                                <option value="Correos de Chile">Correos de Chile</option>
+                                <option value="Chilexpress">Chilexpress</option>
+                                <option value="Otro">Otro</option>
+                            </select>
+                        </div>
+                        <div class="input-group" id="courierOtherGroup" style="display:none; grid-column: span 2;">
+                            <label>Nombre del courier (especificar)</label>
+                            <input type="text" id="ordCourierOther" placeholder="Ej: Shalom, DHL, FedEx...">
+                        </div>
+                        <div class="input-group">
+                            <label>Nº de Seguimiento</label>
                             <input type="text" id="ordTracking" placeholder="Ej: BLX-123456789" style="font-family: monospace;">
+                        </div>
+                        <div class="input-group" style="display: flex; align-items: flex-end; padding-bottom: 0.6rem;">
+                            <label for="ordNotify" style="display: flex; align-items: center; gap: 0.75rem; cursor: pointer; font-weight: 600; margin: 0; background: var(--teal-claro); padding: 0.8rem 1rem; border-radius: 8px; border: 1px solid var(--teal-studio); width: 100%;">
+                                <input type="checkbox" id="ordNotify" checked style="width: 18px; height: 18px; accent-color: var(--teal-studio); cursor: pointer; flex-shrink: 0;">
+                                <span style="font-size: 0.88rem; color: var(--dark-studio);">Notificar al cliente por correo</span>
+                            </label>
                         </div>
                         <div class="input-group" style="grid-column: span 2;">
                             <label>Notas Internas (Solo equipo)</label>
@@ -401,7 +422,10 @@
                     </td>
                     <td><strong style="font-size:1.1rem; color: var(--teal-studio);">${formatCurrency(order.total)}</strong></td>
                     <td>${getStatusBadge(order.estado)}</td>
-                    <td style="font-size:0.85rem; font-weight:600; color:#888;">${order.tracking_code || '---'}</td>
+                    <td style="font-size:0.85rem; font-weight:600; color:#888;">
+                        ${order.courier ? `<span style="display:block; color:var(--teal-studio); font-size:0.78rem; margin-bottom:2px;">${order.courier}</span>` : ''}
+                        ${order.tracking_code || '---'}
+                    </td>
                     <td>
                         <button class="action-btn" onclick="openOrderModal(${order.id})">Gestionar Pedido ➔</button>
                     </td>
@@ -517,6 +541,24 @@
                     document.getElementById('ordTracking').value = order.tracking_code || '';
                     document.getElementById('ordNotas').value = order.notas || '';
 
+                    // Courier
+                    const knownCouriers = ['Blue Express', 'Starken', 'Correos de Chile', 'Chilexpress'];
+                    const cv = order.courier || '';
+                    if (knownCouriers.includes(cv)) {
+                        document.getElementById('ordCourier').value = cv;
+                        document.getElementById('courierOtherGroup').style.display = 'none';
+                        document.getElementById('ordCourierOther').value = '';
+                    } else if (cv) {
+                        document.getElementById('ordCourier').value = 'Otro';
+                        document.getElementById('courierOtherGroup').style.display = 'block';
+                        document.getElementById('ordCourierOther').value = cv;
+                    } else {
+                        document.getElementById('ordCourier').value = '';
+                        document.getElementById('courierOtherGroup').style.display = 'none';
+                        document.getElementById('ordCourierOther').value = '';
+                    }
+                    document.getElementById('ordNotify').checked = true;
+
                 } else {
                     document.getElementById('orderItemsBody').innerHTML = `<tr><td colspan="4" style="text-align:center; color:red;">${result.error}</td></tr>`;
                 }
@@ -527,21 +569,39 @@
 
         function closeOrderModal() { orderModal.classList.remove('active'); }
 
+        function toggleCourierOther(val) {
+            document.getElementById('courierOtherGroup').style.display = val === 'Otro' ? 'block' : 'none';
+            if (val !== 'Otro') document.getElementById('ordCourierOther').value = '';
+        }
+
         // ==========================================
         // GUARDAR ESTADO Y TRACKING
         // ==========================================
         orderForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             const btnSave = document.getElementById('btnSaveOrder');
-            
-            btnSave.textContent = 'Actualizando...'; 
+
+            const estado = document.getElementById('ordEstado').value;
+            const trackingCode = document.getElementById('ordTracking').value.trim();
+            const courierRaw = document.getElementById('ordCourier').value;
+            const courierOther = document.getElementById('ordCourierOther').value.trim();
+            const courier = courierRaw === 'Otro' ? (courierOther || 'Otro') : courierRaw;
+
+            if (estado === 'Enviado') {
+                if (!courier) { alert('El courier es obligatorio cuando el estado es "Enviado".'); return; }
+                if (!trackingCode) { alert('El número de seguimiento es obligatorio cuando el estado es "Enviado".'); return; }
+            }
+
+            btnSave.textContent = 'Actualizando...';
             btnSave.disabled = true;
 
             const orderData = {
-                admin_name: localStorage.getItem('admin_name'), // Identificador para futura Caja Negra
-                estado: document.getElementById('ordEstado').value,
-                tracking_code: document.getElementById('ordTracking').value || null,
-                notas: document.getElementById('ordNotas').value || null
+                admin_name: localStorage.getItem('admin_name'),
+                estado,
+                tracking_code: trackingCode || null,
+                courier: courier || null,
+                notas: document.getElementById('ordNotas').value || null,
+                notify_customer: document.getElementById('ordNotify').checked
             };
 
             try {

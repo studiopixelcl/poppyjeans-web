@@ -26,6 +26,25 @@ function parseJwtPayload(token) {
 
 const formatCurrency = (amount) => '$' + amount.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
 
+// Convierte el campo categorias_ids (TEXT en D1) a array de enteros.
+// Acepta JSON array ("[1,3]"), CSV ("1,3") o número suelto (1).
+function parseCategorias(raw) {
+  if (!raw) return [];
+  if (Array.isArray(raw)) return raw.map(Number).filter(Boolean);
+  const s = String(raw).trim();
+  try {
+    const parsed = JSON.parse(s);
+    if (Array.isArray(parsed)) return parsed.map(Number).filter(Boolean);
+  } catch (_) {}
+  return s.split(',').map(x => parseInt(x, 10)).filter(Boolean);
+}
+
+// Convierte un array de enteros al string JSON que se guarda en D1.
+function serializeCategorias(ids) {
+  if (!Array.isArray(ids) || ids.length === 0) return null;
+  return JSON.stringify(ids.map(Number).filter(Boolean));
+}
+
 // ============================================================================
 // HELPER: Subida de imagen Base64 a Cloudflare R2
 // Devuelve la URL pública (PUBLIC_IMAGES_URL/key) que se guarda en D1.
@@ -111,7 +130,7 @@ async function sendWelcomeEmail(env, email, nombre) {
       <div style="padding: 40px 30px; text-align: center;">
           <h2 style="color: #8A7360; font-size: 24px; margin-top: 0;">¡Bienvenida a nuestra familia, ${primerNombre}! ✨</h2>
           <p style="color: #A09389; font-size: 16px; line-height: 1.6; margin-bottom: 30px;">Tu cuenta ha sido creada con éxito. Desde ahora podrás guardar tus prendas favoritas en tu <b>Lista de Deseos</b>, agilizar tu paso por caja y hacer seguimiento a todos tus envíos en tiempo real.</p>
-          <a href="https://www.mathsoluis.cl" style="display: inline-block; background-color: #F2A7B9; color: #FFFFFF; text-decoration: none; padding: 14px 35px; border-radius: 50px; font-weight: bold; font-size: 16px; letter-spacing: 1px; text-transform: uppercase;">Ir de Shopping</a>
+          <a href="https://www.mathsoluis.cl" style="display: inline-block; background-color: #13C2B3; color: #FFFFFF; text-decoration: none; padding: 14px 35px; border-radius: 50px; font-weight: bold; font-size: 16px; letter-spacing: 1px; text-transform: uppercase;">Ir de Shopping</a>
       </div>
       <div style="background-color: #F4F0EC; padding: 20px; text-align: center;">
           <p style="color: #A09389; font-size: 12px; margin: 0;">© 2026 Mathsoluis. Ropa de Bebé Premium.</p>
@@ -148,7 +167,7 @@ async function sendOrderConfirmationEmail(env, customer, orderId, cart, total) {
                     <p style="margin: 0 0 5px 0; font-weight: bold; color: #8A7360; font-size: 15px; line-height: 1.3;">${item.name}</p>
                     <p style="margin: 0; color: #A09389; font-size: 13px;">Cant: ${item.quantity}</p>
                 </td>
-                <td style="padding: 15px 0; border-bottom: 1px solid #FCEEF2; text-align: right; font-weight: bold; color: #F2A7B9; font-size: 16px;" valign="middle">
+                <td style="padding: 15px 0; border-bottom: 1px solid #FCEEF2; text-align: right; font-weight: bold; color: #13C2B3; font-size: 16px;" valign="middle">
                     ${formatCurrency(item.price * item.quantity)}
                 </td>
             </tr>
@@ -170,7 +189,7 @@ async function sendOrderConfirmationEmail(env, customer, orderId, cart, total) {
                     ${itemsHtml}
                 </table>
                 <div style="text-align: right; margin-top: 20px; font-size: 18px; font-weight: bold; color: #8A7360;">
-                    Total Pagado: <span style="color: #F2A7B9; margin-left: 10px;">${formatCurrency(total)}</span>
+                    Total Pagado: <span style="color: #13C2B3; margin-left: 10px;">${formatCurrency(total)}</span>
                 </div>
             </div>
             <div style="background-color: #EAF5FA; border-radius: 12px; padding: 25px; margin-bottom: 35px; border: 1px solid #92CBE6;">
@@ -188,7 +207,7 @@ async function sendOrderConfirmationEmail(env, customer, orderId, cart, total) {
                 </tr>
                 <tr>
                     <td align="center">
-                        <a href="https://www.instagram.com/mathsoluis/" target="_blank" style="display: inline-block; background-color: #F2A7B9; color: #FFFFFF; text-decoration: none; padding: 14px 25px; border-radius: 50px; font-weight: bold; font-size: 14px; width: 220px; text-align: center;">📸 Seguir en Instagram</a>
+                        <a href="https://www.instagram.com/mathsoluis/" target="_blank" style="display: inline-block; background-color: #13C2B3; color: #FFFFFF; text-decoration: none; padding: 14px 25px; border-radius: 50px; font-weight: bold; font-size: 14px; width: 220px; text-align: center;">📸 Seguir en Instagram</a>
                     </td>
                 </tr>
             </table>
@@ -337,6 +356,7 @@ export default {
                 ).all()).results;
             } catch (e) {}
             products.forEach(p => {
+                p.categorias_ids = parseCategorias(p.categorias_ids);
                 p.variantes = variants.filter(v => v.product_id === p.id);
                 if(p.variantes.length === 0 && p.imagen_url) p.variantes = [{ color_name: 'Único', color_hex: '#cccccc', tallas: p.tallas || '', stock: p.stock || 0, imagen_1: p.imagen_url }];
             });
@@ -362,6 +382,7 @@ export default {
                     "SELECT * FROM ProductVariants WHERE product_id = ?"
                 ).bind(pId).all()).results;
             } catch (e) {}
+            product.categorias_ids = parseCategorias(product.categorias_ids);
             product.variantes = variants;
             if (product.variantes.length === 0 && product.imagen_url) {
                 product.variantes = [{ color_name: 'Único', color_hex: '#cccccc', tallas: product.tallas || '', stock: product.stock || 0, imagen_1: product.imagen_url }];
@@ -546,6 +567,7 @@ export default {
           let variants = [];
           try { variants = (await env.DB.prepare("SELECT * FROM ProductVariants").all()).results; } catch (e) {}
           products.forEach(p => {
+            p.categorias_ids = parseCategorias(p.categorias_ids);
             p.variantes = variants.filter(v => v.product_id === p.id);
             if(p.variantes.length === 0 && p.imagen_url) p.variantes = [{ color_name: 'Único', color_hex: '#cccccc', tallas: p.tallas || '', stock: p.stock || 0, imagen_1: p.imagen_url }];
           });
@@ -556,8 +578,10 @@ export default {
       if (url.pathname === "/api/admin/products" && request.method === "POST") {
         try {
           const body = await request.json();
-          const info = await env.DB.prepare(`INSERT INTO Products (sku, nombre, descripcion, precio_normal, precio_oferta, en_oferta, oferta_limitada, fecha_fin_oferta, stock, categoria_id, etiquetas, es_kit) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`)
-            .bind(body.sku || null, body.nombre, body.descripcion || "", body.precio_normal, body.precio_oferta || null, body.en_oferta || 0, body.oferta_limitada || 0, body.fecha_fin_oferta || null, body.stock || 0, body.categoria_id || 1, body.etiquetas || null, body.es_kit || 0).run();
+          const categoriasStr = serializeCategorias(body.categorias_ids);
+          const categoriaIdPrimary = Array.isArray(body.categorias_ids) && body.categorias_ids.length > 0 ? body.categorias_ids[0] : (body.categoria_id || 1);
+          const info = await env.DB.prepare(`INSERT INTO Products (sku, nombre, descripcion, precio_normal, precio_oferta, en_oferta, oferta_limitada, fecha_fin_oferta, stock, categoria_id, categorias_ids, etiquetas, es_kit) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`)
+            .bind(body.sku || null, body.nombre, body.descripcion || "", body.precio_normal, body.precio_oferta || null, body.en_oferta || 0, body.oferta_limitada || 0, body.fecha_fin_oferta || null, body.stock || 0, categoriaIdPrimary, categoriasStr, body.etiquetas || null, body.es_kit || 0).run();
 
           const newProductId = info.meta.last_row_id;
           if (body.variantes && body.variantes.length > 0) {
@@ -584,8 +608,10 @@ export default {
         if (request.method === "PUT") {
           try {
             const body = await request.json();
-            await env.DB.prepare(`UPDATE Products SET sku = ?, nombre = ?, descripcion = ?, precio_normal = ?, precio_oferta = ?, en_oferta = ?, oferta_limitada = ?, fecha_fin_oferta = ?, stock = ?, categoria_id = ?, visible = ?, etiquetas = ?, es_kit = ? WHERE id = ?`)
-              .bind(body.sku || null, body.nombre, body.descripcion || null, body.precio_normal, body.precio_oferta || null, body.en_oferta || 0, body.oferta_limitada || 0, body.fecha_fin_oferta || null, body.stock || 0, body.categoria_id || null, body.visible !== undefined ? body.visible : 1, body.etiquetas || null, body.es_kit || 0, pId).run();
+            const categoriasStr = serializeCategorias(body.categorias_ids);
+            const categoriaIdPrimary = Array.isArray(body.categorias_ids) && body.categorias_ids.length > 0 ? body.categorias_ids[0] : (body.categoria_id || null);
+            await env.DB.prepare(`UPDATE Products SET sku = ?, nombre = ?, descripcion = ?, precio_normal = ?, precio_oferta = ?, en_oferta = ?, oferta_limitada = ?, fecha_fin_oferta = ?, stock = ?, categoria_id = ?, categorias_ids = ?, visible = ?, etiquetas = ?, es_kit = ? WHERE id = ?`)
+              .bind(body.sku || null, body.nombre, body.descripcion || null, body.precio_normal, body.precio_oferta || null, body.en_oferta || 0, body.oferta_limitada || 0, body.fecha_fin_oferta || null, body.stock || 0, categoriaIdPrimary, categoriasStr, body.visible !== undefined ? body.visible : 1, body.etiquetas || null, body.es_kit || 0, pId).run();
             await env.DB.prepare("DELETE FROM ProductVariants WHERE product_id = ?").bind(pId).run();
             if (body.variantes && body.variantes.length > 0) {
                 const variantStmts = body.variantes.map(v => env.DB.prepare(`INSERT INTO ProductVariants (product_id, color_name, color_hex, tallas, stock, imagen_1, imagen_2, imagen_3, imagen_4, imagen_5) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`)

@@ -100,10 +100,10 @@
 
         /* --- MAIN PRODUCT LAYOUT --- */
         .product-container { max-width: 1200px; margin: 0 auto; padding: 1rem 5% 5rem; display: grid; grid-template-columns: 1fr; gap: 3rem; align-items: flex-start; }
-        @media (min-width: 900px) { .product-container { grid-template-columns: 1fr 1fr; gap: 4rem; } }
+        @media (min-width: 900px) { .product-container { grid-template-columns: 1fr 1fr; gap: 4rem; } .gallery-wrapper { position: sticky; top: 120px; } }
 
         /* GALERÍA INTERACTIVA DE ALTA RESOLUCIÓN */
-        .gallery-wrapper { display: flex; flex-direction: column; gap: 1rem; position: sticky; top: 120px; }
+        .gallery-wrapper { display: flex; flex-direction: column; gap: 1rem; position: relative; }
         .main-img-box { background: var(--blanco-puro); border-radius: 20px; aspect-ratio: 4/5; overflow: hidden; box-shadow: var(--shadow-subtle); position: relative; display: flex; align-items: center; justify-content: center; }
         
         .main-img-box img { width: 100%; height: 100%; object-fit: cover; object-position: top; image-rendering: high-quality; transition: opacity 0.3s ease; }
@@ -192,7 +192,7 @@
         .suggested-section { background: var(--blanco-puro); padding: 5rem 5%; border-top: 1px solid var(--rosa-palo); }
         .section-title { font-family: var(--font-display); font-size: 2.8rem; font-style: italic; font-weight: 700; text-align: center; margin-bottom: 3.5rem; color: var(--dark-studio); letter-spacing: -0.5px;}
         
-        .products-grid { max-width: 1200px; margin: 0 auto; display: grid; grid-template-columns: repeat(2, 1fr); gap: 1.5rem; }
+        .products-grid { max-width: 1200px; margin: 0 auto; display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 1.5rem; }
         @media (min-width: 768px) { .products-grid { grid-template-columns: repeat(4, 1fr); gap: 2rem; } }
         
         .product-card { background: var(--beige-calido); border-radius: var(--radius-md); overflow: hidden; transition: var(--transition-smooth); border: 1px solid var(--gris-claro); box-shadow: 0 4px 15px rgba(138, 115, 96, 0.04); position: relative; display: flex; flex-direction: column;}
@@ -212,6 +212,7 @@
         .card-sizes-overlay { position: absolute; bottom: 0; left: 0; right: 0; background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(8px); padding: 0.8rem; text-align: center; transform: translateY(100%); transition: transform 0.4s cubic-bezier(0.25, 0.8, 0.25, 1); z-index: 4; display: flex; justify-content: center; gap: 0.4rem; flex-wrap: wrap; border-top: 1px solid var(--rosa-palo);}
         .product-card:hover .card-sizes-overlay { transform: translateY(0); }
         .card-size-pill { font-size: 0.75rem; font-weight: 600; color: var(--dark-studio); border: 1px solid var(--gris-claro); padding: 2px 8px; border-radius: 6px; background: var(--blanco-puro); }
+        @media (max-width: 767px) { .card-size-pill { font-size: 0.65rem; padding: 1px 5px; } .card-nav { opacity: 1 !important; } }
 
         .btn-favorite-card { position: absolute; top: 10px; right: 10px; background: var(--blanco-puro); border: none; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: var(--shadow-subtle); cursor: pointer; z-index: 6; transition: var(--transition-smooth); color: var(--gris-oscuro);}
         .btn-favorite-card:hover { transform: scale(1.1); color: var(--rosa-intenso); }
@@ -223,7 +224,7 @@
         
         .product-info { padding: 1.5rem; display: flex; flex-direction: column; gap: 0.2rem; text-align: center; flex: 1; justify-content: space-between;}
         
-        .color-dots-container { display: flex; justify-content: center; gap: 0.5rem; margin-bottom: 0.5rem; }
+        .color-dots-container { display: flex; justify-content: center; gap: 0.5rem; margin-bottom: 0.5rem; flex-wrap: wrap; }
         .color-dot { width: 20px; height: 20px; border-radius: 50%; border: 1px solid #ddd; box-shadow: inset 0 2px 5px rgba(0,0,0,0.1); cursor: pointer; transition: var(--transition-smooth); }
         .color-dot:hover { transform: scale(1.2); }
         .color-dot.active { border-color: var(--dark-studio); transform: scale(1.2); box-shadow: 0 0 0 2px var(--beige-calido), 0 0 0 4px var(--dark-studio); }
@@ -300,10 +301,10 @@
         .size-guide-close { background: none; border: none; font-size: 1.4rem; cursor: pointer; color: #aaa; line-height: 1; padding: 0; transition: color 0.2s; }
         .size-guide-close:hover { color: var(--dark-studio); }
         
-        .size-guide-tabs { display: flex; gap: 0; border-bottom: 2px solid var(--gris-claro); flex-shrink: 0; padding: 0 2rem; background: var(--blanco-puro); overflow-x: auto; }
-        .size-tab { padding: 0.9rem 1.2rem; font-size: 0.8rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; border: none; background: none; cursor: pointer; color: #aaa; border-bottom: 2px solid transparent; margin-bottom: -2px; transition: all 0.2s; white-space: nowrap; }
-        .size-tab.active { color: var(--dark-studio); border-bottom-color: var(--dark-studio); }
-        .size-tab:hover:not(.active) { color: var(--dark-studio); }
+        .size-guide-tabs { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; padding: 15px; border-bottom: none; flex-shrink: 0; background: var(--blanco-puro); }
+        .size-tab { padding: 0.9rem 1.2rem; font-size: 0.8rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; border: 1px solid var(--gris-claro); background: none; cursor: pointer; color: #aaa; border-radius: 20px; transition: all 0.2s; }
+        .size-tab.active { background: var(--dark-studio); color: var(--blanco-puro); border-color: var(--dark-studio); }
+        .size-tab:hover:not(.active) { color: var(--dark-studio); border-color: var(--dark-studio); }
         
         .size-guide-body { padding: 1.5rem 2rem 2rem; overflow-y: auto; flex: 1; }
         
@@ -405,6 +406,20 @@
             .details-tab { padding: 0.8rem 1rem; font-size: 0.78rem; }
         }
 
+        /* --- MENÚ MÓVIL DRAWER --- */
+        .mobile-menu-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 1001; opacity: 0; visibility: hidden; transition: 0.3s; }
+        .mobile-menu-overlay.active { opacity: 1; visibility: visible; }
+        .mobile-menu-drawer { position: fixed; top: 0; left: 0; width: 280px; height: 100dvh; background: var(--blanco-puro); z-index: 1002; transform: translateX(-100%); transition: transform 0.3s ease; padding: 2rem; display: flex; flex-direction: column; gap: 2rem; box-shadow: 4px 0 15px rgba(0,0,0,0.1); }
+        .mobile-menu-drawer.active { transform: translateX(0); }
+        .mobile-nav-links { display: flex; flex-direction: column; gap: 1.5rem; font-size: 1.2rem; font-weight: 600; }
+        .mobile-nav-links a { color: var(--dark-studio); text-decoration: none; transition: color 0.2s; }
+        .mobile-nav-links a:hover { color: var(--rosa-intenso); }
+        .close-menu { align-self: flex-end; background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--gris-oscuro); }
+
+        /* --- STICKY CART MÓVIL --- */
+        .sticky-cart-mobile { position: fixed; bottom: 0; left: 0; width: 100%; background: var(--blanco-puro); padding: 10px 15px; padding-bottom: max(10px, env(safe-area-inset-bottom)); box-shadow: 0 -4px 15px rgba(0,0,0,0.1); z-index: 998; transform: translateY(100%); transition: transform 0.3s; border-top: 1px solid var(--gris-claro); }
+        .sticky-cart-mobile.visible { transform: translateY(0); }
+
     </style>
 </head>
 <body>
@@ -415,7 +430,7 @@
     <header class="header" id="navbar">
         <div class="header-container">
             <div class="header-left">
-                <button class="icon-btn mobile-only" aria-label="Menú">
+                <button class="icon-btn mobile-only" id="mobileMenuBtn" aria-label="Menú">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
                 </button>
                 <a href="index.html" class="logo" aria-label="Volver al inicio">
@@ -454,6 +469,15 @@
             </div>
         </div>
     </header>
+    <div class="mobile-menu-overlay" id="mobileMenuOverlay"></div>
+    <nav class="mobile-menu-drawer" id="mobileMenuDrawer">
+        <button class="close-menu" id="closeMenuBtn">✕</button>
+        <div class="mobile-nav-links">
+            <a href="index.html">Inicio</a>
+            <a href="index.html#catalogo">Catálogo</a>
+            <a href="sucursales.html">Sucursales</a>
+        </div>
+    </nav>
 
     <main>
         <!-- BREADCRUMB -->
@@ -467,6 +491,13 @@
         <!-- CONTENEDOR PRINCIPAL DEL PRODUCTO -->
         <div class="product-container">
             
+            <!-- Header de Producto en Móvil (título, precio visible antes de la galería) -->
+            <div class="mobile-product-header mobile-only" style="margin-bottom: 1rem;">
+                <div class="product-tags" id="tagsContainerMobile"></div>
+                <h1 class="product-title" id="prodTitleMobile" style="font-size: 2.2rem;"></h1>
+                <div class="product-price-box" id="priceContainerMobile" style="margin-bottom: 0;"></div>
+            </div>
+
             <!-- Columna Izquierda: Galería de Alta Resolución -->
             <div class="gallery-wrapper animate-on-load delay-1">
                 <div class="main-img-box">
@@ -483,11 +514,11 @@
             <div class="info-wrapper animate-on-load delay-2">
                 
                 <!-- Etiquetas Superiores -->
-                <div class="product-tags" id="tagsContainer"></div>
+                <div class="product-tags desktop-only" id="tagsContainer"></div>
 
-                <h1 class="product-title" id="prodTitle">Cargando detalles...</h1>
-                
-                <div class="product-price-box" id="priceContainer">
+                <h1 class="product-title desktop-only" id="prodTitle">Cargando detalles...</h1>
+
+                <div class="product-price-box desktop-only" id="priceContainer">
                     <!-- Precios inyectados -->
                 </div>
 
@@ -755,8 +786,12 @@
                 });
             }
             document.getElementById('tagsContainer').innerHTML = tagsHTML;
+            const mTags = document.getElementById('tagsContainerMobile');
+            if (mTags) mTags.innerHTML = tagsHTML;
 
             document.getElementById('prodTitle').textContent = currentProduct.nombre;
+            const mTitle = document.getElementById('prodTitleMobile');
+            if (mTitle) mTitle.textContent = currentProduct.nombre;
             // Renderizado inteligente de descripción
             (function renderDesc(rawDesc) {
                 if (!rawDesc) { document.getElementById('prodDesc').innerHTML = ''; return; }
@@ -840,6 +875,8 @@
                 `;
             }
             document.getElementById('priceContainer').innerHTML = priceHTML;
+            const mPrice = document.getElementById('priceContainerMobile');
+            if (mPrice) mPrice.innerHTML = priceHTML;
 
             const favList = JSON.parse(localStorage.getItem('mathsoluis_favorites')) || [];
             const btnFav = document.getElementById('btnFav');
@@ -898,7 +935,7 @@
                 const missing = requiredKitComponents.find(comp => !selectedKeys.includes(comp));
                 if (missing) {
                     btn.disabled = true; btn.className = 'btn-cart-smart waiting';
-                    const names = {bata: 'Bata', sosten: 'Sostén', calzon: 'Calzón', pantuflas: 'Pantuflas', bebe: 'Ropa Bebé'};
+                    const names = {bata: 'Bata', sosten: 'Sostén', calzon: 'Calzón', camisa: 'Camisa', pantuflas: 'Pantuflas', bebe: 'Ropa Bebé'};
                     btn.textContent = `Falta seleccionar ${names[missing] || missing}`;
                 } else {
                     btn.disabled = false; btn.className = 'btn-cart-smart ready'; btn.textContent = 'Agregar al Carrito';
@@ -955,7 +992,7 @@
 
             let sizesHTML = '';
             if (isKit && typeof tallasData === 'object' && !Array.isArray(tallasData)) {
-                const labels = { bata: 'Talla Bata', sosten: 'Talla Sostén', calzon: 'Talla Calzón', pantuflas: 'Nº Pantuflas', bebe: 'Talla Bebé' };
+                const labels = { bata: 'Talla Bata', sosten: 'Talla Sostén', calzon: 'Talla Calzón', camisa: 'Talla Camisa', pantuflas: 'Nº Pantuflas', bebe: 'Talla Bebé' };
                 for (const [comp, sizes] of Object.entries(tallasData)) {
                     if (sizes && sizes.length > 0) {
                         requiredKitComponents.push(comp);
@@ -1285,6 +1322,7 @@
                 <button class="size-tab" onclick="switchSizeTab('adulto', this)">👗 Adulto</button>
                 <button class="size-tab" onclick="switchSizeTab('sosten', this)">👙 Sostén</button>
                 <button class="size-tab" onclick="switchSizeTab('calzon', this)">🩲 Calzón Maternal</button>
+                <button class="size-tab" onclick="switchSizeTab('camisa', this)">👚 Camisa</button>
                 <button class="size-tab" onclick="switchSizeTab('bata', this)">👘 Bata</button>
             </div>
             
@@ -1405,8 +1443,8 @@
                             </tr>
                         </thead>
                         <tbody>
-                            <tr><td class="talla-col">0 a 6 meses</td><td>1° y 2° trimestre</td><td>70 — 90</td><td>90 — 106</td><td>S / M / L</td></tr>
-                            <tr><td class="talla-col">6 a 10 meses</td><td>3° trimestre y posparto</td><td>88 — 110</td><td>100 — 118</td><td>L / XL / XXL</td></tr>
+                            <tr><td class="talla-col">Talla 0 a 6 meses de embarazo</td><td>1° y 2° trimestre</td><td>70 — 90</td><td>90 — 106</td><td>S / M / L</td></tr>
+                            <tr><td class="talla-col">Talla 6 a 10 meses de embarazo</td><td>3° trimestre y posparto</td><td>88 — 110</td><td>100 — 118</td><td>L / XL / XXL</td></tr>
                         </tbody>
                     </table>
                     <div class="how-to-measure">
@@ -1416,6 +1454,37 @@
                             <li><strong>Cadera:</strong> Mide en la parte más ancha de las caderas.</li>
                             <li>El calzón tiene panel frontal elástico que se adapta al crecimiento del vientre semana a semana.</li>
                             <li>Si estás entre tallas, considera cuántos meses de embarazo quedan para elegir la talla que te durará más.</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- PANEL CAMISA -->
+                <div class="size-panel" id="panel-camisa">
+                    <div class="size-tip">💡 La camisa del Kit tiene corte recto y ligeramente holgado. Si usas talla M en ropa normal, elige M. Para lactancia considera subir una talla.</div>
+                    <table class="size-table">
+                        <thead>
+                            <tr>
+                                <th>Talla camisa</th>
+                                <th>Contorno pecho (cm)</th>
+                                <th>Contorno cintura (cm)</th>
+                                <th>Largo total (cm)</th>
+                                <th>Talla ropa equiv.</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr><td class="talla-col">S</td><td>88 — 96</td><td>72 — 80</td><td>65 — 68</td><td>36 / 38</td></tr>
+                            <tr><td class="talla-col">M</td><td>94 — 102</td><td>78 — 88</td><td>67 — 70</td><td>38 / 40</td></tr>
+                            <tr><td class="talla-col">L</td><td>100 — 110</td><td>86 — 96</td><td>69 — 72</td><td>40 / 42</td></tr>
+                            <tr><td class="talla-col">XL</td><td>108 — 118</td><td>94 — 106</td><td>71 — 74</td><td>42 / 44</td></tr>
+                            <tr><td class="talla-col">XXL</td><td>116 — 128</td><td>104 — 116</td><td>73 — 76</td><td>44 / 46</td></tr>
+                        </tbody>
+                    </table>
+                    <div class="how-to-measure">
+                        <h4>Cómo medir correctamente</h4>
+                        <ul>
+                            <li><strong>Pecho:</strong> Mide alrededor de la parte más prominente del busto, manteniendo la huincha horizontal.</li>
+                            <li><strong>Cintura:</strong> Mide en la cintura natural (la parte más estrecha del torso).</li>
+                            <li>Si estás embarazada, elige una talla mayor para comodidad durante y después del embarazo.</li>
                         </ul>
                     </div>
                 </div>
@@ -1485,7 +1554,35 @@
         }
         // Cerrar con Escape
         document.addEventListener('keydown', e => { if (e.key === 'Escape') closeSizeGuide(); });
+
+        // --- MENÚ MÓVIL ---
+        document.getElementById('mobileMenuBtn').addEventListener('click', () => {
+            document.getElementById('mobileMenuDrawer').classList.add('active');
+            document.getElementById('mobileMenuOverlay').classList.add('active');
+            document.body.style.overflow = 'hidden';
+        });
+        const closeMenu = () => {
+            document.getElementById('mobileMenuDrawer').classList.remove('active');
+            document.getElementById('mobileMenuOverlay').classList.remove('active');
+            document.body.style.overflow = '';
+        };
+        document.getElementById('closeMenuBtn').addEventListener('click', closeMenu);
+        document.getElementById('mobileMenuOverlay').addEventListener('click', closeMenu);
+
+        // --- STICKY CART MÓVIL (IntersectionObserver) ---
+        const stickyCart = document.getElementById('stickyCartMobile');
+        if (stickyCart) {
+            const observer = new IntersectionObserver(([entry]) => {
+                stickyCart.classList.toggle('visible', !entry.isIntersecting);
+            }, { threshold: 0 });
+            const addToCartBtn = document.getElementById('btnAddToCart');
+            if (addToCartBtn) observer.observe(addToCartBtn);
+        }
     </script>
+
+    <div class="sticky-cart-mobile mobile-only" id="stickyCartMobile">
+        <button class="btn-cart-smart ready" style="width:100%; padding:1rem; font-size:0.95rem;" onclick="document.getElementById('sizesContainer').scrollIntoView({behavior:'smooth', block:'center'})">Elegir Talla / Comprar</button>
+    </div>
 
 </body>
 </html>

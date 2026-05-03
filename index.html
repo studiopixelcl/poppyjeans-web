@@ -192,8 +192,7 @@
         .category-img-wrapper img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.8s cubic-bezier(0.25, 0.8, 0.25, 1); }
         .category-card:hover .category-img-wrapper { transform: translateY(-8px); box-shadow: 0 15px 30px rgba(138, 115, 96, 0.15); }
         .category-card:hover .category-img-wrapper img { transform: scale(1.1); }
-        .category-title { font-size: 0.85rem; font-weight: 700; color: var(--dark-studio); text-transform: uppercase; letter-spacing: 1px; text-align: center; line-height: 1.2; transition: var(--transition-smooth);}
-        @media(min-width: 768px) { .category-title { font-size: 1rem; } }
+        .category-title { font-size: 0.8rem; font-weight: 700; color: var(--dark-studio); text-transform: uppercase; letter-spacing: 1.5px; text-align: center; line-height: 1.2; transition: var(--transition-smooth); background: rgba(255, 255, 255, 0.85); padding: 0.5rem 1.2rem; border-radius: var(--radius-pill); backdrop-filter: blur(8px); box-shadow: 0 4px 15px rgba(138, 115, 96, 0.15); margin-top: -15px; border: 1px solid rgba(255, 255, 255, 0.5); }
         
         .category-card:nth-child(odd):hover .category-title { color: var(--rosa-intenso); }
         .category-card:nth-child(even):hover .category-title { color: var(--celeste-bebe); }
@@ -203,20 +202,25 @@
         .clear-filter-btn { background-color: var(--blanco-puro); color: var(--dark-studio); border: 1px solid var(--dark-studio); padding: 0.4rem 1.2rem; border-radius: var(--radius-pill); font-size: 0.85rem; font-weight: 600; transition: var(--transition-smooth); display: flex; align-items: center; gap: 0.4rem; cursor: pointer;}
         .clear-filter-btn:hover { background-color: var(--dark-studio); color: var(--blanco-puro); transform: translateY(-2px); box-shadow: var(--shadow-subtle); }
 
+        /* --- PATRÓN DE FONDO FULL-WIDTH --- */
+        .pattern-section { position: relative; width: 100vw; margin-left: calc(-50vw + 50%); margin-right: calc(-50vw + 50%); padding: 5rem 1.5rem; background-image: url('./pattern-bg.jpg'); background-repeat: repeat; background-size: 350px; }
+        .pattern-overlay { position: absolute; inset: 0; background: linear-gradient(to bottom, var(--beige-calido) 0%, rgba(255,248,240,0.6) 30%, rgba(255,248,240,0.6) 70%, var(--beige-calido) 100%); z-index: 1; }
+        .pattern-content { position: relative; z-index: 2; max-width: 1200px; margin: 0 auto; }
+
         /* --- VITRINA DIGITAL --- */
         .vitrina-section {
             position: relative;
-            background-color: var(--blanco-puro);
+            background-color: var(--beige-calido);
             max-width: 100%;
             z-index: 1;
             border-top: 1px solid var(--rosa-palo);
         }
 
-        .products-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem; position: relative; z-index: 2;}
+        .products-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 1rem; position: relative; z-index: 2;}
         @media (min-width: 768px) { .products-grid { grid-template-columns: repeat(4, 1fr); gap: 2rem; } }
 
         /* --- PRODUCT CARD (HIGH TICKET REDESIGN) --- */
-        .product-card { background: var(--beige-calido); border-radius: var(--radius-md); overflow: hidden; transition: var(--transition-smooth); border: 1px solid var(--gris-claro); box-shadow: 0 4px 15px rgba(138, 115, 96, 0.04); position: relative; display: flex; flex-direction: column;}
+        .product-card { background: var(--blanco-puro); border-radius: var(--radius-md); overflow: hidden; transition: var(--transition-smooth); border: 1px solid var(--gris-claro); box-shadow: 0 4px 15px rgba(138, 115, 96, 0.04); position: relative; display: flex; flex-direction: column;}
         .product-card:hover { transform: translateY(-8px); box-shadow: var(--shadow-hover); border-color: var(--rosa-intenso); }
         
         /* Contenedor de Imagen y Slider */
@@ -238,6 +242,7 @@
         .card-sizes-overlay { position: absolute; bottom: 0; left: 0; right: 0; background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(8px); padding: 0.8rem; text-align: center; transform: translateY(100%); transition: transform 0.4s cubic-bezier(0.25, 0.8, 0.25, 1); z-index: 4; display: flex; justify-content: center; gap: 0.4rem; flex-wrap: wrap; border-top: 1px solid var(--rosa-palo);}
         .product-card:hover .card-sizes-overlay { transform: translateY(0); }
         .card-size-pill { font-size: 0.75rem; font-weight: 600; color: var(--dark-studio); border: 1px solid var(--gris-claro); padding: 2px 8px; border-radius: 6px; background: var(--blanco-puro); }
+        @media (max-width: 767px) { .card-size-pill { font-size: 0.65rem; padding: 1px 5px; } .card-nav { opacity: 1 !important; } }
 
         /* Botón Corazón Favorito en Tarjeta */
         .btn-favorite-card { position: absolute; top: 10px; right: 10px; background: var(--blanco-puro); border: none; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: var(--shadow-subtle); cursor: pointer; z-index: 6; transition: var(--transition-smooth); color: var(--gris-oscuro);}
@@ -251,7 +256,7 @@
         .product-info { padding: 1.5rem; display: flex; flex-direction: column; gap: 0.2rem; text-align: center; flex: 1; justify-content: space-between;}
         
         /* Puntos de Colores Interactivos (Compatibles con Mosaico) */
-        .color-dots-container { display: flex; justify-content: center; gap: 0.5rem; margin-bottom: 0.5rem; }
+        .color-dots-container { display: flex; justify-content: center; gap: 0.5rem; margin-bottom: 0.5rem; flex-wrap: wrap; }
         .color-dot { width: 20px; height: 20px; border-radius: 50%; border: 1px solid #ddd; box-shadow: inset 0 2px 5px rgba(0,0,0,0.1); cursor: pointer; transition: var(--transition-smooth); }
         .color-dot:hover { transform: scale(1.2); }
         .color-dot.active { border-color: var(--dark-studio); transform: scale(1.2); box-shadow: 0 0 0 2px var(--beige-calido), 0 0 0 4px var(--dark-studio); }
@@ -388,6 +393,16 @@
         @keyframes pulseGlowInsta { 0% { box-shadow: 0 0 0 0 rgba(214, 36, 159, 0.5); } 70% { box-shadow: 0 0 0 15px rgba(214, 36, 159, 0); } 100% { box-shadow: 0 0 0 0 rgba(214, 36, 159, 0); } }
         @keyframes floatElement { 0% { transform: translateY(0px); } 50% { transform: translateY(-8px); } 100% { transform: translateY(0px); } }
         @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* --- MENÚ MÓVIL DRAWER --- */
+        .mobile-menu-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 1001; opacity: 0; visibility: hidden; transition: 0.3s; }
+        .mobile-menu-overlay.active { opacity: 1; visibility: visible; }
+        .mobile-menu-drawer { position: fixed; top: 0; left: 0; width: 280px; height: 100dvh; background: var(--blanco-puro); z-index: 1002; transform: translateX(-100%); transition: transform 0.3s ease; padding: 2rem; display: flex; flex-direction: column; gap: 2rem; box-shadow: 4px 0 15px rgba(0,0,0,0.1); }
+        .mobile-menu-drawer.active { transform: translateX(0); }
+        .mobile-nav-links { display: flex; flex-direction: column; gap: 1.5rem; font-size: 1.2rem; font-weight: 600; }
+        .mobile-nav-links a { color: var(--dark-studio); text-decoration: none; transition: color 0.2s; }
+        .mobile-nav-links a:hover { color: var(--rosa-intenso); }
+        .close-menu { align-self: flex-end; background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--gris-oscuro); }
     </style>
 </head>
 <body>
@@ -398,7 +413,7 @@
     <header class="header" id="navbar">
         <div class="header-container">
             <div class="header-left">
-                <button class="icon-btn mobile-only" aria-label="Menú">
+                <button class="icon-btn mobile-only" id="mobileMenuBtn" aria-label="Menú">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
                 </button>
                 <a href="#inicio" class="logo" aria-label="Volver al inicio">
@@ -438,6 +453,15 @@
             </div>
         </div>
     </header>
+    <div class="mobile-menu-overlay" id="mobileMenuOverlay"></div>
+    <nav class="mobile-menu-drawer" id="mobileMenuDrawer">
+        <button class="close-menu" id="closeMenuBtn">✕</button>
+        <div class="mobile-nav-links">
+            <a href="index.html">Inicio</a>
+            <a href="index.html#catalogo">Catálogo</a>
+            <a href="sucursales.html">Sucursales</a>
+        </div>
+    </nav>
 
     <main>
         <!-- HERO PRINCIPAL -->
@@ -455,24 +479,27 @@
         </section>
 
         <!-- FILTROS RÁPIDOS (REDISEÑO HIGH TICKET OVALADO) -->
-        <section class="section-padding" style="padding-bottom: 2rem;">
-            <h2 class="section-title animate-on-load delay-1">¿Qué buscas hoy?</h2>
-            <div class="categories-scroll animate-on-load delay-2">
-                <div class="category-card" onclick="searchByTag('recien nacido')">
-                    <div class="category-img-wrapper"><img src="https://images.unsplash.com/photo-1546015720-b8b30df5aa27?auto=format&fit=crop&w=300&q=80" alt="Recién Nacido"></div>
-                    <span class="category-title">Recién Nacido</span>
-                </div>
-                <div class="category-card" onclick="searchByTag('niña')">
-                    <div class="category-img-wrapper"><img src="https://images.unsplash.com/photo-1518831959646-742c3a14ebf7?auto=format&fit=crop&w=300&q=80" alt="Niñas"></div>
-                    <span class="category-title">Niñas</span>
-                </div>
-                <div class="category-card" onclick="searchByTag('niño')">
-                    <div class="category-img-wrapper"><img src="https://images.unsplash.com/photo-1514090458221-65bb69cf63e6?auto=format&fit=crop&w=300&q=80" alt="Niños"></div>
-                    <span class="category-title">Niños</span>
-                </div>
-                <div class="category-card" onclick="searchByTag('kit')">
-                    <div class="category-img-wrapper"><img src="./mamabebe.jpg" alt="Mamá y Bebé" onerror="this.src='https://images.unsplash.com/photo-1519689680058-324335c77eba?auto=format&fit=crop&w=300&q=80'"></div>
-                    <span class="category-title">Mamá & Bebé</span>
+        <section class="pattern-section">
+            <div class="pattern-overlay"></div>
+            <div class="pattern-content">
+                <h2 class="section-title animate-on-load delay-1">¿Qué buscas hoy?</h2>
+                <div class="categories-scroll animate-on-load delay-2">
+                    <div class="category-card" onclick="searchByTag('mamas')">
+                        <div class="category-img-wrapper"><img src="./cat-mamas.jpg" alt="Mamás"></div>
+                        <span class="category-title">Mamás</span>
+                    </div>
+                    <div class="category-card" onclick="searchByTag('bebes')">
+                        <div class="category-img-wrapper"><img src="./cat-bebes.jpg" alt="Bebés"></div>
+                        <span class="category-title">Bebés</span>
+                    </div>
+                    <div class="category-card" onclick="searchByTag('ninas')">
+                        <div class="category-img-wrapper"><img src="./cat-ninas.jpg" alt="Niñas"></div>
+                        <span class="category-title">Niñas</span>
+                    </div>
+                    <div class="category-card" onclick="searchByTag('ninos')">
+                        <div class="category-img-wrapper"><img src="./cat-ninos.jpg" alt="Niños"></div>
+                        <span class="category-title">Niños</span>
+                    </div>
                 </div>
             </div>
         </section>
@@ -1074,11 +1101,13 @@
             }
 
             products.forEach((product) => {
-                let catSlug = 'recien-nacido';
-
-                if(product.categoria_id === 2) { catSlug = 'ninas'; }
-                if(product.categoria_id === 3) { catSlug = 'ninos'; }
-                if(product.categoria_id === 4) { catSlug = 'mama-bebe'; }
+                let catSlugs = [];
+                const cats = product.categorias_ids || [product.categoria_id];
+                if (cats.includes(1)) catSlugs.push('mamas');
+                if (cats.includes(2)) catSlugs.push('bebes');
+                if (cats.includes(3)) catSlugs.push('ninos');
+                if (cats.includes(4)) catSlugs.push('ninas');
+                if (cats.includes(5)) catSlugs.push('unisex');
 
                 let priceHTML = `<span class="card-price">${formatCurrency(product.precio_normal)}</span>`;
                 let offerBadgeHTML = '';
@@ -1100,7 +1129,7 @@
                 const article = document.createElement('article');
                 article.className = 'product-card';
                 article.id = `product-card-${product.id}`;
-                article.dataset.category = catSlug;
+                article.dataset.category = catSlugs.join(' ');
                 
                 // Extraer datos de la primera variante por defecto
                 const firstVariant = (product.variantes && product.variantes.length > 0) ? product.variantes[0] : null;
@@ -1302,7 +1331,11 @@
             let hasVisibleProducts = false;
             
             document.querySelectorAll('.product-card').forEach(card => {
-                if (card.innerText.toLowerCase().includes(searchTerm) || card.dataset.category.includes(searchTerm)) {
+                const catData = card.dataset.category || '';
+                const isTextMatch = card.innerText.toLowerCase().includes(searchTerm);
+                const isCatMatch = catData.includes(searchTerm);
+                const isUnisexBonus = (searchTerm === 'niña' || searchTerm === 'niño' || searchTerm === 'ninas' || searchTerm === 'ninos') && catData.includes('unisex');
+                if (isTextMatch || isCatMatch || isUnisexBonus) {
                     card.style.display = 'flex'; hasVisibleProducts = true;
                 } else {
                     card.style.display = 'none';
@@ -1391,6 +1424,20 @@
             fetchCatalog();
             renderCartUI();
         });
+
+        // --- MENÚ MÓVIL ---
+        document.getElementById('mobileMenuBtn').addEventListener('click', () => {
+            document.getElementById('mobileMenuDrawer').classList.add('active');
+            document.getElementById('mobileMenuOverlay').classList.add('active');
+            document.body.style.overflow = 'hidden';
+        });
+        const closeMenu = () => {
+            document.getElementById('mobileMenuDrawer').classList.remove('active');
+            document.getElementById('mobileMenuOverlay').classList.remove('active');
+            document.body.style.overflow = '';
+        };
+        document.getElementById('closeMenuBtn').addEventListener('click', closeMenu);
+        document.getElementById('mobileMenuOverlay').addEventListener('click', closeMenu);
     </script>
 </body>
 </html>

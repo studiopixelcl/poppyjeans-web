@@ -207,7 +207,11 @@
         .type-pill { background: var(--fondo-claro); border: 1px solid var(--gris-claro); color: var(--gris-oscuro); padding: 0.4rem 1rem; border-radius: var(--radius-pill); font-size: 0.85rem; font-weight: 600; cursor: pointer; transition: var(--transition-smooth); }
         .type-pill:hover { border-color: var(--teal-claro); color: var(--teal-studio); }
         .type-pill.active { background: var(--teal-studio); color: var(--blanco-puro); border-color: var(--teal-studio); }
-        
+
+        .cat-pill { background: var(--fondo-claro); border: 1px solid var(--gris-claro); color: var(--gris-oscuro); padding: 0.4rem 1rem; border-radius: var(--radius-pill); font-size: 0.85rem; font-weight: 600; cursor: pointer; transition: var(--transition-smooth); }
+        .cat-pill:hover { border-color: var(--teal-claro); color: var(--teal-studio); }
+        .cat-pill.selected { background: var(--teal-studio); color: var(--blanco-puro); border-color: var(--teal-studio); }
+
         .size-item-row { display: flex; align-items: center; justify-content: space-between; padding: 0.5rem 0.8rem; border: 1.5px solid var(--gris-claro); border-radius: 10px; margin-bottom: 0.5rem; background: var(--blanco-puro); transition: var(--transition-smooth); min-height: 48px;}
         .size-item-row.active-size { border-color: var(--teal-studio); background: rgba(19, 194, 179, 0.05); }
         .size-checkbox { width: 18px; height: 18px; accent-color: var(--teal-studio); cursor: pointer; margin-right: 0.5rem; flex-shrink: 0;}
@@ -292,14 +296,20 @@
                 <!-- Filtros Rápidos Sugeridos -->
                 <div class="quick-filters">
                     <button class="filter-btn active" id="btnFilterAll" onclick="setQuickFilter('all')">Todos</button>
-                    <button class="filter-btn" id="btnFilterKits" onclick="setQuickFilter('kits')">Kits Maternales</button>
+                    <button class="filter-btn" id="btnFilterKits" onclick="setQuickFilter('kits')">Kits</button>
                     <button class="filter-btn" id="btnFilterOfertas" onclick="setQuickFilter('ofertas')">En Oferta 🔥</button>
                 </div>
                 
+                <div id="bulkActions" style="display: none; align-items: center; gap: 10px; margin-bottom: 15px; padding: 12px 20px; background: var(--fondo-claro); border: 1px solid var(--teal-studio); border-radius: var(--radius-md);">
+                    <span id="bulkCount" style="font-weight: 700; color: var(--teal-studio); margin-right: auto;">0 seleccionados</span>
+                    <button class="btn-primary" id="btnOpenBulkModal" style="padding: 6px 15px; font-size: 0.85rem;">Editar Seleccionados</button>
+                </div>
+
                 <div style="overflow-x: auto;">
                     <table>
                         <thead>
                             <tr>
+                                <th style="width: 40px;"><input type="checkbox" id="selectAllBtn" style="cursor: pointer;"></th>
                                 <th class="sortable" onclick="sortData('id')">ID / SKU <span class="sort-icon" id="sort-id">↕️</span></th>
                                 <th class="sortable" onclick="sortData('nombre')">Producto <span class="sort-icon" id="sort-nombre">↕️</span></th>
                                 <th class="sortable" onclick="sortData('categoria_nombre')">Categoría <span class="sort-icon" id="sort-categoria_nombre">↕️</span></th>
@@ -311,7 +321,7 @@
                             </tr>
                         </thead>
                         <tbody id="productsTableBody">
-                            <tr><td colspan="8" style="text-align: center; padding: 2rem;">Cargando inventario conectando con la base de datos...</td></tr>
+                            <tr><td colspan="9" style="text-align: center; padding: 2rem;">Cargando inventario conectando con la base de datos...</td></tr>
                         </tbody>
                     </table>
                 </div>
@@ -364,15 +374,15 @@
                             <label>SKU (Código Base)</label>
                             <input type="text" id="prodSku" placeholder="Ej: CS-001">
                         </div>
-                        <div class="input-group">
-                            <label>Categoría</label>
-                            <select id="prodCategoria">
-                                <option value="1">Recién Nacido</option>
-                                <option value="2">Niñas</option>
-                                <option value="3">Niños</option>
-                                <option value="5">Niños & Niñas (Unisex)</option>
-                                <option value="4">Mamá & Bebé</option>
-                            </select>
+                        <div class="input-group" style="grid-column: span 2;">
+                            <label>Categorías (selecciona una o más) *</label>
+                            <div id="prodCategorias" style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+                                <button type="button" class="cat-pill" data-id="1">Mamás</button>
+                                <button type="button" class="cat-pill" data-id="2">Bebés</button>
+                                <button type="button" class="cat-pill" data-id="3">Niños</button>
+                                <button type="button" class="cat-pill" data-id="4">Niñas</button>
+                                <button type="button" class="cat-pill" data-id="5">Unisex</button>
+                            </div>
                         </div>
                         <div class="input-group">
                             <label>Stock Global de la Publicación</label>
@@ -383,7 +393,7 @@
                         <div class="input-group" style="grid-column: span 2; background: rgba(19, 194, 179, 0.05); padding: 1.5rem; border-radius: 8px; border: 1px dashed var(--teal-studio);">
                             <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer; color: var(--teal-studio); font-size: 1.1rem; margin-bottom: 0;">
                                 <input type="checkbox" id="prodEsKit" style="width: 20px; height: 20px; accent-color: var(--teal-studio);" onchange="toggleKitMode()">
-                                <strong>🛍️ Este producto es un Kit Maternal (Múltiples prendas)</strong>
+                                <strong>🛍️ Este producto es un Kit (Múltiples prendas)</strong>
                             </label>
                             <p style="font-size: 0.85rem; color: #666; margin-top: 0.5rem; margin-left: 28px;">Al activar esta opción, podrás seleccionar qué prendas incluye el set y gestionar el stock exacto de cada una.</p>
                         </div>
@@ -455,6 +465,36 @@
         </div>
     </div>
 
+    <!-- MODAL EDICIÓN MASIVA -->
+    <div id="bulkEditModal" style="display: none; align-items: center; justify-content: center; position: fixed; z-index: 2000; inset: 0; background: rgba(0,0,0,0.5);">
+        <div style="background: var(--blanco-puro); padding: 2rem; border-radius: var(--radius-md); width: 100%; max-width: 450px; box-shadow: 0 10px 25px rgba(0,0,0,0.1);">
+            <h3 style="margin-bottom: 1.5rem; color: var(--dark-studio);">Edición Masiva</h3>
+            <div style="margin-bottom: 1.5rem;">
+                <label style="font-weight: 600; display: block; margin-bottom: 0.5rem;">Cambiar Estado</label>
+                <select id="bulkStatusSelect" style="width: 100%; padding: 0.8rem; border-radius: 8px; border: 1px solid var(--gris-claro); font-family: var(--font-main); font-size: 0.95rem; background: var(--fondo-claro);">
+                    <option value="">-- No cambiar --</option>
+                    <option value="1">Activo (Visible)</option>
+                    <option value="0">Oculto (Borrador)</option>
+                </select>
+            </div>
+            <div style="margin-bottom: 1.5rem;">
+                <label style="font-weight: 600; display: block; margin-bottom: 0.5rem;">Reemplazar Categorías</label>
+                <div id="bulkCategorias" style="display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 0.5rem;">
+                    <button type="button" class="cat-pill bulk-cat-pill" data-id="1">Mamás</button>
+                    <button type="button" class="cat-pill bulk-cat-pill" data-id="2">Bebés</button>
+                    <button type="button" class="cat-pill bulk-cat-pill" data-id="3">Niños</button>
+                    <button type="button" class="cat-pill bulk-cat-pill" data-id="4">Niñas</button>
+                    <button type="button" class="cat-pill bulk-cat-pill" data-id="5">Unisex</button>
+                </div>
+                <small style="color: #888;">Si no seleccionas ninguna, se mantendrán las actuales.</small>
+            </div>
+            <div style="display: flex; gap: 1rem; justify-content: flex-end;">
+                <button class="btn-secondary" onclick="document.getElementById('bulkEditModal').style.display='none'">Cancelar</button>
+                <button class="btn-primary" id="btnConfirmBulk" style="width: auto;">Aplicar Cambios</button>
+            </div>
+        </div>
+    </div>
+
     <!-- LÓGICA JAVASCRIPT -->
     <script>
                 const loginView = document.getElementById('loginView');
@@ -463,7 +503,7 @@
         const productsTableBody = document.getElementById('productsTableBody');
         const globalStockInput = document.getElementById('prodStock');
         
-        let allProducts = []; let filteredProducts = []; 
+        let allProducts = []; let filteredProducts = []; let CATEGORIAS_MAP = {}; let CATEGORIAS_LIST = [];
         let currentSortColumn = ''; let sortAscending = true; let editingProductId = null; 
         let currentTags = []; let allExistingTags = new Set();
         let productVariants = []; let variantIdCounter = 0; 
@@ -475,14 +515,15 @@
             adulto: ["XS", "S", "M", "L", "XL", "XXL", "XXXL"],
             unica: ["Única"],
             sosten: ["42", "44", "46", "48", "50", "52"],
-            calzon: ["S", "M", "L", "XL", "S/M elasticado", "L/XL elasticado", "0/3 meses embarazo", "3/6 meses embarazo", "6/9 meses embarazo"]
+            calzon: ["S", "M", "L", "XL", "S/M elasticado", "L/XL elasticado", "Talla 0 a 6 meses de embarazo", "Talla 6 a 10 meses de embarazo"]
         };
         const tallasKit = {
             bata: ["S", "M", "L", "XL", "XXL"],
             sosten: ["42", "44", "46", "48", "50", "52"],
-            calzon: ["S", "M", "L", "XL", "S/M elasticado", "L/XL elasticado", "0/3 meses embarazo", "3/6 meses embarazo", "6/9 meses embarazo"],
+            calzon: ["S", "M", "L", "XL", "S/M elasticado", "L/XL elasticado", "Talla 0 a 6 meses de embarazo", "Talla 6 a 10 meses de embarazo"],
+            camisa: ["S", "M", "L", "XL", "XXL"],
             pantuflas: ["35-36", "37-38", "39-40"],
-            bebe: ["PRE", "RN", "0-3M", "3-6M"]
+            bebe: ["PRE", "RN", "0-3M", "3-6M", "6-9M", "9-12M", "12-18M", "18-24M", "2A", "3A", "4A"]
         };
 
         window.onload = () => {
@@ -521,12 +562,43 @@
             } finally { document.getElementById('loginBtnText').textContent = 'Iniciar Sesión'; }
         });
 
-        function showDashboard() { loginView.style.display = 'none'; dashboardView.style.display = 'block'; loadProducts(); }
+        function showDashboard() { loginView.style.display = 'none'; dashboardView.style.display = 'block'; loadCategorias().then(loadProducts); }
+
+        // Carga el mapeo real (id -> nombre) desde el backend para evitar cruces.
+        async function loadCategorias() {
+            try {
+                const response = await adminFetch('/api/admin/categories');
+                if (!response || !response.ok) throw new Error('respuesta inválida');
+                const result = await response.json();
+                if (!result.success || !Array.isArray(result.data)) throw new Error(result.error || 'sin data');
+                CATEGORIAS_LIST = result.data;
+                CATEGORIAS_MAP = {};
+                result.data.forEach(c => { CATEGORIAS_MAP[Number(c.id)] = c.nombre; });
+                renderCategoriaPills();
+            } catch (e) {
+                console.error('No se pudo cargar categorías dinámicas, usando fallback estático:', e);
+                CATEGORIAS_LIST = [
+                    { id: 1, nombre: 'Mamás' }, { id: 2, nombre: 'Bebés' },
+                    { id: 3, nombre: 'Niños' }, { id: 4, nombre: 'Niñas' }, { id: 5, nombre: 'Unisex' }
+                ];
+                CATEGORIAS_LIST.forEach(c => { CATEGORIAS_MAP[c.id] = c.nombre; });
+            }
+        }
+
+        // Reemplaza las pills hardcoded con los IDs reales de la DB.
+        function renderCategoriaPills() {
+            const prodBox = document.getElementById('prodCategorias');
+            const bulkBox = document.getElementById('bulkCategorias');
+            if (prodBox) prodBox.innerHTML = CATEGORIAS_LIST.map(c =>
+                `<button type="button" class="cat-pill" data-id="${c.id}">${c.nombre}</button>`).join('');
+            if (bulkBox) bulkBox.innerHTML = CATEGORIAS_LIST.map(c =>
+                `<button type="button" class="cat-pill bulk-cat-pill" data-id="${c.id}">${c.nombre}</button>`).join('');
+        }
         // logout() definido en auth-helper al final del body
 
         // --- SISTEMA BLINDADO DE CARGA DE PRODUCTOS ---
         async function loadProducts() {
-            productsTableBody.innerHTML = `<tr><td colspan="8" style="text-align: center; padding: 2rem;">Cargando inventario...</td></tr>`;
+            productsTableBody.innerHTML = `<tr><td colspan="9" style="text-align: center; padding: 2rem;">Cargando inventario...</td></tr>`;
             try {
                 const response = await adminFetch('/api/admin/products');
                 if (!response) return;
@@ -540,13 +612,13 @@
                         runFilters(); 
                         extractAllTags(); 
                     } else { 
-                        productsTableBody.innerHTML = `<tr><td colspan="8" style="color:var(--danger-color); text-align:center; padding:2rem;"><b>Error del Backend:</b> ${result.error}</td></tr>`; 
+                        productsTableBody.innerHTML = `<tr><td colspan="9" style="color:var(--danger-color); text-align:center; padding:2rem;"><b>Error del Backend:</b> ${result.error}</td></tr>`; 
                     }
                 } catch (parseError) {
-                    productsTableBody.innerHTML = `<tr><td colspan="8" style="color:var(--danger-color); text-align:center; padding:2rem; line-height: 1.5;"><b>Error Interno (500)</b><br>El servidor está caído o desincronizado.</td></tr>`;
+                    productsTableBody.innerHTML = `<tr><td colspan="9" style="color:var(--danger-color); text-align:center; padding:2rem; line-height: 1.5;"><b>Error Interno (500)</b><br>El servidor está caído o desincronizado.</td></tr>`;
                 }
             } catch (error) { 
-                productsTableBody.innerHTML = `<tr><td colspan="8" style="color:var(--danger-color); text-align:center; padding:2rem;"><b>Error de Red / CORS:</b> ${error.message}</td></tr>`; 
+                productsTableBody.innerHTML = `<tr><td colspan="9" style="color:var(--danger-color); text-align:center; padding:2rem;"><b>Error de Red / CORS:</b> ${error.message}</td></tr>`; 
             }
         }
 
@@ -592,8 +664,13 @@
 
         function renderProducts(products) {
             productsTableBody.innerHTML = '';
-            if (products.length === 0) return productsTableBody.innerHTML = `<tr><td colspan="8" style="text-align:center; padding:3rem;">No se encontraron productos con esos filtros.</td></tr>`; 
-            
+            if (products.length === 0) return productsTableBody.innerHTML = `<tr><td colspan="9" style="text-align:center; padding:3rem;">No se encontraron productos con esos filtros.</td></tr>`;
+            document.getElementById('selectAllBtn').checked = false;
+            document.getElementById('bulkActions').style.display = 'none';
+
+            // Usa el mapeo dinámico cargado desde el backend (fuente única de verdad).
+            const categoryMap = CATEGORIAS_MAP || {};
+
             products.forEach(product => {
                 // Render del estado Oculto/Activo
                 const statusBadge = product.visible ? `<span class="badge badge-active">Activo</span>` : `<span class="badge badge-inactive">Oculto</span>`;
@@ -628,8 +705,23 @@
                     tagsDisplay = `<span style="color:#ccc; font-size:0.8rem;">-</span>`;
                 }
 
+                // Prioridad: 1) nombres resueltos vía mapeo dinámico de IDs reales,
+                // 2) categoria_nombre que devuelve el JOIN del backend (autoritativo),
+                // 3) guion. Esto evita el cruce cuando los IDs de la DB no coinciden con un mapa hardcoded.
+                let catText = '-';
+                try {
+                    let rawCats = product.categorias_ids;
+                    let catArray = Array.isArray(rawCats) ? rawCats : JSON.parse(rawCats || '[]');
+                    if (!Array.isArray(catArray) || catArray.length === 0) catArray = [product.categoria_id];
+                    const names = catArray.map(id => categoryMap[Number(id)]).filter(Boolean);
+                    catText = names.length > 0 ? names.join(', ') : (product.categoria_nombre || '-');
+                } catch(e) {
+                    catText = categoryMap[Number(product.categoria_id)] || product.categoria_nombre || '-';
+                }
+
                 const tr = document.createElement('tr');
                 tr.innerHTML = `
+                    <td><input type="checkbox" class="row-checkbox" value="${product.id}" style="cursor: pointer;"></td>
                     <td><strong>#${product.id}</strong> <br> <small style="color:#aaa">${product.sku || 'N/A'}</small></td>
                     <td>
                         <div style="display: flex; align-items: center; gap: 1rem;">
@@ -641,7 +733,7 @@
                             </div>
                         </div>
                     </td>
-                    <td>${product.categoria_nombre || '-'}</td>
+                    <td>${catText}</td>
                     <td>${tagsDisplay}</td>
                     <td>${displayPrice}</td>
                     <td>${product.stock || 0} un.</td>
@@ -1050,6 +1142,7 @@
                     { id: 'bata', name: 'Bata', icon: '👘' },
                     { id: 'sosten', name: 'Sostén Maternal', icon: '👙' },
                     { id: 'calzon', name: 'Calzón', icon: '🩲' },
+                    { id: 'camisa', name: 'Camisa', icon: '👚' },
                     { id: 'pantuflas', name: 'Pantuflas', icon: '🥿' },
                     { id: 'bebe', name: 'Ropa Bebé', icon: '👶' }
                 ];
@@ -1195,18 +1288,39 @@
         document.getElementById('prodEnOferta').addEventListener('change', (e) => { document.getElementById('ofertaOptions').style.display = e.target.checked ? 'grid' : 'none'; });
         document.getElementById('prodOfertaLimitada').addEventListener('change', (e) => { document.getElementById('ofertaDateGroup').style.display = e.target.checked ? 'block' : 'none'; });
 
+        // --- HELPERS DE CATEGORÍAS MÚLTIPLES ---
+        document.getElementById('prodCategorias').addEventListener('click', (e) => {
+            const pill = e.target.closest('.cat-pill');
+            if (pill) { pill.classList.toggle('selected'); }
+        });
+
+        function getCategoriaIds() {
+            return Array.from(document.querySelectorAll('.cat-pill.selected')).map(btn => parseInt(btn.dataset.id));
+        }
+
+        function setCategoriaIds(ids) {
+            document.querySelectorAll('.cat-pill').forEach(btn => btn.classList.remove('selected'));
+            if (Array.isArray(ids)) {
+                ids.forEach(id => {
+                    const btn = document.querySelector(`.cat-pill[data-id="${id}"]`);
+                    if (btn) btn.classList.add('selected');
+                });
+            }
+        }
+
         function openProductModal() {
-            editingProductId = null; 
+            editingProductId = null;
             document.getElementById('modalTitle').textContent = 'Crear Nuevo Producto';
-            productForm.reset(); 
-            
+            productForm.reset();
+
             // Set toggle to Active by default for new products
             document.getElementById('prodVisible').checked = true;
             document.getElementById('lblProdStatus').textContent = 'Activo en Tienda';
             document.getElementById('lblProdStatus').style.color = 'var(--teal-studio)';
 
-            document.getElementById('ofertaOptions').style.display = 'none'; 
+            document.getElementById('ofertaOptions').style.display = 'none';
             document.getElementById('ofertaDateGroup').style.display = 'none';
+            setCategoriaIds([]);
             currentTags = []; renderTags();
             variantsWrapper.innerHTML = ''; productVariants = [];
             addVariantUI();
@@ -1228,7 +1342,8 @@
             document.getElementById('prodNombre').value = p.nombre;
             document.getElementById('prodSku').value = p.sku || '';
             document.getElementById('prodPrecio').value = p.precio_normal;
-            document.getElementById('prodCategoria').value = p.categoria_id || '1';
+            const editCats = Array.isArray(p.categorias_ids) ? p.categorias_ids : (p.categoria_id ? [p.categoria_id] : [1]);
+            setCategoriaIds(editCats.map(Number));
             document.getElementById('prodDesc').value = p.descripcion || '';
             
             const isKit = p.es_kit === 1;
@@ -1269,7 +1384,8 @@
             document.getElementById('prodNombre').value = p.nombre + ' (Copia)';
             document.getElementById('prodSku').value = p.sku ? p.sku + '-COPY' : '';
             document.getElementById('prodPrecio').value = p.precio_normal;
-            document.getElementById('prodCategoria').value = p.categoria_id || '1';
+            const dupCats = Array.isArray(p.categorias_ids) ? p.categorias_ids : (p.categoria_id ? [p.categoria_id] : [1]);
+            setCategoriaIds(dupCats.map(Number));
             document.getElementById('prodDesc').value = p.descripcion || '';
             
             const isKit = p.es_kit === 1;
@@ -1324,7 +1440,7 @@
                 let totalStock = 0;
 
                 if (isKit) {
-                    tallasPayload = { bata: [], sosten: [], calzon: [], pantuflas: [], bebe: [] };
+                    tallasPayload = { bata: [], sosten: [], calzon: [], camisa: [], pantuflas: [], bebe: [] };
                     let firstActiveComp = null;
 
                     card.querySelectorAll('.kit-comp-pill.active').forEach(pill => {
@@ -1369,7 +1485,7 @@
                 oferta_limitada: document.getElementById('prodOfertaLimitada').checked ? 1 : 0,
                 fecha_fin_oferta: document.getElementById('prodOfertaLimitada').checked ? document.getElementById('prodOfertaFin').value : null,
                 stock: cleanVariants.reduce((sum, v) => sum + v.stock, 0),
-                categoria_id: parseInt(document.getElementById('prodCategoria').value) || 1,
+                categorias_ids: getCategoriaIds(),
                 etiquetas: currentTags.length > 0 ? currentTags.join(',') : null,
                 descripcion: document.getElementById('prodDesc').value || null,
                 es_kit: isKit ? 1 : 0,
@@ -1395,6 +1511,116 @@
                 }
             } catch (error) { alert('Error de conexión de red.'); } 
             finally { btnSave.textContent = 'Guardar Producto'; btnSave.disabled = false; }
+        });
+
+        // --- ACCIONES MASIVAS (BULK ACTIONS) ---
+        function getSelectedIds() {
+            return Array.from(document.querySelectorAll('.row-checkbox:checked')).map(cb => parseInt(cb.value));
+        }
+
+        function updateBulkUI() {
+            const ids = getSelectedIds();
+            const bar = document.getElementById('bulkActions');
+            bar.style.display = ids.length > 0 ? 'flex' : 'none';
+            document.getElementById('bulkCount').textContent = `${ids.length} seleccionado${ids.length !== 1 ? 's' : ''}`;
+        }
+
+        document.addEventListener('change', (e) => {
+            if (e.target.id === 'selectAllBtn') {
+                document.querySelectorAll('.row-checkbox').forEach(cb => cb.checked = e.target.checked);
+            }
+            if (e.target.id === 'selectAllBtn' || e.target.classList.contains('row-checkbox')) {
+                updateBulkUI();
+            }
+        });
+
+        document.getElementById('bulkCategorias').addEventListener('click', (e) => {
+            const pill = e.target.closest('.bulk-cat-pill');
+            if (pill) pill.classList.toggle('selected');
+        });
+
+        document.getElementById('btnOpenBulkModal').addEventListener('click', () => {
+            if (!getSelectedIds().length) return;
+            document.getElementById('bulkStatusSelect').value = '';
+            document.querySelectorAll('.bulk-cat-pill').forEach(p => p.classList.remove('selected'));
+            document.getElementById('bulkEditModal').style.display = 'flex';
+        });
+
+        document.getElementById('btnConfirmBulk').addEventListener('click', async () => {
+            const ids = getSelectedIds();
+            const status = document.getElementById('bulkStatusSelect').value;
+            const categoriasArr = Array.from(document.querySelectorAll('.bulk-cat-pill.selected')).map(b => parseInt(b.dataset.id));
+            if (!status && !categoriasArr.length) { alert('Selecciona al menos una opción para aplicar.'); return; }
+            const btn = document.getElementById('btnConfirmBulk');
+            btn.textContent = 'Aplicando...'; btn.disabled = true;
+            const errores = [];
+            let exitos = 0;
+            try {
+                // Iteramos secuencial para poder leer cada response y diagnosticar fallos reales.
+                for (const id of ids) {
+                    const p = allProducts.find(prod => prod.id == id);
+                    if (!p) { errores.push(`#${id}: no encontrado en memoria`); continue; }
+
+                    // El backend (PUT /api/admin/products/:id) hace UPDATE completo + DELETE/INSERT
+                    // de variantes. Necesita TODOS los campos del producto y las variantes con
+                    // un array `images` (índices 0..4). Sin esto, el backend lanza TypeError.
+                    const payload = { ...p };
+                    if (Array.isArray(payload.variantes)) {
+                        payload.variantes = payload.variantes.map(v => ({
+                            color_name: v.color_name || 'Único',
+                            color_hex: v.color_hex || '#cccccc',
+                            tallas: typeof v.tallas === 'string' ? v.tallas : (v.tallas ? JSON.stringify(v.tallas) : ''),
+                            stock: v.stock || 0,
+                            images: [v.imagen_1, v.imagen_2, v.imagen_3, v.imagen_4, v.imagen_5].filter(Boolean)
+                        }));
+                    } else {
+                        payload.variantes = [];
+                    }
+                    if (status !== '') payload.visible = parseInt(status);
+                    if (categoriasArr.length > 0) {
+                        payload.categorias_ids = categoriasArr;
+                        payload.categoria_id = categoriasArr[0];
+                    }
+
+                    try {
+                        const response = await adminFetch(`/api/admin/products/${id}`, {
+                            method: 'PUT',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(payload)
+                        });
+                        if (!response) { errores.push(`#${id}: sin sesión`); continue; }
+                        const text = await response.text();
+                        let result = null;
+                        try { result = JSON.parse(text); } catch (_) {}
+                        if (!response.ok || !result || !result.success) {
+                            const msg = (result && result.error) ? result.error : (text || `HTTP ${response.status}`);
+                            console.error(`PUT producto #${id} falló:`, msg, 'payload:', payload);
+                            errores.push(`#${id}: ${msg}`);
+                        } else {
+                            exitos++;
+                        }
+                    } catch (innerErr) {
+                        console.error(`PUT producto #${id} excepción:`, innerErr);
+                        errores.push(`#${id}: ${innerErr.message}`);
+                    }
+                }
+
+                document.getElementById('bulkEditModal').style.display = 'none';
+                document.getElementById('selectAllBtn').checked = false;
+                document.querySelectorAll('.row-checkbox').forEach(cb => cb.checked = false);
+                updateBulkUI();
+                if (errores.length === 0) {
+                    alert(`✅ ${exitos} producto(s) actualizados correctamente.`);
+                } else {
+                    alert(`⚠️ ${exitos} actualizados, ${errores.length} con error:\n\n${errores.slice(0, 5).join('\n')}${errores.length > 5 ? '\n…(ver consola)' : ''}`);
+                }
+                loadProducts();
+            } catch (err) {
+                console.error('Bulk fatal:', err);
+                alert('Error al guardar: ' + err.message);
+            } finally {
+                btn.textContent = 'Aplicar Cambios'; btn.disabled = false;
+            }
         });
 
         async function deleteProduct(id) {
