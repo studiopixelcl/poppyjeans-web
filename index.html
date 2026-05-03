@@ -213,7 +213,6 @@
             background-color: var(--beige-calido);
             max-width: 100%;
             z-index: 1;
-            border-top: 1px solid var(--rosa-palo);
         }
 
         .products-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 1rem; position: relative; z-index: 2;}
@@ -272,11 +271,17 @@
         .countdown-timer { font-size: 0.75rem; color: var(--danger-color); font-weight: 700; background: #fff0f0; padding: 0.2rem 0.5rem; border-radius: 4px; display: inline-block; margin-top: 0.5rem; border: 1px solid #fadbd8; animation: pulseGlow 2s infinite; }
 
         /* --- HERO SECUNDARIO (BANNERS COLECCIONES) --- */
-        .collections-grid { display: grid; grid-template-columns: 1fr; gap: 1.5rem; max-width: 1200px; margin: 0 auto; }
+        .collections-wrapper { 
+            position: relative;
+            background-color: var(--beige-calido); 
+            padding: 5rem 0; 
+            width: 100%; 
+        }
+        .collections-grid { display: grid; grid-template-columns: 1fr; gap: 1.5rem; max-width: 100%; margin: 0 auto; padding: 0 1.5rem; position: relative; z-index: 2; }
         @media(min-width: 768px) {
-            .collections-grid { grid-template-columns: repeat(2, 1fr); }
-            .collection-banner.large { grid-column: span 2; height: 380px; }
-            .collection-banner.small { grid-column: span 1; height: 280px; }
+            .collections-grid { grid-template-columns: repeat(2, 1fr); padding: 0 3rem; }
+            .collection-banner.large { grid-column: span 2; height: 450px; }
+            .collection-banner.small { grid-column: span 1; height: 320px; }
         }
         
         .collection-banner { position: relative; border-radius: var(--radius-md); overflow: hidden; display: block; text-decoration: none; color: inherit; background: var(--gris-claro);}
@@ -478,6 +483,40 @@
             </div>
         </section>
 
+        <!-- COLECCIONES DESTACADAS (REUBICADO BAJO EL HERO) -->
+        <section class="collections-wrapper">
+            <div class="collections-grid animate-on-load">
+                
+                <!-- BANNER MODIFICADO: DÍA DE LA MADRE -->
+                <a href="#catalogo" onclick="searchByTag('oferta')" class="collection-banner large">
+                    <img src="./dia-mama.jpg" alt="Día de la Madre">
+                    <div class="collection-content">
+                        <h2 class="banner-title-script" style="font-size: 2.5rem;">¡Feliz día Mamá!</h2>
+                        <p class="banner-subtitle" style="text-transform: none; font-size: 1.1rem; letter-spacing: 0;">Disfruta de descuentos exclusivos para ti.</p>
+                        <span class="banner-btn">Ver Ofertas</span>
+                    </div>
+                </a>
+
+                <a href="#catalogo" onclick="searchByTag('kit')" class="collection-banner small">
+                    <img src="./kits-maternales.jpg" alt="Kits Maternales">
+                    <div class="collection-content">
+                        <h3 class="banner-title-script" style="font-size: 3rem;">Kits Maternales</h3>
+                        <span class="banner-btn" style="margin-top: 1rem;">Ver Packs</span>
+                    </div>
+                </a>
+
+                <!-- BANNER MODIFICADO: BIENVENIDA A CASA -->
+                <a href="#catalogo" onclick="searchByTag('recien nacido')" class="collection-banner small">
+                    <img src="./bienvenida-casa.jpg" alt="Bienvenida a Casa">
+                    <div class="collection-content">
+                        <h3 class="banner-title-script" style="font-size: 2.5rem;">Bienvenida a Casa</h3>
+                        <span class="banner-btn" style="margin-top: 1rem;">Comprar</span>
+                    </div>
+                </a>
+
+            </div>
+        </section>
+
         <!-- FILTROS RÁPIDOS (REDISEÑO HIGH TICKET OVALADO) -->
         <section class="pattern-section">
             <div class="pattern-overlay"></div>
@@ -525,38 +564,6 @@
                     Ups... No encontramos ropa con ese término. <br>
                     <span style="font-size: 0.9rem; font-family: var(--font-main);">Intenta con otra palabra.</span>
                 </div>
-            </div>
-        </section>
-
-        <!-- COLECCIONES DESTACADAS (HERO INFERIOR) -->
-        <section class="section-padding" style="background-color: var(--blanco-puro);">
-            <div class="collections-grid animate-on-load">
-                
-                <a href="#catalogo" onclick="searchByTag('recien nacido')" class="collection-banner large">
-                    <img src="https://images.unsplash.com/photo-1544413660-299165566b1d?auto=format&fit=crop&w=1200&q=80" alt="Recién Nacida">
-                    <div class="collection-content">
-                        <h2 class="banner-title-script">Bienvenida a casa</h2>
-                        <p class="banner-subtitle">Especial Recién Nacida</p>
-                        <span class="banner-btn">Comprar</span>
-                    </div>
-                </a>
-
-                <a href="#catalogo" onclick="searchByTag('kit')" class="collection-banner small">
-                    <img src="https://images.unsplash.com/photo-1515488042361-ee00e0ddd4e4?auto=format&fit=crop&w=600&q=80" alt="Kits Maternales">
-                    <div class="collection-content">
-                        <h3 class="banner-title-script" style="font-size: 3rem;">Kits Maternales</h3>
-                        <span class="banner-btn" style="margin-top: 1rem;">Ver Packs</span>
-                    </div>
-                </a>
-
-                <a href="#catalogo" onclick="searchByTag('zapatos')" class="collection-banner small">
-                    <img src="https://images.unsplash.com/photo-1514989940723-e8e51635b782?auto=format&fit=crop&w=600&q=80" alt="Zapatos">
-                    <div class="collection-content">
-                        <h3 class="banner-title-script" style="font-size: 3rem;">Zapatitos</h3>
-                        <span class="banner-btn" style="margin-top: 1rem;">Comprar</span>
-                    </div>
-                </a>
-
             </div>
         </section>
 
@@ -639,7 +646,7 @@
                     </div>
                     <p class="testimonial-text">"El Kit Maternal me salvó la vida en la clínica. Tener todo combinado, súper suave y de la talla perfecta tanto para mí como para mi bebé no tiene precio. Excelente presentación."</p>
                     <div class="testimonial-author">
-                        <img src="https://images.unsplash.com/photo-1531123414708-8e7d9214ca68?auto=format&fit=crop&w=100&q=80" alt="Cliente" class="author-avatar">
+                        <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=100&q=80" alt="Cliente" class="author-avatar">
                         <div class="author-info">
                             <h4>Isidora M.</h4>
                             <p>Mamá de Gaspar (1 mes)</p>

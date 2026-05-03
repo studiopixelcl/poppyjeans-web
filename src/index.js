@@ -140,7 +140,7 @@ async function sendWelcomeEmail(env, email, nombre) {
   try {
       await fetch('https://api.resend.com/emails', {
           method: 'POST', headers: { 'Authorization': `Bearer ${env.RESEND_API_KEY}`, 'Content-Type': 'application/json' },
-          body: JSON.stringify({ from: 'Mathsoluis <onboarding@resend.dev>', to: [email], subject: '¡Bienvenida a Mathsoluis! 💖', html: htmlContent })
+          body: JSON.stringify({ from: 'Mathsoluis <pedidos@mathsoluis.cl>', to: [email], subject: '¡Bienvenida a Mathsoluis! 💖', html: htmlContent })
       });
   } catch (error) { console.error("Error enviando email:", error); }
 }
@@ -220,12 +220,110 @@ async function sendOrderConfirmationEmail(env, customer, orderId, cart, total) {
     try {
         await fetch('https://api.resend.com/emails', {
             method: 'POST', headers: { 'Authorization': `Bearer ${env.RESEND_API_KEY}`, 'Content-Type': 'application/json' },
-            body: JSON.stringify({ from: 'Mathsoluis <onboarding@resend.dev>', to: [customer.email], subject: `Confirmación de Pedido #${orderId} 💖`, html: htmlContent })
+            body: JSON.stringify({ from: 'Mathsoluis <pedidos@mathsoluis.cl>', to: [customer.email], subject: `Confirmación de Pedido #${orderId} 💖`, html: htmlContent })
         });
     } catch (error) { console.error("Error enviando email de compra:", error); }
 }
 
-// 3. Registro de Actividades (Caja Negra)
+// 3. Correo de Cambio de Estado de Pedido
+async function sendOrderStatusChangeEmail(env, order, customerEmail, customerName) {
+    if (!env.RESEND_API_KEY) return;
+
+    const primerNombre = (customerName || 'Cliente').split(' ')[0];
+    const estado = order.estado;
+    const orderId = order.id;
+
+    const statusLabels = {
+        'Pendiente': { label: 'Pendiente de Pago',  emoji: '🟡', color: '#D4AC0D', bg: '#FEF9E7' },
+        'Pagado':    { label: 'Pago Confirmado',     emoji: '🔵', color: '#13C2B3', bg: '#E0F6F5' },
+        'Preparando':{ label: 'En Preparación',      emoji: '🟣', color: '#8E44AD', bg: '#F4ECF7' },
+        'Enviado':   { label: 'En Camino',            emoji: '🚚', color: '#1ABC9C', bg: '#E8F8F5' },
+        'Entregado': { label: 'Entregado',            emoji: '✅', color: '#27AE60', bg: '#EAFAF1' },
+        'Cancelado': { label: 'Cancelado',            emoji: '🔴', color: '#E74C3C', bg: '#FDEDEC' },
+    };
+    const statusMessages = {
+        'Pendiente':  'Tu pedido está pendiente de confirmación de pago.',
+        'Pagado':     '¡Tu pago ha sido confirmado! Ya comenzamos a revisar tu pedido.',
+        'Preparando': '¡Estamos preparando tu pedido con mucho amor y cuidado!',
+        'Enviado':    '¡Tu pedido está en camino! Ya fue despachado y pronto llegará a tus manos.',
+        'Entregado':  '¡Tu pedido fue entregado! Esperamos que les encanten las prendas.',
+        'Cancelado':  'Tu pedido ha sido cancelado. Si tienes preguntas, contáctanos.',
+    };
+    const subjectLabels = {
+        'Pendiente':  `Pedido #${orderId} — Pendiente de Pago`,
+        'Pagado':     `¡Pedido #${orderId} confirmado! 💖`,
+        'Preparando': `Tu pedido #${orderId} está en preparación 🎀`,
+        'Enviado':    `¡Tu pedido #${orderId} está en camino! 🚚`,
+        'Entregado':  `¡Pedido #${orderId} entregado con éxito! ✨`,
+        'Cancelado':  `Pedido #${orderId} cancelado`,
+    };
+
+    const si = statusLabels[estado] || { label: estado, emoji: '📦', color: '#8A7360', bg: '#FFF8F0' };
+    const statusMsg = statusMessages[estado] || 'El estado de tu pedido ha sido actualizado.';
+    const subject   = subjectLabels[estado]  || `Actualización de tu pedido #${orderId}`;
+
+    // Bloque de tracking — solo si está Enviado y tiene número
+    let trackingHtml = '';
+    if (estado === 'Enviado' && order.tracking_code) {
+        const tc = order.tracking_code;
+        const courier = order.courier || '';
+        const courierUrls = {
+            'Blue Express':      `https://www.blue.cl/seguimiento/?codigo=${tc}`,
+            'Starken':           `https://www.starken.cl/seguimiento?codigo=${tc}`,
+            'Chilexpress':       `https://www.chilexpress.cl/Views/Chilexpress/Estado-envio.aspx?DATA=${tc}`,
+            'Correos de Chile':  `https://www.correos.cl/web/guest/seguimiento-en-linea?tracking_number=${tc}`,
+        };
+        const trackingUrl = courierUrls[courier];
+
+        if (trackingUrl) {
+            trackingHtml = `
+            <div style="text-align:center; margin:30px 0;">
+                <p style="color:#A09389; font-size:14px; margin-bottom:5px;">Tu número de seguimiento:</p>
+                <p style="font-family:monospace; font-size:20px; font-weight:bold; color:#8A7360; margin:0 0 20px 0; letter-spacing:2px;">${tc}</p>
+                <a href="${trackingUrl}" target="_blank" style="display:inline-block; background-color:#13C2B3; color:#FFFFFF; text-decoration:none; padding:16px 40px; border-radius:50px; font-weight:bold; font-size:15px; letter-spacing:1px;">🔍 Rastrear con ${courier}</a>
+            </div>`;
+        } else {
+            trackingHtml = `
+            <div style="text-align:center; margin:30px 0; background:#F4F0EC; border-radius:12px; padding:20px; border:1px solid #E8E0D8;">
+                <p style="color:#A09389; font-size:14px; margin-bottom:5px;">Tu número de seguimiento:</p>
+                <p style="font-family:monospace; font-size:22px; font-weight:bold; color:#8A7360; margin:0; letter-spacing:2px;">${tc}</p>
+                ${courier && courier !== 'Otro' ? `<p style="color:#A09389; font-size:13px; margin:10px 0 0 0;">Courier: ${courier}</p>` : ''}
+            </div>`;
+        }
+    }
+
+    const htmlContent = `
+    <div style="font-family:'Helvetica Neue',Helvetica,Arial,sans-serif; max-width:600px; margin:0 auto; background-color:#FFF8F0; border:1px solid #FCEEF2; border-radius:16px; overflow:hidden;">
+        <div style="background-color:#FFFFFF; padding:40px 30px; text-align:center; border-bottom:2px solid #FCEEF2;">
+            <img src="${LOGO_URL}" alt="Mathsoluis" style="width:80px; height:80px; border-radius:50%; object-fit:cover; margin-bottom:15px; border:3px solid #FCEEF2; display:block; margin-left:auto; margin-right:auto;" />
+            <h1 style="color:#8A7360; margin:0; font-size:32px; font-style:italic;">Mathsoluis</h1>
+        </div>
+        <div style="padding:40px 30px; text-align:center;">
+            <div style="display:inline-block; background-color:${si.bg}; color:${si.color}; padding:10px 25px; border-radius:50px; font-weight:bold; font-size:15px; margin-bottom:25px; border:1px solid ${si.color};">
+                ${si.emoji} ${si.label}
+            </div>
+            <h2 style="color:#8A7360; font-size:22px; margin-top:0;">Actualización de tu pedido #${orderId}</h2>
+            <p style="color:#A09389; font-size:16px; line-height:1.6; margin-bottom:10px;">Hola <strong style="color:#8A7360;">${primerNombre}</strong>,</p>
+            <p style="color:#A09389; font-size:15px; line-height:1.6; margin-bottom:25px;">${statusMsg}</p>
+            ${trackingHtml}
+        </div>
+        <div style="padding:0 30px 30px 30px; text-align:center;">
+            <a href="https://wa.me/56930338773" target="_blank" style="display:inline-block; background-color:#25D366; color:#FFFFFF; text-decoration:none; padding:14px 25px; border-radius:50px; font-weight:bold; font-size:14px;">💬 ¿Tienes preguntas? Escríbenos</a>
+        </div>
+        <div style="background-color:#F4F0EC; padding:20px; text-align:center;">
+            <p style="color:#A09389; font-size:12px; margin:0;">© 2026 Mathsoluis. Ropa de Bebé Premium.</p>
+        </div>
+    </div>`;
+
+    try {
+        await fetch('https://api.resend.com/emails', {
+            method: 'POST', headers: { 'Authorization': `Bearer ${env.RESEND_API_KEY}`, 'Content-Type': 'application/json' },
+            body: JSON.stringify({ from: 'Mathsoluis <pedidos@mathsoluis.cl>', to: [customerEmail], subject, html: htmlContent })
+        });
+    } catch (error) { console.error("Error enviando email de cambio de estado:", error); }
+}
+
+// 4. Registro de Actividades (Caja Negra)
 async function logActivity(env, adminName, action, entityType, entityId, details) {
     try {
         const santiagoDate = new Date().toLocaleString("es-CL", {timeZone: "America/Santiago"});
@@ -707,10 +805,27 @@ export default {
         if (request.method === "PUT") {
           try {
             const body = await request.json();
-            await env.DB.prepare(`UPDATE Orders SET estado = ?, tracking_code = ?, notas = ? WHERE id = ?`)
-              .bind(body.estado, body.tracking_code || null, body.notas || null, oId).run();
-            const logDetails = `Estado actualizado a: ${body.estado} | Tracking: ${body.tracking_code || 'Sin asignar'}`;
+
+            // Capturar estado anterior antes de aplicar cambios
+            const oldOrder = await env.DB.prepare(`SELECT estado FROM Orders WHERE id = ?`).bind(oId).first();
+            const oldEstado = oldOrder?.estado;
+
+            await env.DB.prepare(`UPDATE Orders SET estado = ?, tracking_code = ?, courier = ?, notas = ? WHERE id = ?`)
+              .bind(body.estado, body.tracking_code || null, body.courier || null, body.notas || null, oId).run();
+
+            const logDetails = `Estado: ${body.estado} | Courier: ${body.courier || 'Sin asignar'} | Tracking: ${body.tracking_code || 'Sin asignar'}`;
             ctx.waitUntil(logActivity(env, adminName, 'EDITAR', 'Pedido', oId, logDetails));
+
+            // Notificar al cliente si el estado cambió y la opción está activa
+            if (body.notify_customer === true && oldEstado !== body.estado) {
+              const updatedOrder = await env.DB.prepare(
+                `SELECT o.*, c.nombre, c.email FROM Orders o LEFT JOIN Customers c ON o.customer_id = c.id WHERE o.id = ?`
+              ).bind(oId).first();
+              if (updatedOrder?.email) {
+                ctx.waitUntil(sendOrderStatusChangeEmail(env, updatedOrder, updatedOrder.email, updatedOrder.nombre));
+              }
+            }
+
             return Response.json({success: true, message: "Pedido actualizado"}, {headers: corsHeaders});
           } catch(err) { return Response.json({success: false, error: err.message}, {status:500, headers: corsHeaders}); }
         }

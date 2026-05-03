@@ -587,9 +587,9 @@
             const courierOther = document.getElementById('ordCourierOther').value.trim();
             const courier = courierRaw === 'Otro' ? (courierOther || 'Otro') : courierRaw;
 
-            if (estado === 'Enviado') {
-                if (!courier) { alert('El courier es obligatorio cuando el estado es "Enviado".'); return; }
-                if (!trackingCode) { alert('El número de seguimiento es obligatorio cuando el estado es "Enviado".'); return; }
+            if (estado === 'Enviado' && (!courier || !trackingCode)) {
+                alert('Para marcar como Enviado debes ingresar el Courier y el Número de Seguimiento');
+                return;
             }
 
             btnSave.textContent = 'Actualizando...';
