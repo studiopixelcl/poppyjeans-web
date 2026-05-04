@@ -138,10 +138,14 @@ async function sendWelcomeEmail(env, email, nombre) {
   </div>`;
 
   try {
-      await fetch('https://api.resend.com/emails', {
+      const resendRes = await fetch('https://api.resend.com/emails', {
           method: 'POST', headers: { 'Authorization': `Bearer ${env.RESEND_API_KEY}`, 'Content-Type': 'application/json' },
           body: JSON.stringify({ from: 'Mathsoluis <pedidos@mathsoluis.cl>', to: [email], subject: '¡Bienvenida a Mathsoluis! 💖', html: htmlContent })
       });
+      if (!resendRes.ok) {
+          const dataError = await resendRes.json().catch(async () => ({ raw: await resendRes.text() }));
+          console.error("Error en Resend (bienvenida):", JSON.stringify(dataError));
+      }
   } catch (error) { console.error("Error enviando email:", error); }
 }
 
@@ -218,10 +222,14 @@ async function sendOrderConfirmationEmail(env, customer, orderId, cart, total) {
     </div>`;
 
     try {
-        await fetch('https://api.resend.com/emails', {
+        const resendRes = await fetch('https://api.resend.com/emails', {
             method: 'POST', headers: { 'Authorization': `Bearer ${env.RESEND_API_KEY}`, 'Content-Type': 'application/json' },
             body: JSON.stringify({ from: 'Mathsoluis <pedidos@mathsoluis.cl>', to: [customer.email], subject: `Confirmación de Pedido #${orderId} 💖`, html: htmlContent })
         });
+        if (!resendRes.ok) {
+            const dataError = await resendRes.json().catch(async () => ({ raw: await resendRes.text() }));
+            console.error("Error en Resend (confirmación):", JSON.stringify(dataError));
+        }
     } catch (error) { console.error("Error enviando email de compra:", error); }
 }
 
@@ -316,10 +324,14 @@ async function sendOrderStatusChangeEmail(env, order, customerEmail, customerNam
     </div>`;
 
     try {
-        await fetch('https://api.resend.com/emails', {
+        const resendRes = await fetch('https://api.resend.com/emails', {
             method: 'POST', headers: { 'Authorization': `Bearer ${env.RESEND_API_KEY}`, 'Content-Type': 'application/json' },
             body: JSON.stringify({ from: 'Mathsoluis <pedidos@mathsoluis.cl>', to: [customerEmail], subject, html: htmlContent })
         });
+        if (!resendRes.ok) {
+            const dataError = await resendRes.json().catch(async () => ({ raw: await resendRes.text() }));
+            console.error("Error en Resend (cambio de estado):", JSON.stringify(dataError));
+        }
     } catch (error) { console.error("Error enviando email de cambio de estado:", error); }
 }
 
@@ -431,7 +443,7 @@ export default {
 
             ctx.waitUntil(sendOrderConfirmationEmail(env, customer, orderId, cart, total));
 
-            return Response.json({ success: true, order_id: orderId }, { headers: corsHeaders });
+            return Response.json({ success: true, order_id: orderId, customer: { name: customer.nombre, email: customer.email, telefono: customer.telefono } }, { headers: corsHeaders });
         } catch (error) { return Response.json({ success: false, error: error.message }, { status: 500, headers: corsHeaders }); }
     }
 
@@ -496,6 +508,16 @@ export default {
             const { results } = await env.DB.prepare("SELECT * FROM Categories").all();
             return Response.json({ success: true, data: results }, { headers: corsHeaders });
         } catch (error) { return Response.json({ success: false, error: error.message }, { status: 500, headers: corsHeaders }); }
+    }
+
+    const custOrderMatch = url.pathname.match(/^\/api\/orders\/customer\/(.+)$/);
+    if (custOrderMatch && request.method === "GET") {
+        try {
+            const emailDecoded = decodeURIComponent(custOrderMatch[1]);
+            const query = `SELECT o.*, c.nombre as cliente_nombre, c.email as cliente_email FROM Orders o JOIN Customers c ON o.customer_id = c.id WHERE c.email = ? ORDER BY o.fecha_creacion DESC`;
+            const { results } = await env.DB.prepare(query).bind(emailDecoded).all();
+            return Response.json({ success: true, data: results }, { headers: corsHeaders });
+        } catch(e) { return Response.json({ success: false, error: e.message }, { status: 500, headers: corsHeaders }); }
     }
 
     // ========================================================================

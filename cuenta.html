@@ -373,13 +373,13 @@
             const container = document.getElementById('ordersContainer');
             try {
                 // Hacemos el llamado a la API
-                const response = await fetchWithRetry(`${API_BASE_URL}/api/orders`);
+                const response = await fetchWithRetry(`${API_BASE_URL}/api/orders/customer/${encodeURIComponent(currentCustomer.email)}`);
                 if (!response.ok) throw new Error(`HTTP ${response.status}`);
                 const result = await response.json();
                 
                 if (result.success) {
                     // Filtramos SOLO los pedidos que pertenecen al correo del cliente logueado
-                    const myOrders = result.data.filter(o => o.cliente_email && o.cliente_email.toLowerCase() === currentCustomer.email.toLowerCase());
+                    const myOrders = result.data;
                     
                     if (myOrders.length === 0) {
                         container.innerHTML = `

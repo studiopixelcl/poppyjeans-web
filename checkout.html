@@ -393,7 +393,9 @@
 
                 if (result.success) {
                     showToast('¡Pago Autorizado! Creando tu pedido...', 'success');
-                    
+
+                    localStorage.setItem('mathsoluis_customer', JSON.stringify({ name: customerData.nombre, email: customerData.email, telefono: customerData.telefono, direccion: customerData.direccion }));
+
                     setTimeout(() => {
                         // Vaciar memoria
                         localStorage.removeItem('mathsoluis_cart');
