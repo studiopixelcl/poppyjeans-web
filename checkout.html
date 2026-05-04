@@ -358,6 +358,13 @@
                 if (index + 1 === stepNumber) el.classList.add('active');
                 else el.classList.remove('active');
             });
+
+            setTimeout(() => {
+                const activeStep = document.getElementById('step' + stepNumber);
+                if (activeStep) {
+                    activeStep.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+            }, 150);
         };
 
         // 4. PROCESAR PAGO Y CONECTAR CON LA API
