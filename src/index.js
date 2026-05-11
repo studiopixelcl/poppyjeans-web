@@ -415,6 +415,24 @@ export default {
         } catch (error) { return Response.json({ success: false, error: error.message }, { status: 500, headers: corsHeaders }); }
     }
 
+    if (url.pathname === "/api/shipping/quote" && request.method === "POST") {
+        try {
+            const { region, comuna, cart_total } = await request.json();
+            const REMOTE_REGIONS = ["Arica y Parinacota", "Tarapacá", "Antofagasta", "Aysén", "Magallanes"];
+            let cost;
+            if (region === "Región Metropolitana") {
+                cost = 3500;
+            } else if (REMOTE_REGIONS.includes(region)) {
+                cost = 7500;
+            } else {
+                cost = 5500;
+            }
+            return Response.json({ success: true, courier: 'Blue Express', cost, origin: 'Toesca 2765' }, { headers: corsHeaders });
+        } catch (error) {
+            return Response.json({ success: false, error: error.message }, { status: 500, headers: corsHeaders });
+        }
+    }
+
     if (url.pathname === "/api/checkout" && request.method === "POST") {
         try {
             const { customer, cart, total } = await request.json();

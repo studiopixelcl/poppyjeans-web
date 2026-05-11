@@ -147,11 +147,11 @@
         
         /* Colores (Compatible con Mosaico) */
         .color-options { display: flex; flex-wrap: wrap; gap: 1rem; }
-        .color-select-dot { width: 36px; height: 36px; border-radius: 50%; border: 2px solid transparent; cursor: pointer; transition: var(--transition-smooth); box-shadow: inset 0 2px 5px rgba(0,0,0,0.1); position: relative; }
-        .color-select-dot::after { content: ''; position: absolute; top: -5px; left: -5px; right: -5px; bottom: -5px; border: 2px solid transparent; border-radius: 50%; transition: var(--transition-smooth); }
-        .color-select-dot.active::after { border-color: var(--dark-studio); }
+        .color-select-dot { position: relative; width: 40px; height: 40px; border-radius: 50%; border: 2px solid transparent; cursor: pointer; transition: var(--transition-smooth); display: inline-flex; align-items: center; justify-content: center; background: transparent !important; }
+        .color-select-dot::before { content: ''; position: absolute; top: 2px; left: 2px; right: 2px; bottom: 2px; border-radius: 50%; box-shadow: inset 0 2px 5px rgba(0,0,0,0.1); transition: var(--transition-smooth); background: var(--dot-bg); }
         .color-select-dot:hover { transform: scale(1.1); }
-        .color-select-dot.active { transform: scale(1.1); box-shadow: 0 4px 10px rgba(0,0,0,0.15); }
+        .color-select-dot.active { border-color: var(--dark-studio); transform: scale(1.1); }
+        .color-select-dot.active::before { border: 2px solid var(--blanco-puro); }
         
         /* Tallas (Píldoras Rectangulares Suaves) */
         .size-options { display: flex; gap: 0.8rem; flex-wrap: wrap; }
@@ -225,9 +225,11 @@
         .product-info { padding: 1.5rem; display: flex; flex-direction: column; gap: 0.2rem; text-align: center; flex: 1; justify-content: space-between;}
         
         .color-dots-container { display: flex; justify-content: center; gap: 0.5rem; margin-bottom: 0.5rem; flex-wrap: wrap; }
-        .color-dot { width: 20px; height: 20px; border-radius: 50%; border: 1px solid #ddd; box-shadow: inset 0 2px 5px rgba(0,0,0,0.1); cursor: pointer; transition: var(--transition-smooth); }
-        .color-dot:hover { transform: scale(1.2); }
-        .color-dot.active { border-color: var(--dark-studio); transform: scale(1.2); box-shadow: 0 0 0 2px var(--beige-calido), 0 0 0 4px var(--dark-studio); }
+        .color-dot { position: relative; width: 28px; height: 28px; border-radius: 50%; border: 2px solid transparent; cursor: pointer; transition: var(--transition-smooth); display: inline-flex; align-items: center; justify-content: center; background: transparent !important; }
+        .color-dot::before { content: ''; position: absolute; top: 2px; left: 2px; right: 2px; bottom: 2px; border-radius: 50%; background: var(--dot-bg, #ccc); box-shadow: inset 0 2px 5px rgba(0,0,0,0.1); transition: var(--transition-smooth); }
+        .color-dot:hover { transform: scale(1.15); }
+        .color-dot.active { border-color: var(--dark-studio); transform: scale(1.15); }
+        .color-dot.active::before { border: 1px solid var(--blanco-puro); }
 
         .card-name { font-size: 1rem; font-weight: 600; color: var(--dark-studio); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; line-height: 1.4; transition: color 0.3s ease; cursor: pointer; margin-top: 0.5rem;}
         .card-name:hover { color: var(--rosa-intenso); }
@@ -652,8 +654,16 @@
             <div class="empty-cart-msg">Tu carrito está vacío.</div>
         </div>
         <div class="cart-footer">
-            <div class="cart-subtotal">
-                <span>Subtotal:</span><span id="cartSubtotal">$0</span>
+            <div class="cart-totals-wrapper" style="margin-bottom: 1.5rem;">
+                <div style="display: flex; justify-content: space-between; font-size: 0.95rem; color: #888; margin-bottom: 0.5rem;">
+                    <span>Subtotal prendas:</span><span id="cartSubtotal">$0</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; font-size: 0.95rem; color: #888; margin-bottom: 1rem; border-bottom: 1px dashed var(--rosa-palo); padding-bottom: 1rem;">
+                    <span>Envío a domicilio:</span><span style="font-size: 0.8rem; background: var(--fondo-claro); padding: 2px 8px; border-radius: 4px; color: var(--rosa-intenso);">Calculado en checkout</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; font-size: 1.25rem; font-weight: 800; color: var(--dark-studio);">
+                    <span>Total estimado:</span><span id="cartTotalEst">$0</span>
+                </div>
             </div>
             <button class="btn-checkout" id="btnInitCheckout" onclick="window.location.href='checkout.html'">Ir a Pagar Seguro</button>
         </div>
@@ -725,16 +735,21 @@
         }
 
         // Render Color Dot (Soporta múltiples colores)
-        function renderColorDot(hexString, name) {
+        function buildDotBg(hexString) {
             const colors = (hexString || '#cccccc').split(',').map(c => c.trim()).filter(Boolean);
-            if (colors.length === 1) {
-                return `background-color:${colors[0]};`;
-            } else {
-                let gradientParts = [];
-                let pctStep = 100 / colors.length;
-                colors.forEach((c, i) => { gradientParts.push(`${c} ${i * pctStep}% ${(i + 1) * pctStep}%`); });
-                return `background: conic-gradient(${gradientParts.join(', ')});`;
-            }
+            if (colors.length === 1) return colors[0];
+            let parts = [];
+            let step = 100 / colors.length;
+            colors.forEach((c, i) => {
+                if (i === 0) { parts.push(`${c} ${step}%`); }
+                else if (i === colors.length - 1) { parts.push(`${c} ${i * step}%`); }
+                else { parts.push(`${c} ${i * step}% ${(i + 1) * step}%`); }
+            });
+            return `linear-gradient(135deg, ${parts.join(', ')})`;
+        }
+
+        function renderColorDot(hexString, name) {
+            return `<span class="color-dot" style="--dot-bg: ${buildDotBg(hexString)};" title="${name}"></span>`;
         }
 
         async function fetchData(targetId) {
@@ -983,8 +998,7 @@
             
             // Selector de Colores con Soporte Mosaico
             document.getElementById('colorsContainer').innerHTML = currentProduct.variantes.map((v, i) => {
-                const bgStyle = renderColorDot(v.color_hex, v.color_name);
-                return `<div class="color-select-dot ${i === vIndex ? 'active' : ''}" style="${bgStyle}" title="${v.color_name}" onclick="renderVariant(${i})"></div>`;
+                return `<div class="color-select-dot ${i === vIndex ? 'active' : ''}" style="--dot-bg: ${buildDotBg(v.color_hex)};" title="${v.color_name}" onclick="renderVariant(${i})"></div>`;
             }).join('');
 
             let tallasData = null;
@@ -992,7 +1006,7 @@
 
             let sizesHTML = '';
             if (isKit && typeof tallasData === 'object' && !Array.isArray(tallasData)) {
-                const labels = { bata: 'Talla Bata', sosten: 'Talla Sostén', calzon: 'Talla Calzón', camisa: 'Talla Camisa', pantuflas: 'Nº Pantuflas', bebe: 'Talla Bebé' };
+                const labels = { bata: 'Talla Bata', sosten: 'Talla Sostén Maternal', calzon: 'Talla Calzón', calzon_elasticado: 'Talla Calzón Elasticado', calzon_embarazo: 'Talla Calzón Embarazo', camisa: 'Talla Camisa', pantuflas: 'Nº Pantuflas', bebe: 'Talla Bebé' };
                 for (const [comp, sizes] of Object.entries(tallasData)) {
                     if (sizes && sizes.length > 0) {
                         requiredKitComponents.push(comp);
@@ -1210,7 +1224,9 @@
                     p.variantes.forEach((v, idx) => {
                         if(v.color_hex) {
                             let activeClass = idx === 0 ? 'active' : '';
-                            const rawDot = `<span class="color-dot ${activeClass}" style="${renderColorDot(v.color_hex, v.color_name)}" title="${v.color_name}" onclick="event.stopPropagation(); updateSuggestedCardVariant(${p.id}, ${idx}, this)"></span>`;
+                            const rawDot = renderColorDot(v.color_hex, v.color_name)
+                                .replace('class="color-dot"', `class="color-dot ${activeClass}"`)
+                                .replace('></span>', ` onclick="event.stopPropagation(); updateSuggestedCardVariant(${p.id}, ${idx}, this)"></span>`);
                             colorDotsHTML += rawDot;
                         }
                     });
@@ -1267,6 +1283,7 @@
                 container.innerHTML = '<div style="text-align:center; color:#999; margin-top:2rem;">Tu carrito está esperando por prendas.</div>';
                 document.getElementById('cartCount').textContent = '0'; 
                 document.getElementById('cartSubtotal').textContent = '$0';
+                document.getElementById('cartTotalEst').textContent = '$0';
                 document.getElementById('btnInitCheckout').disabled = true;
                 return;
             }
@@ -1294,6 +1311,7 @@
 
             document.getElementById('cartCount').textContent = totalItems;
             document.getElementById('cartSubtotal').textContent = formatCurrency(cartTotal);
+            document.getElementById('cartTotalEst').textContent = formatCurrency(cartTotal);
             document.getElementById('btnInitCheckout').disabled = false;
             document.getElementById('cartCount').classList.add('bump'); setTimeout(() => document.getElementById('cartCount').classList.remove('bump'), 300);
         };

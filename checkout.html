@@ -260,7 +260,7 @@
                 </div>
                 <div class="total-row">
                     <span>Envío (Blue Express)</span>
-                    <span style="color: #888; font-size: 0.85rem; background: var(--gris-claro); padding: 0.2rem 0.6rem; border-radius: 5px;">Por Cobrar</span>
+                    <span id="summShippingCost" style="color: #888; font-size: 0.85rem; background: var(--gris-claro); padding: 0.2rem 0.6rem; border-radius: 5px;">Por Cobrar</span>
                 </div>
                 <div class="total-row final">
                     <span>Total</span>
@@ -287,6 +287,7 @@
         const cart = JSON.parse(localStorage.getItem('mathsoluis_cart')) || [];
         const currentCustomer = JSON.parse(localStorage.getItem('mathsoluis_customer')) || null;
         let cartTotal = 0;
+        let shippingCost = 0;
 
         window.onload = () => {
             if (cart.length === 0) {
@@ -304,6 +305,9 @@
             }
 
             renderSummary();
+
+            document.getElementById('chkRegion').addEventListener('change', calculateShipping);
+            document.getElementById('chkComuna').addEventListener('blur', calculateShipping);
         };
 
         // 2. RENDERIZAR RESUMEN (COLUMNA DERECHA)
@@ -328,13 +332,50 @@
                 `);
             });
 
-            const formattedTotal = formatCurrency(cartTotal);
-            document.getElementById('summSubtotal').textContent = formattedTotal;
-            document.getElementById('summTotal').textContent = formattedTotal;
-            document.getElementById('finalPayAmount').textContent = formattedTotal;
+            document.getElementById('summSubtotal').textContent = formatCurrency(cartTotal);
+            const finalTotal = cartTotal + shippingCost;
+            document.getElementById('summTotal').textContent = formatCurrency(finalTotal);
+            document.getElementById('finalPayAmount').textContent = formatCurrency(finalTotal);
         }
 
-        // 3. NAVEGACIÓN MULTIPASO Y VALIDACIÓN
+        // 3. COTIZACIÓN DE ENVÍO (Blue Express)
+        async function calculateShipping() {
+            const region = document.getElementById('chkRegion').value;
+            const comuna = document.getElementById('chkComuna').value.trim();
+            if (!region || !comuna) return;
+
+            const span = document.getElementById('summShippingCost');
+            span.textContent = 'Calculando...';
+            span.style.cssText = 'color:#888; font-size:0.85rem; background:var(--gris-claro); padding:0.2rem 0.6rem; border-radius:5px;';
+
+            try {
+                const res = await fetch('https://mathsoluis-api.studiopixelchile.workers.dev/api/shipping/quote', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ region, comuna, cart_total: cartTotal })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    shippingCost = data.cost;
+                    span.textContent = formatCurrency(shippingCost);
+                    span.style.cssText = 'color:var(--rosa-intenso); font-weight:700;';
+                } else {
+                    shippingCost = 0;
+                    span.textContent = 'Por Cobrar';
+                    span.style.cssText = 'color:#888; font-size:0.85rem; background:var(--gris-claro); padding:0.2rem 0.6rem; border-radius:5px;';
+                }
+            } catch (e) {
+                shippingCost = 0;
+                span.textContent = 'Por Cobrar';
+                span.style.cssText = 'color:#888; font-size:0.85rem; background:var(--gris-claro); padding:0.2rem 0.6rem; border-radius:5px;';
+            }
+
+            const finalTotal = cartTotal + shippingCost;
+            document.getElementById('summTotal').textContent = formatCurrency(finalTotal);
+            document.getElementById('finalPayAmount').textContent = formatCurrency(finalTotal);
+        }
+
+        // 4. NAVEGACIÓN MULTIPASO Y VALIDACIÓN
         window.goToStep = (stepNumber) => {
             // Validar Paso 1 -> 2
             if (stepNumber > 1) {
@@ -385,7 +426,8 @@
             const payload = {
                 customer: customerData,
                 cart: cart,
-                total: cartTotal
+                total: cartTotal + shippingCost,
+                shipping_cost: shippingCost
             };
 
             try {

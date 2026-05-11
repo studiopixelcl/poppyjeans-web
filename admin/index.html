@@ -237,9 +237,30 @@
         .tag-pill span { cursor: pointer; font-weight: 800; font-size: 0.9rem; }
         .tag-pill span:hover { color: var(--danger-color); }
         .tags-input-container input { border: none; outline: none; background: transparent; flex: 1; min-width: 120px; font-family: var(--font-main); font-size: 0.95rem; padding: 0.3rem; color: var(--dark-studio); }
+
+        /* Switch inline para tabla de productos */
+        .switch-inline { position: relative; display: inline-block; width: 40px; height: 22px; margin-right: 8px; vertical-align: middle; }
+        .switch-inline input { opacity: 0; width: 0; height: 0; }
+        .slider-inline { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #e0e0e0; transition: .3s; border-radius: 22px; }
+        .slider-inline:before { position: absolute; content: ""; height: 16px; width: 16px; left: 3px; bottom: 3px; background-color: white; transition: .3s; border-radius: 50%; box-shadow: 0 2px 4px rgba(0,0,0,0.2); }
+        .switch-inline input:checked + .slider-inline { background-color: var(--teal-studio); }
+        .switch-inline input:checked + .slider-inline:before { transform: translateX(18px); }
+
+        /* Ocultar flechas nativas en inputs numéricos */
+        input[type="number"]::-webkit-inner-spin-button,
+        input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+        input[type="number"] { -moz-appearance: textfield; }
+
+        /* Toast de notificación */
+        #adminToast { position: fixed; bottom: 2rem; right: 2rem; padding: 0.75rem 1.4rem; border-radius: 8px; font-size: 0.9rem; font-weight: 600; color: #fff; z-index: 9999; opacity: 0; transform: translateY(10px); transition: opacity 0.3s ease, transform 0.3s ease; pointer-events: none; }
+        #adminToast.show { opacity: 1; transform: translateY(0); }
+        #adminToast.success { background: var(--teal-studio); }
+        #adminToast.error { background: var(--danger-color); }
     </style>
 </head>
 <body>
+
+    <div id="adminToast"></div>
 
     <!-- VISTA INICIO SESIÓN -->
     <div id="loginView">
@@ -346,7 +367,17 @@
     <div id="productModal" class="modal-overlay">
         <div class="modal-content">
             <div class="modal-header">
-                <h3 id="modalTitle">Crear Nuevo Producto</h3>
+                <div style="display: flex; align-items: center; flex-wrap: wrap;">
+                    <h3 id="modalTitle" style="margin-right: 10px; margin-bottom: 0;">Crear Nuevo Producto</h3>
+                    <span id="modalProductNameMirror" style="font-size: 1.1rem; color: var(--teal-studio); font-style: italic; font-weight: 500; opacity: 0.8;"></span>
+                </div>
+                <div class="status-toggle-wrapper">
+                    <span class="status-toggle-label" id="lblProdStatus" style="color: var(--teal-studio);">Activo en Tienda</span>
+                    <label class="switch">
+                        <input type="checkbox" id="prodVisible" checked onchange="document.getElementById('lblProdStatus').textContent = this.checked ? 'Activo en Tienda' : 'Oculto / Borrador'; document.getElementById('lblProdStatus').style.color = this.checked ? 'var(--teal-studio)' : '#888';">
+                        <span class="slider"></span>
+                    </label>
+                </div>
                 <button class="close-modal" onclick="closeProductModal()">✕</button>
             </div>
             
@@ -354,16 +385,8 @@
                 <div class="modal-body-scroll">
                     <div class="form-grid">
                         
-                        <!-- SWITCH DE ESTADO INTEGRADO -->
-                        <div style="display: flex; justify-content: space-between; align-items: center; grid-column: span 2; margin-top: 0.5rem; border-bottom: 2px solid var(--gris-claro); padding-bottom: 1rem;">
+                        <div style="grid-column: span 2; margin-top: 0.5rem; border-bottom: 2px solid var(--gris-claro); padding-bottom: 1rem;">
                             <div style="font-family: var(--font-display); font-weight: 700; color: var(--dark-studio); font-size: 1.2rem;">Datos Generales</div>
-                            <div class="status-toggle-wrapper">
-                                <span class="status-toggle-label" id="lblProdStatus" style="color: var(--teal-studio);">Activo en Tienda</span>
-                                <label class="switch">
-                                    <input type="checkbox" id="prodVisible" checked onchange="document.getElementById('lblProdStatus').textContent = this.checked ? 'Activo en Tienda' : 'Oculto / Borrador'; document.getElementById('lblProdStatus').style.color = this.checked ? 'var(--teal-studio)' : '#888';">
-                                    <span class="slider"></span>
-                                </label>
-                            </div>
                         </div>
 
                         <div class="input-group">
@@ -402,7 +425,14 @@
                         <div class="section-divider">
                             Variantes y Stock Exacto
                         </div>
-                        
+
+                        <div style="display: flex; gap: 10px; align-items: center; margin-bottom: 1.5rem; padding: 12px 15px; background: var(--fondo-claro); border-radius: 8px; border: 1px dashed var(--teal-studio); grid-column: span 2;">
+                            <span style="font-size: 1.2rem;">⚡</span>
+                            <span style="font-weight: 600; font-size: 0.9rem; color: var(--dark-studio);">Llenado Rápido:</span>
+                            <input type="number" id="quickFillValue" placeholder="Ej: 10" style="width: 80px; padding: 6px; border-radius: 6px; border: 1px solid var(--gris-claro);">
+                            <button type="button" class="btn-secondary" onclick="applyQuickFill()" style="padding: 6px 15px; font-size: 0.85rem; margin: 0;">Aplicar a activas</button>
+                        </div>
+
                         <div id="variantsWrapper" class="variants-container"></div>
                         
                         <button type="button" class="btn-add-variant" onclick="addVariantUI()">
@@ -519,8 +549,9 @@
         };
         const tallasKit = {
             bata: ["S", "M", "L", "XL", "XXL"],
-            sosten: ["42", "44", "46", "48", "50", "52"],
-            calzon: ["S", "M", "L", "XL", "S/M elasticado", "L/XL elasticado", "Talla 0 a 6 meses de embarazo", "Talla 6 a 10 meses de embarazo"],
+            sosten: ["S", "M", "L", "XL"],
+            calzon_elasticado: ["S/M", "L/XL"],
+            calzon_embarazo: ["0 a 6 meses", "6 a 10 meses"],
             camisa: ["S", "M", "L", "XL", "XXL"],
             pantuflas: ["35-36", "37-38", "39-40"],
             bebe: ["PRE", "RN", "0-3M", "3-6M", "6-9M", "9-12M", "12-18M", "18-24M", "2A", "3A", "4A"]
@@ -673,7 +704,9 @@
 
             products.forEach(product => {
                 // Render del estado Oculto/Activo
-                const statusBadge = product.visible ? `<span class="badge badge-active">Activo</span>` : `<span class="badge badge-inactive">Oculto</span>`;
+                const isChecked = product.visible === 1 ? 'checked' : '';
+                const statusText = product.visible === 1 ? '<span style="color:var(--teal-studio); font-weight:600; font-size:0.85rem;">Activo</span>' : '<span style="color:#888; font-weight:600; font-size:0.85rem;">Oculto</span>';
+                const statusBadge = `<div style="display:flex; align-items:center;"><label class="switch-inline"><input type="checkbox" ${isChecked} onchange="toggleListStatus(${product.id}, this.checked)"><span class="slider-inline"></span></label>${statusText}</div>`;
                 
                 let displayPrice = new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP' }).format(product.precio_normal || 0);
                 let offerBadge = '';
@@ -1141,7 +1174,8 @@
                 const components = [
                     { id: 'bata', name: 'Bata', icon: '👘' },
                     { id: 'sosten', name: 'Sostén Maternal', icon: '👙' },
-                    { id: 'calzon', name: 'Calzón', icon: '🩲' },
+                    { id: 'calzon_elasticado', name: 'Calzón Elasticado', icon: '🩲' },
+                    { id: 'calzon_embarazo', name: 'Calzón Embarazo', icon: '🩲' },
                     { id: 'camisa', name: 'Camisa', icon: '👚' },
                     { id: 'pantuflas', name: 'Pantuflas', icon: '🥿' },
                     { id: 'bebe', name: 'Ropa Bebé', icon: '👶' }
@@ -1322,9 +1356,12 @@
             document.getElementById('ofertaDateGroup').style.display = 'none';
             setCategoriaIds([]);
             currentTags = []; renderTags();
+            document.getElementById('modalProductNameMirror').textContent = '';
             variantsWrapper.innerHTML = ''; productVariants = [];
             addVariantUI();
             productModal.classList.add('active');
+            const sc1 = document.querySelector('#productModal .modal-body-scroll') || document.getElementById('productForm');
+            if (sc1) sc1.scrollTop = 0;
         }
 
         function openEditModal(id) {
@@ -1365,8 +1402,11 @@
             if(p.variantes && p.variantes.length > 0) p.variantes.forEach(v => addVariantUI(v));
             else addVariantUI(); 
             
+            document.getElementById('modalProductNameMirror').textContent = '- ' + p.nombre;
             calculateTotalStock();
             productModal.classList.add('active');
+            const sc2 = document.querySelector('#productModal .modal-body-scroll') || document.getElementById('productForm');
+            if (sc2) sc2.scrollTop = 0;
         }
 
         window.duplicateProduct = (id) => {
@@ -1407,8 +1447,11 @@
             if(p.variantes && p.variantes.length > 0) p.variantes.forEach(v => addVariantUI(v));
             else addVariantUI(); 
             
+            document.getElementById('modalProductNameMirror').textContent = '- ' + p.nombre + ' (Copia)';
             calculateTotalStock();
             productModal.classList.add('active');
+            const sc3 = document.querySelector('#productModal .modal-body-scroll') || document.getElementById('productForm');
+            if (sc3) sc3.scrollTop = 0;
             alert("Producto cargado para duplicar. Modifica el SKU antes de guardar.");
         };
 
@@ -1440,7 +1483,7 @@
                 let totalStock = 0;
 
                 if (isKit) {
-                    tallasPayload = { bata: [], sosten: [], calzon: [], camisa: [], pantuflas: [], bebe: [] };
+                    tallasPayload = { bata: [], sosten: [], calzon_elasticado: [], calzon_embarazo: [], camisa: [], pantuflas: [], bebe: [] };
                     let firstActiveComp = null;
 
                     card.querySelectorAll('.kit-comp-pill.active').forEach(pill => {
@@ -1642,6 +1685,68 @@
                 alert('Fallo de conexión.');
             }
         }
+
+        // Toggle de visibilidad directo desde la tabla
+        window.toggleListStatus = async (id, isVisible) => {
+            const p = allProducts.find(prod => prod.id == id);
+            if (!p) return;
+
+            const payload = { ...p, visible: isVisible ? 1 : 0 };
+            if (payload.variantes && Array.isArray(payload.variantes)) {
+                payload.variantes = payload.variantes.map(v => ({
+                    ...v,
+                    images: [v.imagen_1, v.imagen_2, v.imagen_3, v.imagen_4, v.imagen_5].filter(Boolean)
+                }));
+            }
+
+            try {
+                const response = await adminFetch(`/api/admin/products/${id}`, {
+                    method: 'PUT', body: JSON.stringify(payload)
+                });
+                const result = await response.json();
+                if (result.success) {
+                    showToast(`Producto ${isVisible ? 'activado' : 'ocultado'}`, 'success');
+                    p.visible = isVisible ? 1 : 0;
+                    renderProducts(filteredProducts);
+                } else {
+                    showToast('Error: ' + result.error, 'error');
+                    renderProducts(filteredProducts);
+                }
+            } catch (e) {
+                showToast('Error de red', 'error');
+                renderProducts(filteredProducts);
+            }
+        };
+
+        // Espejo del nombre del producto en el header del modal
+        document.getElementById('prodNombre').addEventListener('input', (e) => {
+            document.getElementById('modalProductNameMirror').textContent = e.target.value ? '- ' + e.target.value : '';
+        });
+
+        // Prevenir cambio accidental de valores numéricos al hacer scroll
+        document.addEventListener('wheel', (e) => {
+            if (e.target.type === 'number') e.target.blur();
+        }, { passive: true });
+
+        // Toast de notificación mínimo
+        let toastTimer = null;
+        window.showToast = (msg, type = 'success') => {
+            const t = document.getElementById('adminToast');
+            t.textContent = msg;
+            t.className = `show ${type}`;
+            clearTimeout(toastTimer);
+            toastTimer = setTimeout(() => { t.className = type; }, 2800);
+        };
+
+        // Llenado rápido: aplica el valor a todos los inputs de stock de tallas activas
+        window.applyQuickFill = () => {
+            const val = document.getElementById('quickFillValue').value;
+            if (!val) return;
+            const inputs = document.querySelectorAll('#variantsWrapper .active-size input.size-stock');
+            inputs.forEach(inp => { inp.value = val; });
+            calculateTotalStock();
+            showToast(`Llenado rápido: ${val} unidades aplicadas`, 'success');
+        };
     </script>
 
     <!-- ✅ AUTH HELPER v2.0 - Sesiones seguras con token UUID -->
