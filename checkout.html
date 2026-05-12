@@ -22,6 +22,7 @@
             --font-display: 'Playfair Display', serif;
             --radius-md: 16px;
             --transition-smooth: all 0.3s ease;
+            --teal-studio: #00A499;
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -68,6 +69,7 @@
             background: var(--blanco-puro);
         }
         .input-group input::placeholder { color: #BBB; font-weight: 300;}
+        .input-group input:disabled, .input-group select:disabled { background: #f0f0f0; color: #aaa; cursor: not-allowed; border-color: #eee;}
 
         /* CUSTOM SELECT PARA REGIONES */
         .custom-select-wrapper { position: relative; }
@@ -105,10 +107,10 @@
         .checkout-sidebar { width: 100%; padding: 2rem 5%; background: var(--beige-calido); position: sticky; top: 0; height: max-content; }
         @media (min-width: 900px) { .checkout-sidebar { width: 450px; padding: 4rem 3rem; border-left: 1px solid var(--rosa-palo); } }
         
-        .summary-header { font-family: var(--font-display); font-size: 1.4rem; margin-bottom: 2rem; color: var(--dark-studio); border-bottom: 2px solid var(--rosa-palo); padding-bottom: 1rem;}
+        .summary-header { font-family: var(--font-display); font-size: 1.4rem; margin-bottom: 2rem; color: var(--gris-oscuro); border-bottom: 2px solid var(--rosa-palo); padding-bottom: 1rem;}
         
         .summary-item { display: flex; gap: 1.2rem; align-items: center; margin-bottom: 1.5rem; }
-        .summary-img-wrap { position: relative; width: 70px; height: 85px; border-radius: 10px; background: var(--blanco-puro); border: 1px solid var(--rosa-palo); display: flex; align-items: center; justify-content: center; overflow: hidden; box-shadow: var(--shadow-subtle);}
+        .summary-img-wrap { position: relative; width: 70px; height: 85px; border-radius: 10px; background: var(--blanco-puro); border: 1px solid var(--rosa-palo); display: flex; align-items: center; justify-content: center; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.05);}
         .summary-img-wrap img { width: 100%; height: 100%; object-fit: cover; }
         .summary-qty { position: absolute; top: -8px; right: -8px; background: var(--gris-oscuro); color: white; width: 22px; height: 22px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 700; z-index: 2; border: 2px solid var(--beige-calido);}
         
@@ -118,11 +120,11 @@
 
         .summary-totals { border-top: 2px solid var(--rosa-palo); padding-top: 1.5rem; margin-top: 2rem; }
         .total-row { display: flex; justify-content: space-between; margin-bottom: 0.8rem; font-size: 0.95rem; color: #666; font-weight: 500;}
-        .total-row.final { font-size: 1.5rem; font-weight: 800; color: var(--dark-studio); border-top: 1px solid #EAEAEA; padding-top: 1.2rem; margin-top: 0.5rem; align-items: center; }
+        .total-row.final { font-size: 1.5rem; font-weight: 800; color: var(--gris-oscuro); border-top: 1px solid #EAEAEA; padding-top: 1.2rem; margin-top: 0.5rem; align-items: center; }
 
         /* --- TOAST NOTIFICATIONS --- */
-        .toast-notification { position: fixed; bottom: -100px; left: 50%; transform: translateX(-50%); background: var(--gris-oscuro); color: var(--blanco-puro); padding: 14px 28px; border-radius: var(--radius-pill); font-size: 0.95rem; font-weight: 500; box-shadow: 0 10px 30px rgba(0,0,0,0.2); z-index: 9999; transition: bottom 0.4s cubic-bezier(0.25, 0.8, 0.25, 1); display: flex; align-items: center; gap: 10px; }
-        .toast-notification.show { bottom: 30px; } .toast-notification.error { background: var(--danger-color); } .toast-notification.success { background: #2ecc71; }
+        .toast-notification { position: fixed; bottom: -100px; left: 50%; transform: translateX(-50%); background: var(--gris-oscuro); color: var(--blanco-puro); padding: 14px 28px; border-radius: 30px; font-size: 0.95rem; font-weight: 500; box-shadow: 0 10px 30px rgba(0,0,0,0.2); z-index: 9999; transition: bottom 0.4s cubic-bezier(0.25, 0.8, 0.25, 1); display: flex; align-items: center; gap: 10px; }
+        .toast-notification.show { bottom: 30px; } .toast-notification.error { background: #e74c3c; } .toast-notification.success { background: #2ecc71; }
         .spinner { width: 20px; height: 20px; border: 2px solid rgba(255,255,255,0.3); border-top-color: #fff; border-radius: 50%; animation: spin 1s linear infinite; display: inline-block; vertical-align: middle; margin-right: 10px; }
         @keyframes spin { to { transform: rotate(360deg); } }
     </style>
@@ -178,6 +180,16 @@
                     <div class="step-number">2</div>
                     <h2 class="step-title">Dirección de Despacho</h2>
                 </div>
+
+                <!-- NUEVO: SELECTOR DE MÉTODO DE ENVÍO -->
+                <div style="margin-bottom: 1.5rem;">
+                    <label style="font-weight: 600; font-size: 0.9rem; color: var(--gris-oscuro); display: block; margin-bottom: 5px;">Método de Entrega *</label>
+                    <select id="shippingMethod" style="width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #ddd; background: var(--fondo-claro); font-family: inherit; font-size: 0.95rem; outline: none;" onchange="toggleShippingMethod()">
+                        <option value="delivery">Despacho a Domicilio (Blue Express)</option>
+                        <option value="pickup">Retiro en Bodega (Toesca 2765, Santiago - GRATIS)</option>
+                    </select>
+                </div>
+
                 <div class="input-group">
                     <label>Dirección Exacta *</label>
                     <input type="text" id="chkAddress" placeholder="Ej: Av. Las Condes 1234, Depto 45">
@@ -228,10 +240,13 @@
                 </div>
                 <p style="font-size: 0.9rem; color: #666; margin-bottom: 2rem;">Al hacer clic en pagar, serás redirigido a la plataforma encriptada de Webpay Plus para procesar tu pago de forma segura.</p>
                 
-                <div style="border: 2px solid var(--teal-claro); border-radius: 12px; padding: 2rem; text-align: center; background: var(--blanco-puro); box-shadow: var(--shadow-subtle);">
-                    <img src="https://transbank.cl/public/img/logo-webpay-plus.png" alt="Webpay" style="height: 45px; margin: 0 auto 1.5rem; filter: grayscale(100%); opacity: 0.8;">
+                <div style="border: 2px solid rgba(0, 164, 153, 0.2); border-radius: 12px; padding: 2rem; text-align: center; background: var(--blanco-puro); box-shadow: 0 4px 15px rgba(0,0,0,0.02);">
+                    
+                    <!-- NUEVO: LOGO SVG WEBPAY -->
+                    <img src="https://transbankdevelopers.cl/public/library/img/svg/logo_webpay_plus.svg" alt="Webpay Plus" style="max-width: 180px; margin: 15px auto; display: block;">
+                    
                     <div style="font-size: 1rem; color: #888; font-weight: 500;">Monto a Pagar</div>
-                    <div style="font-size: 2.2rem; font-weight: 800; color: var(--dark-studio); margin-bottom: 1.5rem; font-family: var(--font-display);" id="finalPayAmount">$0</div>
+                    <div style="font-size: 2.2rem; font-weight: 800; color: var(--gris-oscuro); margin-bottom: 1.5rem; font-family: var(--font-display);" id="finalPayAmount">$0</div>
                     
                     <button class="btn-primary" id="btnPay" style="background: #00A499; margin: 0; padding: 1.5rem; font-size: 1.1rem; box-shadow: 0 8px 25px rgba(0, 164, 153, 0.3);" onclick="processPayment()">
                         💳 PAGAR AHORA
@@ -259,7 +274,7 @@
                     <span id="summSubtotal">$0</span>
                 </div>
                 <div class="total-row">
-                    <span>Envío (Blue Express)</span>
+                    <span>Envío</span>
                     <span id="summShippingCost" style="color: #888; font-size: 0.85rem; background: var(--gris-claro); padding: 0.2rem 0.6rem; border-radius: 5px;">Por Cobrar</span>
                 </div>
                 <div class="total-row final">
@@ -336,7 +351,7 @@
             main.innerHTML = `
                 <div style="text-align:center; padding: 4rem 2rem;">
                     <div style="font-size: 5rem; margin-bottom:1rem; animation: fadeInUp 0.5s ease;">🎉</div>
-                    <h1 style="font-family: var(--font-display); color: var(--dark-studio); margin-bottom: 1rem; font-size: 2.5rem;">¡Tu pedido está en camino!</h1>
+                    <h1 style="font-family: var(--font-display); color: var(--gris-oscuro); margin-bottom: 1rem; font-size: 2.5rem;">¡Tu pedido está en camino!</h1>
                     <p style="color: #666; margin-bottom: 2.5rem; font-size: 1.1rem; max-width: 400px; margin-left: auto; margin-right: auto;">
                         El número de tu orden es el <strong style="color: var(--rosa-intenso);">#${orderId}</strong>.
                         ${email ? `Hemos enviado tu boleta y la confirmación a ${email}.` : 'Te enviamos la confirmación a tu correo.'}
@@ -374,8 +389,34 @@
             document.getElementById('finalPayAmount').textContent = formatCurrency(finalTotal);
         }
 
+        // NUEVO: LÓGICA DEL MÉTODO DE ENVÍO
+        window.toggleShippingMethod = () => {
+            const isPickup = document.getElementById('shippingMethod').value === 'pickup';
+            
+            // Habilitar / Deshabilitar inputs
+            document.getElementById('chkAddress').disabled = isPickup;
+            document.getElementById('chkComuna').disabled = isPickup;
+            document.getElementById('chkRegion').disabled = isPickup;
+            
+            // Limpiar valores si es retiro para evitar confusiones visuales
+            if(isPickup) {
+                document.getElementById('chkAddress').value = '';
+                document.getElementById('chkComuna').value = '';
+                document.getElementById('chkRegion').value = '';
+                
+                shippingCost = 0;
+                document.getElementById('summShippingCost').innerHTML = '<span style="color: var(--teal-studio); font-weight:800; background: transparent; padding: 0;">GRATIS</span>';
+                renderSummary();
+            } else {
+                calculateShipping(); // Recalcula si vuelve a Domicilio
+            }
+        };
+
         // 3. COTIZACIÓN DE ENVÍO (Blue Express)
         async function calculateShipping() {
+            // Evitar petición a la API si está en modo retiro en tienda
+            if (document.getElementById('shippingMethod').value === 'pickup') return;
+
             const region = document.getElementById('chkRegion').value;
             const comuna = document.getElementById('chkComuna').value.trim();
             if (!region || !comuna) return;
@@ -422,12 +463,17 @@
             
             // Validar Paso 2 -> 3
             if (stepNumber > 2) {
-                const addr = document.getElementById('chkAddress').value.trim();
-                const comuna = document.getElementById('chkComuna').value.trim();
-                const region = document.getElementById('chkRegion').value;
+                const isPickup = document.getElementById('shippingMethod').value === 'pickup';
                 
-                if (!addr || !comuna) return showToast('La dirección y la comuna son obligatorias.', 'error');
-                if (!region) return showToast('Por favor, selecciona tu Región en la lista.', 'error');
+                // Solo validar dirección si NO es retiro en tienda
+                if (!isPickup) {
+                    const addr = document.getElementById('chkAddress').value.trim();
+                    const comuna = document.getElementById('chkComuna').value.trim();
+                    const region = document.getElementById('chkRegion').value;
+                    
+                    if (!addr || !comuna) return showToast('La dirección y la comuna son obligatorias.', 'error');
+                    if (!region) return showToast('Por favor, selecciona tu Región en la lista.', 'error');
+                }
             }
 
             // Cambiar UI Activa
@@ -450,13 +496,16 @@
             btn.innerHTML = '<div class="spinner"></div> Conectando de forma segura...';
             btn.disabled = true;
 
+            const isPickup = document.getElementById('shippingMethod').value === 'pickup';
+
             const customerData = {
                 nombre: document.getElementById('chkName').value.trim(),
                 email: document.getElementById('chkEmail').value.trim(),
                 telefono: document.getElementById('chkPhone').value.trim(),
-                direccion: document.getElementById('chkAddress').value.trim(),
-                comuna: document.getElementById('chkComuna').value.trim(),
-                region: document.getElementById('chkRegion').value
+                // Si es pickup enviamos una nota, sino la dirección real
+                direccion: isPickup ? 'Retiro en Bodega' : document.getElementById('chkAddress').value.trim(),
+                comuna: isPickup ? 'Santiago' : document.getElementById('chkComuna').value.trim(),
+                region: isPickup ? 'Región Metropolitana' : document.getElementById('chkRegion').value
             };
 
             const payload = {
@@ -511,10 +560,10 @@
 
     <footer style="background-color: var(--beige-suave, #FFF8F0); padding: 1.5rem; text-align: center; border-top: 1px solid #eee; margin-top: 2rem;">
         <div style="display: flex; justify-content: center; flex-wrap: wrap; gap: 1.5rem; margin-bottom: 0.8rem;">
-            <a href="index.html" style="font-size: 0.85rem; font-weight: 500; color: var(--dark-studio, #8A7360); text-decoration: none;">Inicio</a>
-            <a href="sucursales.html" style="font-size: 0.85rem; font-weight: 500; color: var(--dark-studio, #8A7360); text-decoration: none;">Sucursales</a>
-            <a href="/terminos.html" style="font-size: 0.85rem; font-weight: 500; color: var(--dark-studio, #8A7360); text-decoration: none;">Términos y Condiciones</a>
-            <a href="/politicas.html" style="font-size: 0.85rem; font-weight: 500; color: var(--dark-studio, #8A7360); text-decoration: none;">Políticas de Envío</a>
+            <a href="index.html" style="font-size: 0.85rem; font-weight: 500; color: #8A7360; text-decoration: none;">Inicio</a>
+            <a href="sucursales.html" style="font-size: 0.85rem; font-weight: 500; color: #8A7360; text-decoration: none;">Sucursales</a>
+            <a href="/terminos.html" style="font-size: 0.85rem; font-weight: 500; color: #8A7360; text-decoration: none;">Términos y Condiciones</a>
+            <a href="/politicas.html" style="font-size: 0.85rem; font-weight: 500; color: #8A7360; text-decoration: none;">Políticas de Envío</a>
         </div>
         <p style="font-size: 0.8rem; color: #888; margin: 0;">Pago seguro procesado por Webpay Plus de Transbank S.A.</p>
     </footer>
