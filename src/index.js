@@ -502,7 +502,7 @@ export default {
                 } catch (_) {}
             }
 
-            const FRONTEND_URL = (env.FRONTEND_URL || url.origin).replace(/\/$/, '');
+            const FRONTEND_URL = env.FRONTEND_URL || 'https://mathsoluis.cl';
 
             // Pago abortado por el usuario o token ausente.
             if (!token_ws) {
