@@ -290,6 +290,26 @@
         let shippingCost = 0;
 
         window.onload = () => {
+            // Manejo del retorno desde Webpay (?status=success|rejected|aborted)
+            const params = new URLSearchParams(window.location.search);
+            const status = params.get('status');
+
+            if (status === 'success') {
+                const orderId = params.get('order_id') || '';
+                const email = (currentCustomer && currentCustomer.email) || '';
+                localStorage.removeItem('mathsoluis_cart');
+                renderSuccessScreen(orderId, email);
+                return;
+            }
+            if (status === 'rejected' || status === 'aborted') {
+                const msg = status === 'aborted'
+                    ? 'Cancelaste el pago en Webpay. Puedes intentarlo nuevamente.'
+                    : 'El pago no se pudo completar. Intenta nuevamente.';
+                showToast(msg, 'error');
+                // Limpiar la URL para que un refresh no vuelva a disparar el toast.
+                history.replaceState({}, '', window.location.pathname);
+            }
+
             if (cart.length === 0) {
                 alert("Tu carrito está vacío. Serás redirigido a la tienda.");
                 window.location.href = 'index.html';
@@ -309,6 +329,22 @@
             document.getElementById('chkRegion').addEventListener('change', calculateShipping);
             document.getElementById('chkComuna').addEventListener('blur', calculateShipping);
         };
+
+        function renderSuccessScreen(orderId, email) {
+            const main = document.querySelector('.checkout-main');
+            if (!main) return;
+            main.innerHTML = `
+                <div style="text-align:center; padding: 4rem 2rem;">
+                    <div style="font-size: 5rem; margin-bottom:1rem; animation: fadeInUp 0.5s ease;">🎉</div>
+                    <h1 style="font-family: var(--font-display); color: var(--dark-studio); margin-bottom: 1rem; font-size: 2.5rem;">¡Tu pedido está en camino!</h1>
+                    <p style="color: #666; margin-bottom: 2.5rem; font-size: 1.1rem; max-width: 400px; margin-left: auto; margin-right: auto;">
+                        El número de tu orden es el <strong style="color: var(--rosa-intenso);">#${orderId}</strong>.
+                        ${email ? `Hemos enviado tu boleta y la confirmación a ${email}.` : 'Te enviamos la confirmación a tu correo.'}
+                    </p>
+                    <a href="index.html" class="btn-primary" style="text-decoration:none; display: inline-block; width: auto; padding: 1rem 3rem;">Volver a la Tienda</a>
+                </div>
+            `;
+        }
 
         // 2. RENDERIZAR RESUMEN (COLUMNA DERECHA)
         function renderSummary() {
@@ -440,27 +476,28 @@
                 
                 const result = await response.json();
 
-                if (result.success) {
-                    showToast('¡Pago Autorizado! Creando tu pedido...', 'success');
-
+                if (result.success && result.tbk_url && result.tbk_token) {
+                    // Persistir cliente para que la pantalla de éxito (post-retorno) muestre el correo.
                     localStorage.setItem('mathsoluis_customer', JSON.stringify({ name: customerData.nombre, email: customerData.email, telefono: customerData.telefono, direccion: customerData.direccion }));
 
-                    setTimeout(() => {
-                        // Vaciar memoria
-                        localStorage.removeItem('mathsoluis_cart');
-                        
-                        // Mensaje de éxito final
-                        document.querySelector('.checkout-main').innerHTML = `
-                            <div style="text-align:center; padding: 4rem 2rem;">
-                                <div style="font-size: 5rem; margin-bottom:1rem; animation: fadeInUp 0.5s ease;">🎉</div>
-                                <h1 style="font-family: var(--font-display); color: var(--dark-studio); margin-bottom: 1rem; font-size: 2.5rem;">¡Tu pedido está en camino!</h1>
-                                <p style="color: #666; margin-bottom: 2.5rem; font-size: 1.1rem; max-width: 400px; margin-left: auto; margin-right: auto;">El número de tu orden es el <strong style="color: var(--rosa-intenso);">#${result.order_id}</strong>. Hemos enviado tu boleta y la confirmación a ${customerData.email}.</p>
-                                <a href="index.html" class="btn-primary" style="text-decoration:none; display: inline-block; width: auto; padding: 1rem 3rem;">Volver a la Tienda</a>
-                            </div>
-                        `;
-                    }, 2000);
+                    showToast('Redirigiendo a Webpay...', 'success');
+
+                    // Redirección a Webpay vía form POST oculto con token_ws.
+                    const form = document.createElement('form');
+                    form.method = 'POST';
+                    form.action = result.tbk_url;
+                    form.style.display = 'none';
+
+                    const input = document.createElement('input');
+                    input.type = 'hidden';
+                    input.name = 'token_ws';
+                    input.value = result.tbk_token;
+                    form.appendChild(input);
+
+                    document.body.appendChild(form);
+                    form.submit();
                 } else {
-                    showToast('Error en el servidor: ' + result.error, 'error');
+                    showToast('Error en el servidor: ' + (result.error || 'No se pudo iniciar el pago'), 'error');
                     btn.innerHTML = '💳 Pagar Ahora con Webpay';
                     btn.disabled = false;
                 }

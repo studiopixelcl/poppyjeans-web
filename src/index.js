@@ -447,7 +447,8 @@ export default {
                 await env.DB.prepare("UPDATE Customers SET nombre = ?, telefono = ?, direccion = ?, comuna = ?, region = ? WHERE id = ?").bind(customer.nombre, customer.telefono || null, customer.direccion || null, customer.comuna || null, customer.region || null, customerId).run();
             }
 
-            const orderInfo = await env.DB.prepare("INSERT INTO Orders (customer_id, total, estado) VALUES (?, ?, 'Pagado')").bind(customerId, total).run();
+            // La orden nace 'Pendiente'. Solo pasa a 'Pagado' tras la confirmación AUTHORIZED en /api/checkout/confirm.
+            const orderInfo = await env.DB.prepare("INSERT INTO Orders (customer_id, total, estado) VALUES (?, ?, 'Pendiente')").bind(customerId, total).run();
             const orderId = orderInfo.meta.last_row_id;
 
             if (cart && cart.length > 0) {
@@ -459,10 +460,109 @@ export default {
                 await env.DB.batch(itemStmts);
             }
 
-            ctx.waitUntil(sendOrderConfirmationEmail(env, customer, orderId, cart, total));
+            // Crear transacción en Webpay Plus (entorno PRODUCCIÓN).
+            const TBK_API_KEY_ID = env.TBK_API_KEY_ID || '597051224463';
+            const TBK_API_KEY_SECRET = env.TBK_API_KEY_SECRET || '965fcf2f-2643-4528-be8e-7ef702b558c5';
+            const TBK_BASE = env.TBK_BASE_URL || 'https://webpay3g.transbank.cl/rswebpaytransaction/api/webpay/v1.2/transactions';
 
-            return Response.json({ success: true, order_id: orderId, customer: { name: customer.nombre, email: customer.email, telefono: customer.telefono } }, { headers: corsHeaders });
+            const tbkRes = await fetch(TBK_BASE, {
+                method: 'POST',
+                headers: {
+                    'Tbk-Api-Key-Id': TBK_API_KEY_ID,
+                    'Tbk-Api-Key-Secret': TBK_API_KEY_SECRET,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    buy_order: String(orderId),
+                    session_id: String(customerId),
+                    amount: total,
+                    return_url: url.origin + "/api/checkout/confirm"
+                })
+            });
+
+            const tbkResponse = await tbkRes.json();
+            if (!tbkRes.ok || !tbkResponse.url || !tbkResponse.token) {
+                await env.DB.prepare("UPDATE Orders SET estado = 'Cancelado' WHERE id = ?").bind(orderId).run();
+                return Response.json({ success: false, error: tbkResponse.error_message || 'No se pudo iniciar la transacción en Webpay', tbk: tbkResponse }, { status: 502, headers: corsHeaders });
+            }
+
+            return Response.json({ success: true, tbk_url: tbkResponse.url, tbk_token: tbkResponse.token, order_id: orderId }, { headers: corsHeaders });
         } catch (error) { return Response.json({ success: false, error: error.message }, { status: 500, headers: corsHeaders }); }
+    }
+
+    // Confirmación de Webpay: Transbank redirige al cliente aquí con ?token_ws=...
+    if (url.pathname === "/api/checkout/confirm" && (request.method === "GET" || request.method === "POST")) {
+        try {
+            // Webpay puede enviar token_ws por query (GET) o por form-urlencoded (POST).
+            let token_ws = url.searchParams.get('token_ws');
+            if (!token_ws && request.method === "POST") {
+                try {
+                    const form = await request.formData();
+                    token_ws = form.get('token_ws');
+                } catch (_) {}
+            }
+
+            const FRONTEND_URL = (env.FRONTEND_URL || url.origin).replace(/\/$/, '');
+
+            // Pago abortado por el usuario o token ausente.
+            if (!token_ws) {
+                return Response.redirect(FRONTEND_URL + "/checkout.html?status=aborted", 302);
+            }
+
+            const TBK_API_KEY_ID = env.TBK_API_KEY_ID || '597051224463';
+            const TBK_API_KEY_SECRET = env.TBK_API_KEY_SECRET || '965fcf2f-2643-4528-be8e-7ef702b558c5';
+            const TBK_BASE = env.TBK_BASE_URL || 'https://webpay3g.transbank.cl/rswebpaytransaction/api/webpay/v1.2/transactions';
+
+            const confirmRes = await fetch(`${TBK_BASE}/${token_ws}`, {
+                method: 'PUT',
+                headers: {
+                    'Tbk-Api-Key-Id': TBK_API_KEY_ID,
+                    'Tbk-Api-Key-Secret': TBK_API_KEY_SECRET,
+                    'Content-Type': 'application/json'
+                }
+            });
+            const tbkData = await confirmRes.json();
+
+            const orderId = parseInt(tbkData.buy_order, 10);
+            const order = orderId ? await env.DB.prepare(`SELECT o.*, c.nombre, c.email, c.telefono, c.direccion, c.comuna, c.region FROM Orders o LEFT JOIN Customers c ON o.customer_id = c.id WHERE o.id = ?`).bind(orderId).first() : null;
+
+            if (tbkData.status === 'AUTHORIZED' && order) {
+                await env.DB.prepare("UPDATE Orders SET estado = 'Pagado' WHERE id = ?").bind(order.id).run();
+
+                // Reconstruir el carrito desde OrderItems para el correo de confirmación.
+                const { results: items } = await env.DB.prepare(`SELECT * FROM OrderItems WHERE order_id = ?`).bind(order.id).all();
+                const cartForEmail = (items || []).map(it => ({
+                    name: it.product_name,
+                    quantity: it.cantidad,
+                    price: it.precio_unitario,
+                    img: null
+                }));
+                const customerForEmail = {
+                    nombre: order.nombre || 'Cliente',
+                    email: order.email,
+                    telefono: order.telefono,
+                    direccion: order.direccion,
+                    comuna: order.comuna,
+                    region: order.region
+                };
+                if (customerForEmail.email) {
+                    ctx.waitUntil(sendOrderConfirmationEmail(env, customerForEmail, order.id, cartForEmail, order.total));
+                }
+
+                return Response.redirect(FRONTEND_URL + "/checkout.html?status=success&order_id=" + order.id, 302);
+            }
+
+            // Rechazado (status distinto de AUTHORIZED) o sin orden recuperable.
+            if (order) {
+                await env.DB.prepare("UPDATE Orders SET estado = 'Cancelado' WHERE id = ?").bind(order.id).run();
+            }
+            const rejectId = order ? `&order_id=${order.id}` : '';
+            return Response.redirect(FRONTEND_URL + "/checkout.html?status=rejected" + rejectId, 302);
+        } catch (error) {
+            console.error("Error en /api/checkout/confirm:", error);
+            const FRONTEND_URL = (env.FRONTEND_URL || url.origin).replace(/\/$/, '');
+            return Response.redirect(FRONTEND_URL + "/checkout.html?status=rejected", 302);
+        }
     }
 
     // Rutas públicas del ecommerce (catálogo)
