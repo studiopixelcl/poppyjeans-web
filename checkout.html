@@ -429,7 +429,7 @@
                 const res = await fetch('https://mathsoluis-api.studiopixelchile.workers.dev/api/shipping/quote', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ region, comuna, cart_total: cartTotal })
+                    body: JSON.stringify({ region, comuna, cart: cart })
                 });
                 const data = await res.json();
                 if (data.success) {

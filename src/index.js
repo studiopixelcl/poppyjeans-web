@@ -113,8 +113,7 @@ async function verifyAdminToken(request, env) {
 // MÓDULO DE CORREOS (RESEND API) Y AUDITORÍA
 // ============================================================================
 
-const LOGO_URL = "https://images.unsplash.com/photo-1519689680058-324335c77eba?auto=format&fit=crop&w=150&q=80"; // Reemplazar por logo oficial en prod.
-const FALLBACK_ITEM_IMG = "https://images.unsplash.com/photo-1522771739844-6a9f6d5f14af?auto=format&fit=crop&w=150&q=80";
+const LOGO_URL = "https://mathsoluis.cl/ico.jpg";
 
 // 1. Correo de Bienvenida
 async function sendWelcomeEmail(env, email, nombre) {
@@ -124,7 +123,7 @@ async function sendWelcomeEmail(env, email, nombre) {
   const htmlContent = `
   <div style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; max-width: 600px; margin: 0 auto; background-color: #FFF8F0; border: 1px solid #FCEEF2; border-radius: 16px; overflow: hidden;">
       <div style="background-color: #FFFFFF; padding: 40px 30px; text-align: center; border-bottom: 2px solid #FCEEF2;">
-          <img src="${LOGO_URL}" alt="Mathsoluis" style="width: 80px; height: 80px; border-radius: 50%; object-fit: cover; margin-bottom: 15px; border: 3px solid #FCEEF2; display: block; margin-left: auto; margin-right: auto;" />
+          <img src="${LOGO_URL}" alt="Mathsoluis" style="width: 100px; height: auto; border-radius: 10px; object-fit: contain; margin-bottom: 15px; display: block; margin-left: auto; margin-right: auto;" />
           <h1 style="color: #8A7360; margin: 0; font-size: 32px; font-style: italic;">Mathsoluis</h1>
       </div>
       <div style="padding: 40px 30px; text-align: center;">
@@ -157,15 +156,10 @@ async function sendOrderConfirmationEmail(env, customer, orderId, cart, total) {
 
     let itemsHtml = '';
     cart.forEach(item => {
-        let imgSrc = FALLBACK_ITEM_IMG;
-        if (item.img && item.img.startsWith('http') && !item.img.includes('localhost') && !item.img.includes('127.0.0.1')) {
-            imgSrc = item.img;
-        }
-
         itemsHtml += `
             <tr>
                 <td style="padding: 15px 0; border-bottom: 1px solid #FCEEF2; width: 75px;" valign="top">
-                    <img src="${imgSrc}" alt="${item.name}" width="65" height="85" style="width: 65px; height: 85px; object-fit: cover; border-radius: 10px; background-color: #F4F0EC; display: block; border: none; outline: none;" />
+                    <img src="${item.img || ''}" alt="${item.name}" width="65" height="85" style="width: 65px; height: 85px; object-fit: cover; border-radius: 10px; background-color: #F4F0EC; display: block; border: none; outline: none;" />
                 </td>
                 <td style="padding: 15px 10px; border-bottom: 1px solid #FCEEF2;" valign="middle">
                     <p style="margin: 0 0 5px 0; font-weight: bold; color: #8A7360; font-size: 15px; line-height: 1.3;">${item.name}</p>
@@ -181,7 +175,7 @@ async function sendOrderConfirmationEmail(env, customer, orderId, cart, total) {
     const htmlContent = `
     <div style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; max-width: 600px; margin: 0 auto; background-color: #FFF8F0; border: 1px solid #FCEEF2; border-radius: 16px; overflow: hidden;">
         <div style="background-color: #FFFFFF; padding: 40px 30px; text-align: center; border-bottom: 2px solid #FCEEF2;">
-            <img src="${LOGO_URL}" alt="Mathsoluis" style="width: 80px; height: 80px; border-radius: 50%; object-fit: cover; margin-bottom: 15px; border: 3px solid #FCEEF2; display: block; margin-left: auto; margin-right: auto;" />
+            <img src="${LOGO_URL}" alt="Mathsoluis" style="width: 100px; height: auto; border-radius: 10px; object-fit: contain; margin-bottom: 15px; display: block; margin-left: auto; margin-right: auto;" />
             <h1 style="color: #8A7360; margin: 0; font-size: 32px; font-style: italic;">Mathsoluis</h1>
         </div>
         <div style="padding: 35px 30px;">
@@ -303,7 +297,7 @@ async function sendOrderStatusChangeEmail(env, order, customerEmail, customerNam
     const htmlContent = `
     <div style="font-family:'Helvetica Neue',Helvetica,Arial,sans-serif; max-width:600px; margin:0 auto; background-color:#FFF8F0; border:1px solid #FCEEF2; border-radius:16px; overflow:hidden;">
         <div style="background-color:#FFFFFF; padding:40px 30px; text-align:center; border-bottom:2px solid #FCEEF2;">
-            <img src="${LOGO_URL}" alt="Mathsoluis" style="width:80px; height:80px; border-radius:50%; object-fit:cover; margin-bottom:15px; border:3px solid #FCEEF2; display:block; margin-left:auto; margin-right:auto;" />
+            <img src="${LOGO_URL}" alt="Mathsoluis" style="width:100px; height:auto; border-radius:10px; object-fit:contain; margin-bottom:15px; display:block; margin-left:auto; margin-right:auto;" />
             <h1 style="color:#8A7360; margin:0; font-size:32px; font-style:italic;">Mathsoluis</h1>
         </div>
         <div style="padding:40px 30px; text-align:center;">
@@ -417,17 +411,42 @@ export default {
 
     if (url.pathname === "/api/shipping/quote" && request.method === "POST") {
         try {
-            const { region, comuna, cart_total } = await request.json();
-            const REMOTE_REGIONS = ["Arica y Parinacota", "Tarapacá", "Antofagasta", "Aysén", "Magallanes"];
-            let cost;
-            if (region === "Región Metropolitana") {
-                cost = 3500;
-            } else if (REMOTE_REGIONS.includes(region)) {
-                cost = 7500;
-            } else {
-                cost = 5500;
+            const { region, comuna, cart } = await request.json();
+
+            // Sumar peso total del carrito; default 500g por item si no tiene weight
+            let totalWeightGrams = 0;
+            if (Array.isArray(cart) && cart.length > 0) {
+                for (const item of cart) {
+                    const w = (typeof item.weight === 'number' && item.weight > 0) ? item.weight : 500;
+                    totalWeightGrams += w * (item.quantity || 1);
+                }
             }
-            return Response.json({ success: true, courier: 'Blue Express', cost, origin: 'Toesca 2765' }, { headers: corsHeaders });
+
+            // Tallas Blue Express (en gramos)
+            let tier;
+            if (totalWeightGrams < 500)       tier = 'XS';
+            else if (totalWeightGrams < 3000) tier = 'S';
+            else if (totalWeightGrams < 6000) tier = 'M';
+            else                              tier = 'L';
+
+            // Zonas tarifarias — valores exactos del <select> en checkout.html
+            const CENTRAL = ["Valparaíso", "O'Higgins", "Maule", "Coquimbo", "Ñuble", "Biobío"];
+            const REMOTE  = ["Arica y Parinacota", "Tarapacá", "Antofagasta", "Atacama", "La Araucanía", "Los Ríos", "Los Lagos", "Aysén", "Magallanes"];
+
+            // Tarifas Blue Express por zona y talla (CLP)
+            const PRICING = {
+                RM:      { XS: 3100, S: 3650, M: 4700,  L: 5700  },
+                Central: { XS: 3900, S: 4300, M: 7000,  L: 9600  },
+                Remote:  { XS: 6000, S: 7500, M: 10000, L: 15000 },
+            };
+
+            let zone;
+            if (region === "Región Metropolitana") zone = 'RM';
+            else if (REMOTE.includes(region))      zone = 'Remote';
+            else                                   zone = 'Central';
+
+            const cost = PRICING[zone][tier];
+            return Response.json({ success: true, courier: 'Blue Express', cost, weight: totalWeightGrams }, { headers: corsHeaders });
         } catch (error) {
             return Response.json({ success: false, error: error.message }, { status: 500, headers: corsHeaders });
         }
@@ -818,8 +837,12 @@ export default {
           const body = await request.json();
           const categoriasStr = serializeCategorias(body.categorias_ids);
           const categoriaIdPrimary = Array.isArray(body.categorias_ids) && body.categorias_ids.length > 0 ? body.categorias_ids[0] : (body.categoria_id || 1);
-          const info = await env.DB.prepare(`INSERT INTO Products (sku, nombre, descripcion, precio_normal, precio_oferta, en_oferta, oferta_limitada, fecha_fin_oferta, stock, categoria_id, categorias_ids, etiquetas, es_kit) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`)
-            .bind(body.sku || null, body.nombre, body.descripcion || "", body.precio_normal, body.precio_oferta || null, body.en_oferta || 0, body.oferta_limitada || 0, body.fecha_fin_oferta || null, body.stock || 0, categoriaIdPrimary, categoriasStr, body.etiquetas || null, body.es_kit || 0).run();
+          const _descP  = body.description  || body.descripcion || "";
+          const _tagsP  = body.tags         || body.etiquetas   || null;
+          const _isoP   = body.isOffer      || body.en_oferta   || 0;
+          const _ofpP   = body.offerPrice   || body.precio_oferta || null;
+          const info = await env.DB.prepare(`INSERT INTO Products (sku, nombre, descripcion, description, precio_normal, precio_oferta, offerPrice, en_oferta, isOffer, oferta_limitada, fecha_fin_oferta, stock, categoria_id, categorias_ids, etiquetas, tags, es_kit, weight) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`)
+            .bind(body.sku || null, body.nombre, _descP, _descP, body.precio_normal, _ofpP, body.offerPrice || 0, _isoP, _isoP, body.oferta_limitada || 0, body.fecha_fin_oferta || null, body.stock || 0, categoriaIdPrimary, categoriasStr, _tagsP, _tagsP, body.es_kit || 0, body.weight || 0).run();
 
           const newProductId = info.meta.last_row_id;
           if (body.variantes && body.variantes.length > 0) {
@@ -848,8 +871,12 @@ export default {
             const body = await request.json();
             const categoriasStr = serializeCategorias(body.categorias_ids);
             const categoriaIdPrimary = Array.isArray(body.categorias_ids) && body.categorias_ids.length > 0 ? body.categorias_ids[0] : (body.categoria_id || null);
-            await env.DB.prepare(`UPDATE Products SET sku = ?, nombre = ?, descripcion = ?, precio_normal = ?, precio_oferta = ?, en_oferta = ?, oferta_limitada = ?, fecha_fin_oferta = ?, stock = ?, categoria_id = ?, categorias_ids = ?, visible = ?, etiquetas = ?, es_kit = ? WHERE id = ?`)
-              .bind(body.sku || null, body.nombre, body.descripcion || null, body.precio_normal, body.precio_oferta || null, body.en_oferta || 0, body.oferta_limitada || 0, body.fecha_fin_oferta || null, body.stock || 0, categoriaIdPrimary, categoriasStr, body.visible !== undefined ? body.visible : 1, body.etiquetas || null, body.es_kit || 0, pId).run();
+            const _descU  = body.description  || body.descripcion || null;
+            const _tagsU  = body.tags         || body.etiquetas   || null;
+            const _isoU   = body.isOffer      || body.en_oferta   || 0;
+            const _ofpU   = body.offerPrice   || body.precio_oferta || null;
+            await env.DB.prepare(`UPDATE Products SET sku = ?, nombre = ?, descripcion = ?, description = ?, precio_normal = ?, precio_oferta = ?, offerPrice = ?, en_oferta = ?, isOffer = ?, oferta_limitada = ?, fecha_fin_oferta = ?, stock = ?, categoria_id = ?, categorias_ids = ?, visible = ?, etiquetas = ?, tags = ?, es_kit = ?, weight = ? WHERE id = ?`)
+              .bind(body.sku || null, body.nombre, _descU, _descU, body.precio_normal, _ofpU, body.offerPrice || 0, _isoU, _isoU, body.oferta_limitada || 0, body.fecha_fin_oferta || null, body.stock || 0, categoriaIdPrimary, categoriasStr, body.visible !== undefined ? body.visible : 1, _tagsU, _tagsU, body.es_kit || 0, body.weight || 0, pId).run();
             await env.DB.prepare("DELETE FROM ProductVariants WHERE product_id = ?").bind(pId).run();
             if (body.variantes && body.variantes.length > 0) {
                 const variantStmts = body.variantes.map(v => env.DB.prepare(`INSERT INTO ProductVariants (product_id, color_name, color_hex, tallas, stock, imagen_1, imagen_2, imagen_3, imagen_4, imagen_5) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`)
@@ -1015,3 +1042,23 @@ export default {
     return new Response(JSON.stringify({success: false, error: "Ruta en construcción o no encontrada."}), { status: 404, headers: corsHeaders });
   }
 };
+
+// =============================================================================
+// ⚠️  MIGRACIONES DE BASE DE DATOS REQUERIDAS
+// Ejecuta estos comandos en la terminal ANTES de hacer deploy.
+// Puedes encadenarlos uno por uno o con --command por separado.
+//
+// ENTORNO REMOTO (producción):
+//   npx wrangler d1 execute mathsoluis-db --remote --command="ALTER TABLE Products ADD COLUMN isOffer INTEGER DEFAULT 0;"
+//   npx wrangler d1 execute mathsoluis-db --remote --command="ALTER TABLE Products ADD COLUMN description TEXT;"
+//   npx wrangler d1 execute mathsoluis-db --remote --command="ALTER TABLE Products ADD COLUMN tags TEXT;"
+//   npx wrangler d1 execute mathsoluis-db --remote --command="ALTER TABLE Products ADD COLUMN offerPrice INTEGER DEFAULT 0;"
+//
+// ENTORNO LOCAL (dev):
+//   npx wrangler d1 execute mathsoluis-db --local --command="ALTER TABLE Products ADD COLUMN isOffer INTEGER DEFAULT 0;"
+//   npx wrangler d1 execute mathsoluis-db --local --command="ALTER TABLE Products ADD COLUMN description TEXT;"
+//   npx wrangler d1 execute mathsoluis-db --local --command="ALTER TABLE Products ADD COLUMN tags TEXT;"
+//   npx wrangler d1 execute mathsoluis-db --local --command="ALTER TABLE Products ADD COLUMN offerPrice INTEGER DEFAULT 0;"
+//
+// NOTA: Si la columna ya existe, el comando dará un error "duplicate column" — es seguro ignorarlo.
+// =============================================================================

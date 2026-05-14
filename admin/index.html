@@ -256,6 +256,43 @@
         #adminToast.show { opacity: 1; transform: translateY(0); }
         #adminToast.success { background: var(--teal-studio); }
         #adminToast.error { background: var(--danger-color); }
+
+        /* --- BADGES DE ESTADÍSTICAS (tabla de productos) --- */
+        .stat-badge { display: inline-block; padding: 4px 10px; border-radius: 20px; font-size: 0.85rem; font-weight: 600; }
+        .badge-precio { background: #e8f8f5; color: #0d9e8e; }
+        .badge-stock  { background: #e8f0fb; color: #2563eb; }
+        .badge-peso   { background: #fff3e0; color: #c2620a; }
+
+        /* --- FILA 3-COLUMNAS EN EL FORMULARIO --- */
+        .form-row-3 { grid-column: span 2; display: flex; gap: 1rem; }
+        .form-row-3 .input-group { flex: 1; margin-bottom: 0; }
+
+        /* --- CABECERA DE GRUPO EN EL MODAL --- */
+        .form-group-header {
+            grid-column: span 2;
+            font-family: var(--font-display);
+            font-size: 0.72rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1.8px;
+            color: #aaa;
+            padding-bottom: 0.55rem;
+            border-bottom: 1px solid var(--gris-claro);
+            margin-top: 1.8rem;
+        }
+        .form-group-header:first-child { margin-top: 0.5rem; }
+
+        /* --- PRECIO OFERTA (transición suave) --- */
+        #offerPriceWrapper {
+            overflow: hidden;
+            max-height: 0;
+            opacity: 0;
+            transition: max-height 0.35s ease, opacity 0.3s ease;
+        }
+        #offerPriceWrapper.visible {
+            max-height: 120px;
+            opacity: 1;
+        }
     </style>
 </head>
 <body>
@@ -384,47 +421,90 @@
             <form id="productForm">
                 <div class="modal-body-scroll">
                     <div class="form-grid">
-                        
-                        <div style="grid-column: span 2; margin-top: 0.5rem; border-bottom: 2px solid var(--gris-claro); padding-bottom: 1rem;">
-                            <div style="font-family: var(--font-display); font-weight: 700; color: var(--dark-studio); font-size: 1.2rem;">Datos Generales</div>
-                        </div>
 
-                        <div class="input-group">
+                        <!-- ═══════════ GRUPO 1 · IDENTIDAD ═══════════ -->
+                        <div class="form-group-header">📝 Identidad</div>
+
+                        <div class="input-group" style="grid-column: span 2;">
                             <label>Nombre del Producto *</label>
-                            <input type="text" id="prodNombre" required placeholder="Ej: Conjunto Safari">
-                        </div>
-                        <div class="input-group">
-                            <label>SKU (Código Base)</label>
-                            <input type="text" id="prodSku" placeholder="Ej: CS-001">
+                            <input type="text" id="prodNombre" required placeholder="Ej: Conjunto Safari Bebé">
                         </div>
                         <div class="input-group" style="grid-column: span 2;">
-                            <label>Categorías (selecciona una o más) *</label>
-                            <div id="prodCategorias" style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
-                                <button type="button" class="cat-pill" data-id="1">Mamás</button>
-                                <button type="button" class="cat-pill" data-id="2">Bebés</button>
-                                <button type="button" class="cat-pill" data-id="3">Niños</button>
-                                <button type="button" class="cat-pill" data-id="4">Niñas</button>
-                                <button type="button" class="cat-pill" data-id="5">Unisex</button>
+                            <label>Descripción</label>
+                            <textarea id="prodDesc" rows="3" placeholder="Describe los materiales, el calce y los beneficios de esta prenda..."></textarea>
+                        </div>
+                        <div class="input-group" style="grid-column: span 2;">
+                            <label>Etiquetas de Búsqueda (Tags) <span style="font-weight: 300; font-size: 0.75rem;">(Ej: nuevo, verano)</span></label>
+                            <div class="tags-input-container">
+                                <div id="selectedTagsContainer" style="display: flex; flex-wrap: wrap; gap: 0.5rem;"></div>
+                                <input type="text" id="prodTagInput" placeholder="Escribe y presiona Enter..." autocomplete="off">
                             </div>
                         </div>
-                        <div class="input-group">
-                            <label>Stock Global de la Publicación</label>
-                            <input type="number" id="prodStock" value="0" min="0" readonly style="background-color: var(--gris-claro); cursor: not-allowed;" title="Calculado automáticamente">
+
+                        <!-- ═══════════ GRUPO 2 · LOGÍSTICA ═══════════ -->
+                        <div class="form-group-header">📦 Logística</div>
+
+                        <!-- SKU · Peso · Categoría en 3 columnas -->
+                        <div style="grid-column: span 2; display: grid; grid-template-columns: 1fr 1fr 2fr; gap: 1rem; align-items: start;">
+                            <div class="input-group" style="margin-bottom: 0;">
+                                <label>SKU (Código Base)</label>
+                                <input type="text" id="prodSku" placeholder="Ej: CS-001">
+                            </div>
+                            <div class="input-group" style="margin-bottom: 0;">
+                                <label>Peso (g)</label>
+                                <input type="number" id="prodWeight" placeholder="Ej: 870" min="0">
+                            </div>
+                            <div class="input-group" style="margin-bottom: 0;">
+                                <label>Categorías (selecciona una o más) *</label>
+                                <div id="prodCategorias" style="display: flex; gap: 0.4rem; flex-wrap: wrap; margin-top: 0.3rem;">
+                                    <button type="button" class="cat-pill" data-id="1">Mamás</button>
+                                    <button type="button" class="cat-pill" data-id="2">Bebés</button>
+                                    <button type="button" class="cat-pill" data-id="3">Niños</button>
+                                    <button type="button" class="cat-pill" data-id="4">Niñas</button>
+                                    <button type="button" class="cat-pill" data-id="5">Unisex</button>
+                                </div>
+                            </div>
                         </div>
 
-                        <!-- MODALIDAD KIT MATERNAL -->
-                        <div class="input-group" style="grid-column: span 2; background: rgba(19, 194, 179, 0.05); padding: 1.5rem; border-radius: 8px; border: 1px dashed var(--teal-studio);">
-                            <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer; color: var(--teal-studio); font-size: 1.1rem; margin-bottom: 0;">
-                                <input type="checkbox" id="prodEsKit" style="width: 20px; height: 20px; accent-color: var(--teal-studio);" onchange="toggleKitMode()">
-                                <strong>🛍️ Este producto es un Kit (Múltiples prendas)</strong>
-                            </label>
-                            <p style="font-size: 0.85rem; color: #666; margin-top: 0.5rem; margin-left: 28px;">Al activar esta opción, podrás seleccionar qué prendas incluye el set y gestionar el stock exacto de cada una.</p>
+                        <!-- ═══════════ GRUPO 3 · COMERCIAL ═══════════ -->
+                        <div class="form-group-header">💰 Comercial</div>
+
+                        <!-- Fila A: Toggles Kit + Oferta -->
+                        <div style="grid-column: span 2; display: flex; gap: 1.5rem; align-items: stretch;">
+                            <div style="flex: 1; background: rgba(19, 194, 179, 0.05); padding: 1.2rem 1.5rem; border-radius: 10px; border: 1px dashed var(--teal-studio);">
+                                <label style="display: flex; align-items: center; gap: 0.75rem; cursor: pointer; margin-bottom: 0;">
+                                    <input type="checkbox" id="prodEsKit" style="width: 20px; height: 20px; accent-color: var(--teal-studio); flex-shrink: 0;" onchange="toggleKitMode()">
+                                    <div>
+                                        <div style="font-weight: 700; color: var(--teal-studio); font-size: 1rem; line-height: 1.2;">🛍️ Es un Kit</div>
+                                        <div style="font-size: 0.78rem; color: #888; margin-top: 3px;">Set de múltiples prendas · stock por prenda</div>
+                                    </div>
+                                </label>
+                            </div>
+                            <div style="flex: 1; background: rgba(231, 76, 60, 0.05); padding: 1.2rem 1.5rem; border-radius: 10px; border: 1px dashed var(--danger-color);">
+                                <label style="display: flex; align-items: center; gap: 0.75rem; cursor: pointer; margin-bottom: 0;">
+                                    <input type="checkbox" id="prodOffer" style="width: 20px; height: 20px; accent-color: var(--danger-color); flex-shrink: 0;" onchange="toggleOfferPrice()">
+                                    <div>
+                                        <div style="font-weight: 700; color: var(--danger-color); font-size: 1rem; line-height: 1.2;">🔥 En Oferta</div>
+                                        <div style="font-size: 0.78rem; color: #888; margin-top: 3px;">Muestra badge y precio rebajado en la tienda</div>
+                                    </div>
+                                </label>
+                            </div>
                         </div>
 
-                        <!-- VARIANTES: COLORES, TALLAS Y STOCK POR TALLA -->
-                        <div class="section-divider">
-                            Variantes y Stock Exacto
+                        <!-- Fila B: Precios -->
+                        <div style="grid-column: span 2; display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-top: 1rem;">
+                            <div class="input-group" style="margin-bottom: 0;">
+                                <label>Precio Normal ($) *</label>
+                                <input type="number" id="prodPrecio" required placeholder="Ej: 25990" min="0">
+                            </div>
+                            <div class="input-group" id="offerPriceWrapper" style="margin-bottom: 0;">
+                                <label>Precio Oferta ($) <span style="color: var(--danger-color); font-size: 0.75rem;">↓ precio rebajado</span></label>
+                                <input type="number" id="prodOfferPrice" placeholder="Ej: 19990" min="0">
+                            </div>
                         </div>
+
+                        <!-- ═══════════ VARIANTES (tallas, colores y stock) ═══════════ -->
+                        <div class="section-divider">Variantes y Stock Exacto</div>
 
                         <div style="display: flex; gap: 10px; align-items: center; margin-bottom: 1.5rem; padding: 12px 15px; background: var(--fondo-claro); border-radius: 8px; border: 1px dashed var(--teal-studio); grid-column: span 2;">
                             <span style="font-size: 1.2rem;">⚡</span>
@@ -434,56 +514,26 @@
                         </div>
 
                         <div id="variantsWrapper" class="variants-container"></div>
-                        
+
                         <button type="button" class="btn-add-variant" onclick="addVariantUI()">
                             + Añadir Otro Color / Variante
                         </button>
 
-                        <!-- ETIQUETAS -->
-                        <div class="input-group" style="grid-column: span 2; margin-top:1rem;">
-                            <label>Etiquetas de Búsqueda (Tags) <span style="font-weight: 300; font-size:0.75rem;">(Ej: nuevo, oferta, verano)</span></label>
-                            <div class="tags-input-container">
-                                <div id="selectedTagsContainer" style="display: flex; flex-wrap: wrap; gap: 0.5rem;"></div>
-                                <input type="text" id="prodTagInput" placeholder="Escribe y presiona Enter..." autocomplete="off">
+                        <!-- ═══════════ GRUPO 4 · INVENTARIO ═══════════ -->
+                        <div class="form-group-header">📊 Inventario</div>
+
+                        <div style="grid-column: span 2; background: var(--fondo-claro); border-radius: 10px; padding: 1rem 1.5rem; display: flex; align-items: center; gap: 1rem; border: 1px solid var(--gris-claro);">
+                            <div style="font-size: 2rem; line-height: 1;">📦</div>
+                            <div style="flex: 1;">
+                                <div style="font-size: 0.75rem; font-weight: 600; color: #888; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px;">Stock Global (calculado automáticamente)</div>
+                                <input type="number" id="prodStock" value="0" min="0" readonly
+                                    style="background: transparent; border: none; font-family: var(--font-display); font-size: 2rem; font-weight: 800; color: var(--dark-studio); width: 120px; cursor: not-allowed; padding: 0; outline: none;"
+                                    title="Suma automática del stock de todas las variantes activas">
+                                <span style="font-size: 0.85rem; color: #aaa; font-weight: 500;">unidades</span>
                             </div>
+                            <div style="font-size: 0.78rem; color: #bbb; text-align: right; line-height: 1.5; max-width: 180px;">Se actualiza al definir<br>tallas en las variantes</div>
                         </div>
 
-                        <!-- PRECIOS -->
-                        <div class="section-divider">Precios y Promociones</div>
-
-                        <div class="input-group">
-                            <label>Precio Normal ($) *</label>
-                            <input type="number" id="prodPrecio" required placeholder="Ej: 25990" min="0">
-                        </div>
-
-                        <div class="input-group" style="grid-column: span 2; background: rgba(19, 194, 179, 0.05); padding: 1.5rem; border-radius: 8px; border: 1px dashed var(--teal-studio);">
-                            <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer; color: var(--teal-studio); font-size: 1.1rem; margin-bottom: 0;">
-                                <input type="checkbox" id="prodEnOferta" style="width: 20px; height: 20px; accent-color: var(--teal-studio);">
-                                <strong>🔥 Activar Oferta Especial (Descuento)</strong>
-                            </label>
-
-                            <div id="ofertaOptions" style="display: none; margin-top: 1.5rem; grid-template-columns: 1fr 1fr; gap: 1rem;">
-                                <div class="input-group" style="margin-bottom: 0;">
-                                    <label>Precio Oferta ($) *</label>
-                                    <input type="number" id="prodPrecioOferta" placeholder="Ej: 19990" min="0">
-                                </div>
-                                <div class="input-group" style="margin-bottom: 0; display: flex; flex-direction: column; justify-content: center;">
-                                    <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer; margin-top: 1.5rem; margin-bottom: 0;">
-                                        <input type="checkbox" id="prodOfertaLimitada" style="width: 18px; height: 18px; accent-color: var(--dark-studio);">
-                                        <strong>Oferta por Tiempo Limitado (FOMO)</strong>
-                                    </label>
-                                </div>
-                                <div class="input-group" id="ofertaDateGroup" style="display: none; grid-column: span 2; margin-top: 0.5rem; margin-bottom: 0;">
-                                    <label>Fecha de término de la oferta</label>
-                                    <input type="datetime-local" id="prodOfertaFin">
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="input-group" style="grid-column: span 2;">
-                            <label>Descripción Completa del Producto</label>
-                            <textarea id="prodDesc" rows="4" placeholder="Describe los materiales, el calce y los beneficios de esta prenda..."></textarea>
-                        </div>
                     </div>
                 </div>
                 
@@ -687,7 +737,7 @@
                 const matchText = (p.nombre?.toLowerCase().includes(term) || p.sku?.toLowerCase().includes(term) || p.etiquetas?.toLowerCase().includes(term));
                 let matchQuick = true;
                 if (currentQuickFilter === 'kits') matchQuick = p.es_kit === 1;
-                if (currentQuickFilter === 'ofertas') matchQuick = p.en_oferta === 1;
+                if (currentQuickFilter === 'ofertas') matchQuick = p.isOffer == 1 || p.en_oferta === 1;
                 return matchText && matchQuick;
             });
             applySort(currentSortColumn || 'id', sortAscending);
@@ -708,16 +758,22 @@
                 const statusText = product.visible === 1 ? '<span style="color:var(--teal-studio); font-weight:600; font-size:0.85rem;">Activo</span>' : '<span style="color:#888; font-weight:600; font-size:0.85rem;">Oculto</span>';
                 const statusBadge = `<div style="display:flex; align-items:center;"><label class="switch-inline"><input type="checkbox" ${isChecked} onchange="toggleListStatus(${product.id}, this.checked)"><span class="slider-inline"></span></label>${statusText}</div>`;
                 
-                let displayPrice = new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP' }).format(product.precio_normal || 0);
-                let offerBadge = '';
-                
-                if (product.en_oferta === 1) {
-                    const offerPrice = new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP' }).format(product.precio_oferta || 0);
-                    displayPrice = `<span style="text-decoration: line-through; color: #999; font-size: 0.8rem; margin-right: 5px;">${displayPrice}</span><br><strong style="color: var(--danger-color); font-size: 1.1rem;">${offerPrice}</strong>`;
-                    offerBadge = `<div class="badge badge-oferta">🔥 OFERTA</div>`;
-                } else { displayPrice = `<strong style="color: var(--teal-studio);">${displayPrice}</strong>`; }
+                const normalPriceStr = new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP' }).format(product.precio_normal || 0);
+                let displayPrice = '';
 
-                const kitBadge = product.es_kit === 1 ? `<span style="background:var(--teal-claro); color:var(--teal-studio); font-size:0.65rem; padding:2px 6px; border-radius:4px; font-weight:bold; margin-left:5px;">KIT</span>` : '';
+                // Usar isOffer + offerPrice (nuevo) con fallback a en_oferta + precio_oferta (legado)
+                const hasOffer = product.isOffer == 1 || product.en_oferta === 1;
+                const offerAmt  = product.offerPrice || product.precio_oferta || 0;
+
+                if (hasOffer && offerAmt > 0) {
+                    const offerPriceStr = new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP' }).format(offerAmt);
+                    displayPrice = `<div style="line-height:1.4;"><span style="text-decoration:line-through;color:#bbb;font-size:0.78rem;">${normalPriceStr}</span><br><strong style="color:var(--danger-color);font-size:1.05rem;">${offerPriceStr}</strong></div>`;
+                } else {
+                    displayPrice = `<strong style="color:var(--teal-studio);">${normalPriceStr}</strong>`;
+                }
+
+                const kitBadge     = product.es_kit === 1 ? `<span style="background:var(--teal-claro);color:var(--teal-studio);font-size:0.65rem;padding:2px 6px;border-radius:4px;font-weight:bold;margin-left:5px;">KIT</span>` : '';
+                const isOfferBadge = hasOffer ? `<span style="display:inline-block;background:linear-gradient(135deg,#e91e8c,#e84118);color:#fff;font-size:0.68rem;padding:2px 8px;border-radius:20px;font-weight:800;margin-left:5px;letter-spacing:0.3px;box-shadow:0 2px 6px rgba(233,30,140,0.3);">🔥 OFERTA</span>` : '';
 
                 let mainImgUrl = product.variantes && product.variantes.length > 0 ? product.variantes[0].imagen_1 : '';
                 const imgThumb = mainImgUrl ? `<img src="${mainImgUrl}" style="width: 50px; height: 50px; object-fit: cover; border-radius: 8px;">` : `<div style="width:50px;height:50px;background:var(--fondo-claro);border-radius:8px;"></div>`;
@@ -760,8 +816,7 @@
                         <div style="display: flex; align-items: center; gap: 1rem;">
                             ${imgThumb}
                             <div style="display: flex; flex-direction: column; align-items: flex-start;">
-                                <div><span style="font-weight: 600; color: var(--dark-studio);">${product.nombre}</span> ${kitBadge}</div>
-                                ${offerBadge}
+                                <div><span style="font-weight: 600; color: var(--dark-studio);">${product.nombre}</span> ${kitBadge} ${isOfferBadge}</div>
                                 <div style="margin-top:5px;">${colorDots}</div>
                             </div>
                         </div>
@@ -769,7 +824,7 @@
                     <td>${catText}</td>
                     <td>${tagsDisplay}</td>
                     <td>${displayPrice}</td>
-                    <td>${product.stock || 0} un.</td>
+                    <td><span class="stat-badge badge-stock">${product.stock || 0} un.</span></td>
                     <td>${statusBadge}</td>
                     <td>
                         <button class="action-btn" onclick="openEditModal(${product.id})" title="Editar Producto">✏️</button>
@@ -912,6 +967,18 @@
                 if(acceptCallback) acceptCallback();
             };
         };
+
+        // Muestra/oculta el campo Precio Oferta con transición suave
+        function toggleOfferPrice() {
+            const wrapper = document.getElementById('offerPriceWrapper');
+            const isOn = document.getElementById('prodOffer').checked;
+            if (isOn) {
+                wrapper.classList.add('visible');
+            } else {
+                wrapper.classList.remove('visible');
+                document.getElementById('prodOfferPrice').value = '';
+            }
+        }
 
         window.toggleKitMode = () => {
             const checkbox = document.getElementById('prodEsKit');
@@ -1319,9 +1386,6 @@
         const productModal = document.getElementById('productModal');
         const productForm = document.getElementById('productForm');
         
-        document.getElementById('prodEnOferta').addEventListener('change', (e) => { document.getElementById('ofertaOptions').style.display = e.target.checked ? 'grid' : 'none'; });
-        document.getElementById('prodOfertaLimitada').addEventListener('change', (e) => { document.getElementById('ofertaDateGroup').style.display = e.target.checked ? 'block' : 'none'; });
-
         // --- HELPERS DE CATEGORÍAS MÚLTIPLES ---
         document.getElementById('prodCategorias').addEventListener('click', (e) => {
             const pill = e.target.closest('.cat-pill');
@@ -1352,8 +1416,8 @@
             document.getElementById('lblProdStatus').textContent = 'Activo en Tienda';
             document.getElementById('lblProdStatus').style.color = 'var(--teal-studio)';
 
-            document.getElementById('ofertaOptions').style.display = 'none';
-            document.getElementById('ofertaDateGroup').style.display = 'none';
+            document.getElementById('prodOffer').checked = false;
+            toggleOfferPrice();
             setCategoriaIds([]);
             currentTags = []; renderTags();
             document.getElementById('modalProductNameMirror').textContent = '';
@@ -1378,30 +1442,28 @@
 
             document.getElementById('prodNombre').value = p.nombre;
             document.getElementById('prodSku').value = p.sku || '';
+            document.getElementById('prodWeight').value = p.weight || 0;
             document.getElementById('prodPrecio').value = p.precio_normal;
             const editCats = Array.isArray(p.categorias_ids) ? p.categorias_ids : (p.categoria_id ? [p.categoria_id] : [1]);
             setCategoriaIds(editCats.map(Number));
-            document.getElementById('prodDesc').value = p.descripcion || '';
-            
+            document.getElementById('prodDesc').value = p.description || p.descripcion || '';
+
             const isKit = p.es_kit === 1;
             document.getElementById('prodEsKit').checked = isKit;
 
-            currentTags = p.etiquetas ? p.etiquetas.split(',').map(t => t.trim()) : [];
+            const _hasOffer = p.isOffer == 1 || p.en_oferta === 1;
+            document.getElementById('prodOffer').checked = _hasOffer;
+            document.getElementById('prodOfferPrice').value = p.offerPrice || p.precio_oferta || '';
+            toggleOfferPrice();
+
+            const _rawTags = p.tags || p.etiquetas || '';
+            currentTags = _rawTags ? _rawTags.split(',').map(t => t.trim()).filter(Boolean) : [];
             renderTags();
-            
-            document.getElementById('prodEnOferta').checked = p.en_oferta === 1;
-            document.getElementById('ofertaOptions').style.display = p.en_oferta === 1 ? 'grid' : 'none';
-            document.getElementById('prodPrecioOferta').value = p.precio_oferta || '';
-            
-            document.getElementById('prodOfertaLimitada').checked = p.oferta_limitada === 1;
-            document.getElementById('ofertaDateGroup').style.display = p.oferta_limitada === 1 ? 'block' : 'none';
-            if(p.fecha_fin_oferta) document.getElementById('prodOfertaFin').value = p.fecha_fin_oferta.substring(0, 16); 
-            else document.getElementById('prodOfertaFin').value = '';
-            
+
             variantsWrapper.innerHTML = ''; productVariants = [];
             if(p.variantes && p.variantes.length > 0) p.variantes.forEach(v => addVariantUI(v));
-            else addVariantUI(); 
-            
+            else addVariantUI();
+
             document.getElementById('modalProductNameMirror').textContent = '- ' + p.nombre;
             calculateTotalStock();
             productModal.classList.add('active');
@@ -1423,30 +1485,28 @@
 
             document.getElementById('prodNombre').value = p.nombre + ' (Copia)';
             document.getElementById('prodSku').value = p.sku ? p.sku + '-COPY' : '';
+            document.getElementById('prodWeight').value = p.weight || 0;
             document.getElementById('prodPrecio').value = p.precio_normal;
             const dupCats = Array.isArray(p.categorias_ids) ? p.categorias_ids : (p.categoria_id ? [p.categoria_id] : [1]);
             setCategoriaIds(dupCats.map(Number));
-            document.getElementById('prodDesc').value = p.descripcion || '';
-            
+            document.getElementById('prodDesc').value = p.description || p.descripcion || '';
+
             const isKit = p.es_kit === 1;
             document.getElementById('prodEsKit').checked = isKit;
 
-            currentTags = p.etiquetas ? p.etiquetas.split(',').map(t => t.trim()) : [];
+            const _hasOfferDup = p.isOffer == 1 || p.en_oferta === 1;
+            document.getElementById('prodOffer').checked = _hasOfferDup;
+            document.getElementById('prodOfferPrice').value = p.offerPrice || p.precio_oferta || '';
+            toggleOfferPrice();
+
+            const _rawTagsDup = p.tags || p.etiquetas || '';
+            currentTags = _rawTagsDup ? _rawTagsDup.split(',').map(t => t.trim()).filter(Boolean) : [];
             renderTags();
-            
-            document.getElementById('prodEnOferta').checked = p.en_oferta === 1;
-            document.getElementById('ofertaOptions').style.display = p.en_oferta === 1 ? 'grid' : 'none';
-            document.getElementById('prodPrecioOferta').value = p.precio_oferta || '';
-            
-            document.getElementById('prodOfertaLimitada').checked = p.oferta_limitada === 1;
-            document.getElementById('ofertaDateGroup').style.display = p.oferta_limitada === 1 ? 'block' : 'none';
-            if(p.fecha_fin_oferta) document.getElementById('prodOfertaFin').value = p.fecha_fin_oferta.substring(0, 16); 
-            else document.getElementById('prodOfertaFin').value = '';
-            
+
             variantsWrapper.innerHTML = ''; productVariants = [];
             if(p.variantes && p.variantes.length > 0) p.variantes.forEach(v => addVariantUI(v));
-            else addVariantUI(); 
-            
+            else addVariantUI();
+
             document.getElementById('modalProductNameMirror').textContent = '- ' + p.nombre + ' (Copia)';
             calculateTotalStock();
             productModal.classList.add('active');
@@ -1518,22 +1578,34 @@
 
             btnSave.textContent = 'Guardando...'; btnSave.disabled = true;
 
+            const _offerOn        = document.getElementById('prodOffer').checked;
+            const _offerPriceVal  = parseInt(document.getElementById('prodOfferPrice').value) || 0;
+            const _descVal        = document.getElementById('prodDesc').value || null;
+            const _tagsVal        = currentTags.length > 0 ? currentTags.join(',') : null;
+
             const productData = {
-                admin_name: localStorage.getItem('admin_name'),
-                nombre: document.getElementById('prodNombre').value,
-                sku: document.getElementById('prodSku').value || null,
+                admin_name:    localStorage.getItem('admin_name'),
+                nombre:        document.getElementById('prodNombre').value,
+                sku:           document.getElementById('prodSku').value || null,
+                // Nuevos campos canónicos (inglés)
+                description:   _descVal,
+                tags:          _tagsVal,
+                isOffer:       _offerOn ? 1 : 0,
+                offerPrice:    _offerOn ? _offerPriceVal : 0,
+                // Campos legacy mantenidos para compatibilidad
+                descripcion:   _descVal,
+                etiquetas:     _tagsVal,
+                en_oferta:     _offerOn ? 1 : 0,
+                precio_oferta: _offerOn ? _offerPriceVal || null : null,
+                oferta_limitada:  0,
+                fecha_fin_oferta: null,
                 precio_normal: parseFloat(document.getElementById('prodPrecio').value),
-                precio_oferta: document.getElementById('prodEnOferta').checked ? parseFloat(document.getElementById('prodPrecioOferta').value) : null,
-                en_oferta: document.getElementById('prodEnOferta').checked ? 1 : 0,
-                oferta_limitada: document.getElementById('prodOfertaLimitada').checked ? 1 : 0,
-                fecha_fin_oferta: document.getElementById('prodOfertaLimitada').checked ? document.getElementById('prodOfertaFin').value : null,
-                stock: cleanVariants.reduce((sum, v) => sum + v.stock, 0),
+                stock:         cleanVariants.reduce((sum, v) => sum + v.stock, 0),
                 categorias_ids: getCategoriaIds(),
-                etiquetas: currentTags.length > 0 ? currentTags.join(',') : null,
-                descripcion: document.getElementById('prodDesc').value || null,
-                es_kit: isKit ? 1 : 0,
-                variantes: cleanVariants, 
-                visible: document.getElementById('prodVisible').checked ? 1 : 0 
+                es_kit:        isKit ? 1 : 0,
+                weight:        parseInt(document.getElementById('prodWeight').value) || 0,
+                variantes:     cleanVariants,
+                visible:       document.getElementById('prodVisible').checked ? 1 : 0
             };
 
             const method = editingProductId ? 'PUT' : 'POST';
