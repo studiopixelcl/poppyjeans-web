@@ -121,10 +121,30 @@
         .modal-body { padding: 2rem 2.5rem; }
         .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
         .modal-actions { display: flex; justify-content: flex-end; gap: 1rem; padding: 1.5rem 2.5rem; border-top: 1px solid var(--gris-claro); background: var(--fondo-claro); }
-        
+
+        /* --- AGENTES IA --- */
+        .agents-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 1.5rem; }
+        .agent-card { background: var(--fondo-claro); border-radius: var(--radius-md); padding: 1.5rem; border: 1px solid var(--gris-claro); transition: var(--transition-smooth); display: flex; flex-direction: column; }
+        .agent-card:hover { border-color: var(--teal-studio); box-shadow: 0 4px 15px rgba(19, 194, 179, 0.1); }
+        .agent-card-header { display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem; }
+        .agent-avatar { width: 45px; height: 45px; border-radius: 50%; background: var(--dark-studio); color: var(--blanco-puro); display: flex; align-items: center; justify-content: center; font-size: 1.3rem; flex-shrink: 0; }
+        .agent-name { font-family: var(--font-display); font-weight: 700; font-size: 1rem; color: var(--dark-studio); }
+        .agent-role { font-size: 0.8rem; color: var(--teal-studio); font-weight: 600; }
+        .agent-prompt { font-size: 0.85rem; color: #777; line-height: 1.5; margin-bottom: 1rem; flex-grow: 1; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+        .agent-actions { display: flex; justify-content: flex-end; gap: 0.5rem; }
+        #agentModal textarea { resize: vertical; min-height: 120px; }
+
+        /* --- TOAST DE NOTIFICACIONES --- */
+        #adminToast { position: fixed; bottom: 2rem; right: 2rem; padding: 0.85rem 1.5rem; border-radius: 8px; font-size: 0.9rem; font-weight: 600; color: #fff; z-index: 9999; opacity: 0; transform: translateY(10px); transition: opacity 0.3s ease, transform 0.3s ease; pointer-events: none; box-shadow: 0 10px 30px rgba(30,30,36,0.2); }
+        #adminToast.show { opacity: 1; transform: translateY(0); }
+        #adminToast.success { background: var(--teal-studio); }
+        #adminToast.error { background: var(--danger-color); }
+
     </style>
 </head>
 <body>
+
+    <div id="adminToast"></div>
 
     <!-- VISTA ACCESO DENEGADO -->
     <div id="accessDeniedView">
@@ -162,10 +182,19 @@
             <div class="sidebar-logo">MATHSO<span>LUIS</span></div>
             <ul class="nav-menu">
                 <li class="nav-item"><a href="index.html" class="nav-link">📦 Inventario</a></li>
-                <li class="nav-item"><a href="pedidos.html" class="nav-link">🛒 Pedidos</a></li>
+                <li class="nav-item"><a href="pedidos.html" class="nav-link">📝 Pedidos</a></li>
                 <li class="nav-item"><a href="clientes.html" class="nav-link">👥 Clientes</a></li>
-                <li class="nav-item"><a href="configuracion.html" class="nav-link active">⚙️ Configuración</a></li>
-                <li class="nav-item" style="margin-top: 2rem;"><a href="actividades.html" class="nav-link">📊 Actividades (Admin)</a></li>
+                <li id="admin-only-nav" style="margin-top: 1.5rem;">
+                    <span style="display:block; font-size:0.65rem; font-weight:700; text-transform:uppercase; letter-spacing:1px; color:#555; padding:0 1rem 0.5rem;">Solo Admin</span>
+                    <ul style="list-style:none; padding:0; margin:0;">
+                        <li class="nav-item"><a href="metricas.html" class="nav-link">📈 Métricas</a></li>
+                        <li class="nav-item"><a href="actividades.html" class="nav-link">📜 Actividades</a></li>
+                        <li class="nav-item"><a href="configuracion.html" class="nav-link active">⚙️ Configuración</a></li>
+                    </ul>
+                </li>
+                <li class="nav-item" style="margin-top: 2rem; border-top: 1px solid rgba(255,255,255,0.08); padding-top: 1rem;">
+                    <a href="#" class="nav-link" onclick="logout(); return false;">🚪 Cerrar Sesión</a>
+                </li>
             </ul>
         </aside>
 
@@ -222,6 +251,21 @@
                     </div>
                 </div>
             </section>
+
+            <!-- AGENTES IA -->
+            <section class="card">
+                <div class="card-header">
+                    <h3>🤖 Agentes de Inteligencia Artificial</h3>
+                    <div style="display: flex; gap: 1rem; align-items: center;">
+                        <button class="btn-secondary" onclick="saveConfig()">💾 Guardar Configuración</button>
+                        <button class="btn-primary" style="width: auto; padding: 0.6rem 1.5rem;" onclick="addAgent()">+ Nuevo Agente</button>
+                    </div>
+                </div>
+                <p style="color: #888; font-size: 0.9rem; margin-bottom: 1.5rem;">Configura los asistentes virtuales que interactúan con clientes. Define su rol, personalidad y comportamiento mediante un <em>system prompt</em>.</p>
+                <div id="agentsList" class="agents-grid">
+                    <p style="color: #aaa; font-size: 0.9rem; grid-column: 1 / -1; text-align: center; padding: 2rem;">Cargando agentes...</p>
+                </div>
+            </section>
         </main>
     </div>
 
@@ -272,6 +316,42 @@
         </div>
     </div>
 
+    <!-- MODAL CREAR / EDITAR AGENTE IA -->
+    <div id="agentModal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="agentModalTitle">Nuevo Agente IA</h3>
+                <button class="close-modal" onclick="closeAgentModal()">✕</button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="agentId">
+                <div class="form-grid">
+                    <div class="input-group" style="grid-column: span 2;">
+                        <label>Nombre del Agente *</label>
+                        <input type="text" id="agentName" placeholder="Ej: Asistente de Ventas">
+                    </div>
+                    <div class="input-group" style="grid-column: span 2;">
+                        <label>Rol del Agente</label>
+                        <select id="agentRole">
+                            <option value="Ventas">🛒 Ventas</option>
+                            <option value="Soporte">🛠️ Soporte Técnico</option>
+                            <option value="Cobranzas">💰 Cobranzas</option>
+                            <option value="General">💬 Asistente General</option>
+                        </select>
+                    </div>
+                    <div class="input-group" style="grid-column: span 2;">
+                        <label>System Prompt (Instrucciones del Agente) *</label>
+                        <textarea id="agentPrompt" rows="6" placeholder="Eres un asistente de ventas amable de Mathsoluis. Tu objetivo es ayudar a los clientes a encontrar los productos que necesitan..."></textarea>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-actions">
+                <button type="button" class="btn-secondary" onclick="closeAgentModal()">Cancelar</button>
+                <button type="button" class="btn-primary" style="width: auto;" onclick="saveAgentModal()">Guardar Agente</button>
+            </div>
+        </div>
+    </div>
+
     <!-- LÓGICA JAVASCRIPT -->
     <script>
                 const loginView = document.getElementById('loginView');
@@ -280,8 +360,9 @@
         const loginForm = document.getElementById('loginForm');
         const adminsTableBody = document.getElementById('adminsTableBody');
         
-        let allAdmins = []; 
-        let editingAdminId = null; 
+        let allAdmins = [];
+        let editingAdminId = null;
+        let aiAgents = [];
 
         window.onload = () => {
             const token = localStorage.getItem('admin_token');
@@ -342,11 +423,19 @@
             }
         });
 
-        function showDashboard() { 
-            loginView.style.display = 'none'; 
+        function showDashboard() {
+            loginView.style.display = 'none';
             accessDeniedView.style.display = 'none';
-            dashboardView.style.display = 'block'; 
-            loadAdmins(); 
+            dashboardView.style.display = 'block';
+            // Control de acceso visual: oculta sección Admin Only para agentes
+            // (en esta página el acceso ya está restringido a superadmin,
+            // pero mantenemos el patrón consistente)
+            const adminOnlyNav = document.getElementById('admin-only-nav');
+            if (adminOnlyNav && localStorage.getItem('admin_rol') !== 'superadmin') {
+                adminOnlyNav.style.display = 'none';
+            }
+            loadAdmins();
+            loadConfig();
         }
         
         function logout() { 
@@ -456,52 +545,189 @@
             };
 
             if (!editingAdminId && !adminData.password) {
-                alert("Debes asignar una contraseña para el usuario nuevo.");
+                showToast("Debes asignar una contraseña para el usuario nuevo.", 'error');
                 btnSave.textContent = 'Guardar Usuario'; btnSave.disabled = false;
                 return;
             }
 
             const method = editingAdminId ? 'PUT' : 'POST';
-            const url = editingAdminId ? `${API_BASE_URL}/api/admin/users/${editingAdminId}` : `${API_BASE_URL}/api/admin/users`;
+            const endpoint = editingAdminId ? `/api/admin/users/${editingAdminId}` : `/api/admin/users`;
 
             try {
-                const response = await fetch(url, { 
-                    method: method, 
-                    headers: { 'Content-Type': 'application/json' }, 
-                    body: JSON.stringify(adminData) 
+                // adminFetch inyecta el token de sesión — sin él el backend responde 401
+                const response = await adminFetch(endpoint, {
+                    method: method,
+                    body: JSON.stringify(adminData)
                 });
-                
+                if (!response) return; // sesión expirada — adminFetch ya redirigió
+
                 const result = await response.json();
-                
+
                 if (result.success) {
-                    closeAdminModal(); 
-                    loadAdmins(); 
+                    closeAdminModal();
+                    loadAdmins();
+                    showToast(editingAdminId ? 'Usuario actualizado correctamente.' : 'Usuario creado correctamente.', 'success');
                 } else {
-                    alert('Error: ' + result.error);
+                    showToast('Error al guardar: ' + (result.error || 'desconocido'), 'error');
                 }
             } catch (error) {
-                alert('Error de red.');
-                closeAdminModal();
+                showToast('Error de red al guardar el usuario.', 'error');
             } finally {
-                btnSave.textContent = 'Guardar Usuario'; 
+                btnSave.textContent = 'Guardar Usuario';
                 btnSave.disabled = false;
             }
         });
 
         async function deleteAdmin(id) {
-            if (id === 1) return alert("No puedes eliminar al Superadministrador principal.");
-            
+            if (id === 1) return showToast("No puedes eliminar al Superadministrador principal.", 'error');
+
             if (!confirm(`¿Seguro que deseas revocar el acceso y eliminar permanentemente al usuario #${id}?`)) return;
             try {
                 const response = await adminFetch(`/api/admin/users/${id}`, { method: 'DELETE' });
                 if (!response) return;
                 const result = await response.json();
-                if (result.success) loadAdmins(); 
-                else alert('Error: ' + result.error);
+                if (result.success) {
+                    loadAdmins();
+                    showToast('Usuario eliminado correctamente.', 'success');
+                } else {
+                    showToast('Error: ' + result.error, 'error');
+                }
             } catch (error) {
-                alert('Error de conexión.');
+                showToast('Error de conexión.', 'error');
             }
         }
+
+        // ==========================================
+        // AGENTES IA — CRUD
+        // ==========================================
+        const ROLE_ICONS = { 'Ventas': '🛒', 'Soporte': '🛠️', 'Cobranzas': '💰', 'General': '💬' };
+
+        function renderAgents() {
+            const container = document.getElementById('agentsList');
+            if (aiAgents.length === 0) {
+                container.innerHTML = `<p style="color:#aaa;font-size:0.9rem;grid-column:1/-1;text-align:center;padding:2rem;">No hay agentes configurados. Haz clic en "+ Nuevo Agente" para comenzar.</p>`;
+                return;
+            }
+            container.innerHTML = aiAgents.map(agent => `
+                <div class="agent-card">
+                    <div class="agent-card-header">
+                        <div class="agent-avatar">${ROLE_ICONS[agent.role] || '🤖'}</div>
+                        <div>
+                            <div class="agent-name">${agent.name}</div>
+                            <div class="agent-role">${agent.role}</div>
+                        </div>
+                    </div>
+                    <p class="agent-prompt">${agent.prompt || 'Sin instrucciones definidas.'}</p>
+                    <div class="agent-actions">
+                        <button class="action-btn" onclick="editAgent('${agent.id}')" title="Editar Agente">✏️</button>
+                        <button class="action-btn" style="color:var(--danger-color);" onclick="deleteAgent('${agent.id}')" title="Eliminar Agente">🗑️</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function addAgent() {
+            document.getElementById('agentId').value = '';
+            document.getElementById('agentName').value = '';
+            document.getElementById('agentRole').value = 'Ventas';
+            document.getElementById('agentPrompt').value = '';
+            document.getElementById('agentModalTitle').textContent = 'Nuevo Agente IA';
+            document.getElementById('agentModal').classList.add('active');
+        }
+
+        function editAgent(id) {
+            const agent = aiAgents.find(a => a.id === id);
+            if (!agent) return;
+            document.getElementById('agentId').value = agent.id;
+            document.getElementById('agentName').value = agent.name;
+            document.getElementById('agentRole').value = agent.role;
+            document.getElementById('agentPrompt').value = agent.prompt;
+            document.getElementById('agentModalTitle').textContent = 'Editar Agente IA';
+            document.getElementById('agentModal').classList.add('active');
+        }
+
+        function deleteAgent(id) {
+            const agent = aiAgents.find(a => a.id === id);
+            if (!agent) return;
+            if (!confirm(`¿Eliminar el agente "${agent.name}"? Esta acción no se puede deshacer.`)) return;
+            aiAgents = aiAgents.filter(a => a.id !== id);
+            renderAgents();
+            showToast('Agente eliminado. Recuerda guardar la configuración.', 'success');
+        }
+
+        function saveAgentModal() {
+            const name = document.getElementById('agentName').value.trim();
+            const role = document.getElementById('agentRole').value;
+            const prompt = document.getElementById('agentPrompt').value.trim();
+
+            if (!name) return showToast('El nombre del agente es obligatorio.', 'error');
+            if (!prompt) return showToast('El system prompt es obligatorio.', 'error');
+
+            const existingId = document.getElementById('agentId').value;
+            if (existingId) {
+                const idx = aiAgents.findIndex(a => a.id === existingId);
+                if (idx > -1) aiAgents[idx] = { id: existingId, name, role, prompt };
+            } else {
+                aiAgents.push({ id: 'agent_' + Date.now(), name, role, prompt });
+            }
+
+            closeAgentModal();
+            renderAgents();
+            showToast(existingId ? 'Agente actualizado. Recuerda guardar la configuración.' : 'Agente añadido. Recuerda guardar la configuración.', 'success');
+        }
+
+        function closeAgentModal() {
+            document.getElementById('agentModal').classList.remove('active');
+        }
+
+        // ==========================================
+        // GUARDAR / CARGAR CONFIGURACIÓN GLOBAL
+        // ==========================================
+        async function saveConfig() {
+            try {
+                const response = await adminFetch('/api/config', {
+                    method: 'POST',
+                    body: JSON.stringify({ aiAgents })
+                });
+                if (!response) return;
+                const result = await response.json();
+                if (result.success) {
+                    showToast('✅ Configuración guardada correctamente.', 'success');
+                } else {
+                    showToast('Error al guardar: ' + (result.error || 'desconocido'), 'error');
+                }
+            } catch (e) {
+                showToast('Error de conexión al guardar la configuración.', 'error');
+            }
+        }
+
+        async function loadConfig() {
+            try {
+                const response = await adminFetch('/api/config');
+                if (!response) return;
+                const result = await response.json();
+                if (result.success && result.data && Array.isArray(result.data.aiAgents)) {
+                    aiAgents = result.data.aiAgents;
+                }
+            } catch (e) {
+                console.warn('No se pudo cargar la configuración:', e);
+            } finally {
+                renderAgents();
+            }
+        }
+
+        // ==========================================
+        // TOAST DE NOTIFICACIONES (feedback claro)
+        // ==========================================
+        let toastTimer = null;
+        window.showToast = (msg, type = 'success') => {
+            const t = document.getElementById('adminToast');
+            if (!t) { alert(msg); return; }
+            t.textContent = msg;
+            t.className = `show ${type}`;
+            clearTimeout(toastTimer);
+            toastTimer = setTimeout(() => { t.className = type; }, 3200);
+        };
     </script>
 
     <!-- ✅ AUTH HELPER v2.0 - Sesiones seguras con token UUID -->

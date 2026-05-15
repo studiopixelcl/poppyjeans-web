@@ -1,0 +1,1423 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mathsoluis | Analytics Dashboard</title>
+
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;600;700;800&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
+    <style>
+        :root {
+            --blanco-puro:   #FFFFFF;
+            --fondo-claro:   #F4F7F6;
+            --teal-studio:   #13C2B3;
+            --teal-claro:    #E0F6F5;
+            --dark-studio:   #1E1E24;
+            --gris-claro:    #E8ECEB;
+            --danger-color:  #E74C3C;
+            --danger-light:  #FDEDEC;
+            --warn-color:    #F39C12;
+            --warn-light:    #FEF9E7;
+
+            --font-main:    'Poppins', sans-serif;
+            --font-display: 'Montserrat', sans-serif;
+
+            --radius-md: 12px;
+            --radius-lg: 20px;
+            --shadow:    0 10px 30px rgba(30,30,36,0.08);
+            --transition: all 0.3s ease;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: var(--font-main); background: var(--fondo-claro); color: var(--dark-studio); }
+
+        /* ── LOGIN ───────────────────────────────────────────────── */
+        #loginView { min-height: 100vh; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, var(--dark-studio) 0%, #2a2a35 100%); }
+        .login-card { background: var(--blanco-puro); padding: 3rem; border-radius: var(--radius-md); box-shadow: 0 20px 40px rgba(0,0,0,0.2); width: 100%; max-width: 400px; text-align: center; }
+        .login-logo { font-family: var(--font-display); font-size: 1.8rem; font-weight: 800; color: var(--dark-studio); margin-bottom: 2rem; }
+        .login-logo span { color: var(--teal-studio); }
+        .input-group { margin-bottom: 1.5rem; text-align: left; }
+        .input-group label { display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 0.5rem; color: #666; }
+        .input-group input { width: 100%; padding: 0.8rem 1rem; border: 1px solid var(--gris-claro); border-radius: 8px; font-family: var(--font-main); font-size: 0.95rem; outline: none; transition: var(--transition); background: var(--fondo-claro); }
+        .input-group input:focus { border-color: var(--teal-studio); background: var(--blanco-puro); box-shadow: 0 0 0 3px var(--teal-claro); }
+        .btn-primary { width: 100%; background: var(--teal-studio); color: var(--blanco-puro); border: none; padding: 1rem; border-radius: 8px; font-family: var(--font-main); font-size: 1rem; font-weight: 600; cursor: pointer; transition: var(--transition); }
+        .btn-primary:hover { background: #10a89b; transform: translateY(-2px); }
+        .error-msg { color: var(--danger-color); font-size: 0.85rem; margin-top: 1rem; display: none; }
+
+        /* ── SHELL ───────────────────────────────────────────────── */
+        #dashboardView { display: none; min-height: 100vh; }
+        .sidebar { width: 250px; background: var(--dark-studio); color: var(--blanco-puro); position: fixed; height: 100vh; top: 0; left: 0; padding: 2rem 1.5rem; z-index: 100; overflow-y: auto; }
+        .sidebar-logo { font-family: var(--font-display); font-size: 1.5rem; font-weight: 800; margin-bottom: 3rem; }
+        .sidebar-logo span { color: var(--teal-studio); }
+        .nav-menu { list-style: none; }
+        .nav-item { margin-bottom: 0.5rem; }
+        .nav-link { display: block; color: #aaa; text-decoration: none; padding: 0.8rem 1rem; border-radius: 8px; font-weight: 500; transition: var(--transition); }
+        .nav-link:hover, .nav-link.active { background: rgba(255,255,255,0.1); color: var(--teal-studio); }
+
+        .main-content { margin-left: 250px; padding: 2rem 3rem 4rem; }
+        .topbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; }
+        .topbar h2 { font-family: var(--font-display); font-size: 1.8rem; font-weight: 700; }
+        .user-info { display: flex; align-items: center; gap: 1rem; font-weight: 600; }
+        .logout-btn { background: var(--danger-light); color: var(--danger-color); border: none; padding: 0.5rem 1rem; border-radius: 6px; cursor: pointer; font-weight: 600; }
+
+        .section-title { font-family: var(--font-display); font-size: 1rem; font-weight: 700; margin-bottom: 1.1rem; color: var(--dark-studio); text-transform: uppercase; letter-spacing: 0.5px; }
+
+        /* ── FILTER BAR ──────────────────────────────────────────── */
+        .filter-bar { background: var(--blanco-puro); border-radius: var(--radius-md); padding: 1.1rem 1.6rem; margin-bottom: 2rem; display: flex; align-items: center; gap: 1rem; flex-wrap: wrap; box-shadow: var(--shadow); border: 1px solid var(--gris-claro); }
+        .filter-bar label { font-size: 0.82rem; font-weight: 600; color: #777; white-space: nowrap; }
+        .filter-bar input[type="date"] { padding: 0.5rem 0.85rem; border: 1px solid var(--gris-claro); border-radius: 8px; font-family: var(--font-main); font-size: 0.88rem; color: var(--dark-studio); background: var(--fondo-claro); outline: none; transition: var(--transition); cursor: pointer; }
+        .filter-bar input[type="date"]:focus { border-color: var(--teal-studio); background: var(--blanco-puro); box-shadow: 0 0 0 3px var(--teal-claro); }
+        .btn-filter { background: var(--teal-studio); color: var(--blanco-puro); border: none; padding: 0.5rem 1.3rem; border-radius: 8px; font-family: var(--font-main); font-size: 0.88rem; font-weight: 600; cursor: pointer; transition: var(--transition); }
+        .btn-filter:hover { background: #10a89b; transform: translateY(-1px); }
+        .btn-filter:disabled { background: #ccc; cursor: not-allowed; transform: none; }
+        .btn-reset { background: transparent; color: #888; border: 1px solid var(--gris-claro); padding: 0.5rem 1.1rem; border-radius: 8px; font-family: var(--font-main); font-size: 0.88rem; font-weight: 500; cursor: pointer; transition: var(--transition); }
+        .btn-reset:hover { border-color: #aaa; color: var(--dark-studio); }
+        .range-badge { font-size: 0.76rem; color: #aaa; background: var(--fondo-claro); padding: 0.35rem 0.85rem; border-radius: 20px; border: 1px solid var(--gris-claro); white-space: nowrap; }
+        .btn-export { margin-left: auto; background: var(--dark-studio); color: var(--blanco-puro); border: none; padding: 0.5rem 1.3rem; border-radius: 8px; font-family: var(--font-main); font-size: 0.88rem; font-weight: 600; cursor: pointer; transition: var(--transition); display: flex; align-items: center; gap: 0.4rem; white-space: nowrap; }
+        .btn-export:hover { background: #2a2a35; transform: translateY(-1px); }
+
+        /* ── KPI GRID ────────────────────────────────────────────── */
+        .metrics-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.3rem; margin-bottom: 2rem; }
+        .metric-card { background: var(--blanco-puro); border-radius: var(--radius-lg); padding: 1.6rem; box-shadow: var(--shadow); border: 1px solid var(--gris-claro); position: relative; overflow: hidden; transition: var(--transition); cursor: pointer; user-select: none; }
+        .metric-card:hover { transform: translateY(-3px) scale(1.02); box-shadow: 0 20px 44px rgba(30,30,36,0.14); border-color: var(--teal-studio); }
+        .metric-card:active { transform: scale(0.99); }
+        .metric-card::before { content: ''; position: absolute; top: 0; left: 0; width: 5px; height: 100%; background: var(--teal-studio); border-radius: 3px 0 0 3px; }
+        .metric-card.is-warning::before { background: var(--warn-color); }
+        .metric-card.is-neutral::before { background: var(--dark-studio); }
+        .metric-card.is-purple::before  { background: #8E44AD; }
+        .metric-card.is-blue::before    { background: #2980B9; }
+        /* Columna extra para costo de envío en tabla */
+        .o-shipping { font-weight: 700; color: #2980B9; text-align: right; display: block; }
+        .metric-icon  { font-size: 1.9rem; margin-bottom: 0.65rem; display: block; }
+        .metric-label { font-size: 0.76rem; font-weight: 600; color: #999; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 0.3rem; }
+        .metric-value { font-family: var(--font-display); font-size: 1.85rem; font-weight: 800; color: var(--dark-studio); line-height: 1.1; }
+        .metric-value.loading { color: #ddd; font-size: 1.3rem; }
+        .metric-sub { font-size: 0.74rem; color: #bbb; margin-top: 0.35rem; }
+        .metric-hint { font-size: 0.7rem; color: var(--teal-studio); font-weight: 600; margin-top: 0.75rem; opacity: 0.5; transition: opacity 0.2s; letter-spacing: 0.3px; }
+        .metric-card:hover .metric-hint { opacity: 1; }
+        .metric-card:focus-visible { outline: none; transform: translateY(-3px) scale(1.02); box-shadow: 0 20px 44px rgba(30,30,36,0.14); border-color: var(--teal-studio); }
+
+        /* ── KPI delta (comparación período anterior) ─────────────── */
+        .metric-delta { font-size: 0.7rem; font-weight: 700; margin-top: 0.55rem; display: inline-flex; align-items: center; gap: 0.28rem; padding: 0.2rem 0.55rem; border-radius: 20px; line-height: 1.2; }
+        .metric-delta.up   { background: #EAFAF1; color: #1E8449; }
+        .metric-delta.down { background: #FDEDEC; color: #C0392B; }
+        .metric-delta.flat { background: var(--fondo-claro); color: #999; }
+        .metric-delta.hidden { display: none; }
+
+        /* ── DATE PRESETS ────────────────────────────────────────── */
+        .preset-row { display: flex; gap: 0.45rem; flex-wrap: wrap; margin: -1rem 0 2rem; }
+        .preset-chip { background: var(--blanco-puro); border: 1px solid var(--gris-claro); color: #777; padding: 0.4rem 0.95rem; border-radius: 20px; font-family: var(--font-main); font-size: 0.76rem; font-weight: 600; cursor: pointer; transition: var(--transition); }
+        .preset-chip:hover { border-color: var(--teal-studio); color: var(--teal-studio); }
+        .preset-chip.active { background: var(--teal-studio); border-color: var(--teal-studio); color: #fff; }
+
+        /* ── KPI MODAL ───────────────────────────────────────────── */
+        .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(30,30,36,0.5); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); z-index: 500; align-items: center; justify-content: center; padding: 1.5rem; }
+        .modal-overlay.active { display: flex; }
+        .modal-box { background: var(--blanco-puro); border-radius: var(--radius-lg); width: 100%; max-width: 780px; max-height: 88vh; display: flex; flex-direction: column; box-shadow: 0 28px 70px rgba(30,30,36,0.22); overflow: hidden; animation: modalIn 0.22s ease; }
+        @keyframes modalIn { from { opacity:0; transform: scale(0.96) translateY(12px); } to { opacity:1; transform: none; } }
+        .modal-head { padding: 1.4rem 1.8rem; border-bottom: 1px solid var(--gris-claro); display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem; flex-shrink: 0; }
+        .modal-head-left {}
+        .modal-title { font-family: var(--font-display); font-size: 1.15rem; font-weight: 700; color: var(--dark-studio); }
+        .modal-date { font-size: 0.78rem; color: #aaa; margin-top: 0.25rem; }
+        .modal-close { background: var(--fondo-claro); border: none; width: 32px; height: 32px; border-radius: 50%; cursor: pointer; font-size: 1rem; display: flex; align-items: center; justify-content: center; transition: var(--transition); flex-shrink: 0; color: #666; line-height: 1; }
+        .modal-close:hover { background: var(--danger-light); color: var(--danger-color); }
+        .modal-body { padding: 1.5rem 1.8rem; overflow-y: auto; flex: 1; }
+        .modal-count { font-size: 0.8rem; color: #aaa; margin-bottom: 1rem; }
+        .modal-foot { border-top: 1px solid var(--gris-claro); padding: 1rem 1.8rem; display: flex; justify-content: space-between; align-items: center; flex-shrink: 0; background: var(--fondo-claro); }
+        .modal-foot-label { font-size: 0.78rem; color: #888; font-weight: 600; }
+        .modal-foot-total { font-family: var(--font-display); font-size: 1.2rem; font-weight: 800; color: var(--teal-studio); }
+        .modal-search { width: 100%; padding: 0.62rem 0.95rem; border: 1px solid var(--gris-claro); border-radius: 8px; font-family: var(--font-main); font-size: 0.85rem; margin-bottom: 1rem; outline: none; background: var(--fondo-claro); transition: var(--transition); }
+        .modal-search:focus { border-color: var(--teal-studio); background: #fff; box-shadow: 0 0 0 3px var(--teal-claro); }
+        .modal-loading { text-align: center; padding: 3rem 1rem; color: #ccc; }
+        .modal-loading span { display: block; font-size: 2.2rem; margin-bottom: 0.5rem; }
+        .modal-empty { text-align: center; padding: 3rem 1rem; color: #bbb; font-size: 0.9rem; }
+        .modal-empty span { display: block; font-size: 2.2rem; margin-bottom: 0.5rem; }
+        /* Tabla de órdenes dentro del modal */
+        .orders-table { width: 100%; border-collapse: collapse; }
+        .orders-table th { font-size: 0.68rem; font-weight: 700; color: #bbb; text-transform: uppercase; letter-spacing: 0.5px; padding: 0 0.5rem 0.75rem 0; text-align: left; border-bottom: 2px solid var(--gris-claro); white-space: nowrap; }
+        .orders-table th:last-child { text-align: right; padding-right: 0; }
+        .orders-table td { padding: 0.78rem 0.5rem 0.78rem 0; border-bottom: 1px solid var(--fondo-claro); vertical-align: middle; font-size: 0.84rem; }
+        .orders-table tbody tr:last-child td { border-bottom: none; }
+        .orders-table tbody tr { cursor: pointer; }
+        .orders-table tbody tr:hover td { background: var(--fondo-claro); }
+        .o-id { font-weight: 700; color: var(--teal-studio); font-family: monospace; font-size: 0.88rem; }
+        .o-client { font-weight: 500; max-width: 160px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: block; }
+        .o-date { color: #aaa; font-size: 0.8rem; }
+        .o-total { font-weight: 700; text-align: right; display: block; }
+        .status-pill { display: inline-block; padding: 0.2rem 0.65rem; border-radius: 20px; font-size: 0.7rem; font-weight: 700; white-space: nowrap; }
+        /* Info box para ticket promedio */
+        .modal-info-box { background: var(--fondo-claro); border-radius: var(--radius-md); padding: 1.4rem 1.6rem; margin-bottom: 1.5rem; border-left: 4px solid var(--teal-studio); }
+        .modal-info-box h4 { font-family: var(--font-display); font-size: 0.8rem; font-weight: 700; color: #888; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 0.8rem; }
+        .modal-formula { font-family: 'Courier New', monospace; font-size: 0.9rem; color: var(--dark-studio); background: var(--blanco-puro); border: 1px solid var(--gris-claro); border-radius: 8px; padding: 0.7rem 1rem; margin-bottom: 0.5rem; line-height: 1.5; }
+        .modal-big-num { font-family: var(--font-display); font-size: 2.2rem; font-weight: 800; color: var(--teal-studio); margin-top: 0.6rem; }
+
+        /* ── INVENTORY ROW (mini-cards) ──────────────────────────── */
+        .inventory-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.1rem; margin-bottom: 2rem; }
+        @media (max-width: 900px) { .inventory-row { grid-template-columns: 1fr 1fr; } }
+
+        .mini-card { background: var(--blanco-puro); border-radius: var(--radius-md); padding: 1.1rem 1.3rem; box-shadow: var(--shadow); border: 1px solid var(--gris-claro); display: flex; align-items: center; gap: 1rem; transition: var(--transition); cursor: pointer; user-select: none; }
+        .mini-card:hover { transform: translateY(-2px); box-shadow: 0 12px 28px rgba(30,30,36,0.10); border-color: var(--teal-studio); }
+        .mini-card:active { transform: scale(0.99); }
+        .mini-card:focus-visible { outline: none; border-color: var(--teal-studio); box-shadow: 0 0 0 3px var(--teal-claro); }
+        .mini-icon { font-size: 1.7rem; flex-shrink: 0; line-height: 1; }
+        .mini-body { min-width: 0; flex: 1; }
+        .mini-label { font-size: 0.72rem; font-weight: 600; color: #aaa; text-transform: uppercase; letter-spacing: 0.4px; white-space: nowrap; }
+        .mini-value { font-family: var(--font-display); font-size: 1.4rem; font-weight: 800; color: var(--dark-studio); line-height: 1.2; }
+        .mini-value.loading { color: #ddd; }
+        .mini-card.is-warn  .mini-value { color: var(--warn-color); }
+        .mini-card.is-danger .mini-value { color: var(--danger-color); }
+        .mini-card.is-teal  .mini-value { color: var(--teal-studio); }
+        .mini-hint { font-size: 0.68rem; color: var(--teal-studio); font-weight: 600; margin-top: 0.3rem; opacity: 0; transition: opacity 0.2s; letter-spacing: 0.3px; }
+        .mini-card:hover .mini-hint { opacity: 1; }
+        /* ── Tabla de productos en modal de inventario ───────────── */
+        .p-img  { width: 40px; height: 40px; object-fit: cover; border-radius: 8px; background: var(--fondo-claro); display: block; flex-shrink: 0; }
+        .p-img-placeholder { width: 40px; height: 40px; border-radius: 8px; background: var(--fondo-claro); display: flex; align-items: center; justify-content: center; font-size: 1.2rem; flex-shrink: 0; }
+        .p-name { font-weight: 600; color: var(--dark-studio); max-width: 180px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: block; }
+        .p-sku  { font-family: monospace; font-size: 0.75rem; color: #aaa; }
+        .stock-ok   { display: inline-block; padding: 0.18rem 0.6rem; border-radius: 20px; font-size: 0.72rem; font-weight: 700; background: #EAFAF1; color: #1E8449; }
+        .stock-low  { display: inline-block; padding: 0.18rem 0.6rem; border-radius: 20px; font-size: 0.72rem; font-weight: 700; background: #FEF9E7; color: #B7950B; }
+        .stock-out  { display: inline-block; padding: 0.18rem 0.6rem; border-radius: 20px; font-size: 0.72rem; font-weight: 700; background: #FDEDEC; color: #C0392B; }
+        .p-price { font-weight: 700; color: var(--teal-studio); text-align: right; display: block; }
+
+        /* ── LINE CHART ──────────────────────────────────────────── */
+        .chart-section { background: var(--blanco-puro); border-radius: var(--radius-lg); padding: 1.8rem 2rem; box-shadow: var(--shadow); border: 1px solid var(--gris-claro); margin-bottom: 1.8rem; }
+        .chart-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.3rem; }
+        .chart-header h3 { font-family: var(--font-display); font-size: 1.05rem; font-weight: 700; }
+        .chart-meta { font-size: 0.8rem; color: #aaa; }
+        .chart-canvas-wrap { position: relative; height: 280px; }
+        .chart-empty { display: flex; align-items: center; justify-content: center; height: 280px; color: #ccc; font-size: 0.9rem; flex-direction: column; gap: 0.5rem; text-align: center; }
+        .chart-empty span { font-size: 2.2rem; }
+
+        /* ── BOTTOM GRID (3 cols) ────────────────────────────────── */
+        .bottom-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1.3rem; }
+        @media (max-width: 1200px) { .bottom-grid { grid-template-columns: 1fr 1fr; } }
+        @media (max-width: 800px)  { .bottom-grid { grid-template-columns: 1fr; } }
+
+        .data-card { background: var(--blanco-puro); border-radius: var(--radius-lg); padding: 1.6rem; box-shadow: var(--shadow); border: 1px solid var(--gris-claro); }
+        .data-card h3 { font-family: var(--font-display); font-size: 1rem; font-weight: 700; margin-bottom: 1.2rem; }
+
+        /* Products table */
+        .star-table { width: 100%; border-collapse: collapse; }
+        .star-table th { font-size: 0.68rem; font-weight: 700; color: #bbb; text-transform: uppercase; letter-spacing: 0.5px; padding: 0 0 0.7rem; text-align: left; border-bottom: 2px solid var(--gris-claro); }
+        .star-table th:last-child, .star-table td:last-child { text-align: right; }
+        .star-table td { padding: 0.75rem 0; border-bottom: 1px solid var(--fondo-claro); vertical-align: middle; font-size: 0.84rem; }
+        .star-table tbody tr:last-child td { border-bottom: none; }
+        .rank-badge { width: 22px; height: 22px; border-radius: 50%; background: var(--teal-claro); color: var(--teal-studio); font-size: 0.7rem; font-weight: 700; display: flex; align-items: center; justify-content: center; }
+        .rank-badge.gold   { background: #FEF9E7; color: #D4AC0D; }
+        .rank-badge.silver { background: #F2F3F4; color: #808B96; }
+        .rank-badge.bronze { background: #FDEBD0; color: #CA6F1E; }
+        .product-name { font-weight: 600; }
+        .units-pill { background: var(--fondo-claro); padding: 0.15rem 0.5rem; border-radius: 20px; font-size: 0.74rem; font-weight: 600; color: #777; }
+        .revenue-val { font-weight: 700; color: var(--teal-studio); font-size: 0.86rem; }
+
+        /* Status Doughnut */
+        .pie-canvas-wrap { position: relative; height: 230px; }
+
+        /* Category bars */
+        .cat-item { margin-bottom: 1rem; }
+        .cat-item:last-child { margin-bottom: 0; }
+        .cat-row { display: flex; justify-content: space-between; margin-bottom: 0.28rem; }
+        .cat-name { font-size: 0.82rem; font-weight: 600; }
+        .cat-val  { font-size: 0.8rem; color: #aaa; }
+        .cat-track { height: 7px; background: var(--fondo-claro); border-radius: 4px; overflow: hidden; }
+        .cat-fill  { height: 100%; background: var(--teal-studio); border-radius: 4px; transition: width 0.7s cubic-bezier(.4,0,.2,1); }
+
+        .empty-state { text-align: center; padding: 2.2rem 1rem; color: #ccc; font-size: 0.86rem; }
+        .empty-state span { display: block; font-size: 2rem; margin-bottom: 0.4rem; }
+    </style>
+</head>
+<body>
+
+<!-- ═══ LOGIN ════════════════════════════════════════════════════ -->
+<div id="loginView">
+    <div class="login-card">
+        <div class="login-logo">MATHSO<span>LUIS</span></div>
+        <p style="color:#888;margin-bottom:2rem;font-size:0.9rem;">Ingresa tus credenciales para acceder al panel corporativo.</p>
+        <form id="loginForm">
+            <div class="input-group">
+                <label>Correo Electrónico</label>
+                <input type="email" id="loginEmail" required placeholder="admin@mathsoluis.cl" value="admin@mathsoluis.cl">
+            </div>
+            <div class="input-group">
+                <label>Contraseña</label>
+                <input type="password" id="loginPassword" required placeholder="Ingresa tu contraseña">
+            </div>
+            <button type="submit" class="btn-primary" id="loginBtnText">Iniciar Sesión</button>
+            <div id="loginError" class="error-msg">Credenciales incorrectas. Intenta nuevamente.</div>
+        </form>
+    </div>
+</div>
+
+<!-- ═══ DASHBOARD ════════════════════════════════════════════════ -->
+<div id="dashboardView">
+    <aside class="sidebar">
+        <div class="sidebar-logo">MATHSO<span>LUIS</span></div>
+        <ul class="nav-menu">
+            <li class="nav-item"><a href="index.html" class="nav-link">📦 Inventario</a></li>
+            <li class="nav-item"><a href="pedidos.html" class="nav-link">📝 Pedidos</a></li>
+            <li class="nav-item"><a href="clientes.html" class="nav-link">👥 Clientes</a></li>
+            <li id="admin-only-nav" style="margin-top:1.5rem;">
+                <span style="display:block;font-size:0.65rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#555;padding:0 1rem 0.5rem;">Solo Admin</span>
+                <ul style="list-style:none;padding:0;margin:0;">
+                    <li class="nav-item"><a href="metricas.html" class="nav-link active">📈 Métricas</a></li>
+                    <li class="nav-item"><a href="actividades.html" class="nav-link">📜 Actividades</a></li>
+                    <li class="nav-item"><a href="configuracion.html" class="nav-link">⚙️ Configuración</a></li>
+                </ul>
+            </li>
+            <li class="nav-item" style="margin-top:2rem;border-top:1px solid rgba(255,255,255,0.08);padding-top:1rem;">
+                <a href="#" class="nav-link" onclick="logout();return false;">🚪 Cerrar Sesión</a>
+            </li>
+        </ul>
+    </aside>
+
+    <main class="main-content">
+        <header class="topbar">
+            <h2>Analytics Dashboard</h2>
+            <div class="user-info">
+                <span id="adminName">Cargando...</span>
+                <button class="logout-btn" onclick="logout()">Salir</button>
+            </div>
+        </header>
+
+        <!-- FILTER BAR -->
+        <div class="filter-bar">
+            <label for="dateFrom">Desde</label>
+            <input type="date" id="dateFrom">
+            <label for="dateTo">Hasta</label>
+            <input type="date" id="dateTo">
+            <button class="btn-filter" id="filterBtn" onclick="applyFilter()">Filtrar</button>
+            <button class="btn-reset" onclick="clearFilter()">Todo</button>
+            <span class="range-badge" id="rangeLabel">Datos históricos completos</span>
+            <button class="btn-export" onclick="exportToExcel()">📥 Exportar Excel</button>
+        </div>
+
+        <!-- PRESETS DE FECHA -->
+        <div class="preset-row">
+            <button class="preset-chip" data-key="7d"   onclick="setPreset('7d', this)">Últimos 7 días</button>
+            <button class="preset-chip" data-key="30d"  onclick="setPreset('30d', this)">Últimos 30 días</button>
+            <button class="preset-chip" data-key="mes"  onclick="setPreset('mes', this)">Este mes</button>
+            <button class="preset-chip" data-key="anio" onclick="setPreset('anio', this)">Este año</button>
+            <button class="preset-chip" data-key="todo" onclick="setPreset('todo', this)">Histórico</button>
+        </div>
+
+        <!-- KPI DE VENTAS -->
+        <p class="section-title">Indicadores de Ventas</p>
+        <div class="metrics-grid">
+            <div class="metric-card" tabindex="0" role="button" onclick="openKpiModal('ingresos')" onkeydown="handleCardKey(event,'ingresos')">
+                <span class="metric-icon">💰</span>
+                <div class="metric-label">Ingresos Totales</div>
+                <div class="metric-value loading" id="metricIngresos">···</div>
+                <div class="metric-sub">Suma de pedidos pagados</div>
+                <div class="metric-delta hidden" id="deltaIngresos"></div>
+                <div class="metric-hint">Ver detalle →</div>
+            </div>
+            <div class="metric-card is-warning" tabindex="0" role="button" onclick="openKpiModal('pendientes')" onkeydown="handleCardKey(event,'pendientes')">
+                <span class="metric-icon">📦</span>
+                <div class="metric-label">Pendientes por Enviar</div>
+                <div class="metric-value loading" id="metricPendientes">···</div>
+                <div class="metric-sub">Estado Pendiente o Procesando</div>
+                <div class="metric-hint">Ver detalle →</div>
+            </div>
+            <div class="metric-card is-neutral" tabindex="0" role="button" onclick="openKpiModal('ordenes')" onkeydown="handleCardKey(event,'ordenes')">
+                <span class="metric-icon">🛒</span>
+                <div class="metric-label">Órdenes Totales</div>
+                <div class="metric-value loading" id="metricOrdenes">···</div>
+                <div class="metric-sub">Pedidos en el período</div>
+                <div class="metric-delta hidden" id="deltaOrdenes"></div>
+                <div class="metric-hint">Ver detalle →</div>
+            </div>
+            <div class="metric-card is-purple" tabindex="0" role="button" onclick="openKpiModal('ticket')" onkeydown="handleCardKey(event,'ticket')">
+                <span class="metric-icon">🎯</span>
+                <div class="metric-label">Ticket Promedio</div>
+                <div class="metric-value loading" id="metricAov">···</div>
+                <div class="metric-sub">Ingresos ÷ órdenes pagadas</div>
+                <div class="metric-delta hidden" id="deltaAov"></div>
+                <div class="metric-hint">Ver cálculo →</div>
+            </div>
+            <div class="metric-card is-blue" tabindex="0" role="button" onclick="openKpiModal('shipping')" onkeydown="handleCardKey(event,'shipping')">
+                <span class="metric-icon">🚚</span>
+                <div class="metric-label">Inversión en Envíos</div>
+                <div class="metric-value loading" id="metricShipping">···</div>
+                <div class="metric-sub">Costo logístico de pedidos pagados</div>
+                <div class="metric-hint">Ver detalle →</div>
+            </div>
+        </div>
+
+        <!-- INVENTARIO (mini-cards — estado actual, sin filtro de fecha) -->
+        <p class="section-title">Estado del Inventario</p>
+        <div class="inventory-row">
+            <div class="mini-card is-teal" tabindex="0" role="button"
+                 onclick="openInventoryModal('value')" onkeydown="handleCardKey(event,'value')">
+                <div class="mini-icon">💎</div>
+                <div class="mini-body">
+                    <div class="mini-label">Valor del Stock</div>
+                    <div class="mini-value loading" id="metricStockValue">···</div>
+                    <div class="mini-hint">Ver catálogo →</div>
+                </div>
+            </div>
+            <div class="mini-card is-warn" tabindex="0" role="button"
+                 onclick="openInventoryModal('low')" onkeydown="handleCardKey(event,'low')">
+                <div class="mini-icon">⚠️</div>
+                <div class="mini-body">
+                    <div class="mini-label">Stock Bajo (&lt;5 uds)</div>
+                    <div class="mini-value loading" id="metricLowStock">···</div>
+                    <div class="mini-hint">Ver productos →</div>
+                </div>
+            </div>
+            <div class="mini-card is-danger" tabindex="0" role="button"
+                 onclick="openInventoryModal('out')" onkeydown="handleCardKey(event,'out')">
+                <div class="mini-icon">🚫</div>
+                <div class="mini-body">
+                    <div class="mini-label">Sin Stock</div>
+                    <div class="mini-value loading" id="metricOutOfStock">···</div>
+                    <div class="mini-hint">Ver productos →</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- GRÁFICO: VENTAS DIARIAS -->
+        <div class="chart-section">
+            <div class="chart-header">
+                <h3>Evolución de Ventas Diarias</h3>
+                <span class="chart-meta" id="chartMeta">—</span>
+            </div>
+            <div class="chart-canvas-wrap">
+                <div class="chart-empty" id="chartEmpty"><span>📊</span>Cargando datos...</div>
+                <canvas id="salesChart" style="display:none;"></canvas>
+            </div>
+        </div>
+
+        <!-- BOTTOM GRID: Top Products | Status Pie | Category Bars -->
+        <div class="bottom-grid">
+
+            <!-- TOP PRODUCTOS -->
+            <div class="data-card">
+                <h3>⭐ Productos Estrella</h3>
+                <div id="topProductsContainer">
+                    <div class="empty-state"><span>📦</span>Cargando...</div>
+                </div>
+            </div>
+
+            <!-- DISTRIBUCIÓN POR ESTADO -->
+            <div class="data-card">
+                <h3>📋 Estados de Pedidos</h3>
+                <div class="pie-canvas-wrap">
+                    <div class="chart-empty" id="statusChartEmpty"><span>🥧</span>Cargando...</div>
+                    <canvas id="statusChart" style="display:none;"></canvas>
+                </div>
+            </div>
+
+            <!-- DISTRIBUCIÓN POR CATEGORÍA -->
+            <div class="data-card">
+                <h3>🏷️ Ventas por Categoría</h3>
+                <div id="categoryContainer">
+                    <div class="empty-state"><span>📂</span>Cargando...</div>
+                </div>
+            </div>
+
+        </div><!-- /bottom-grid -->
+    </main>
+</div>
+
+<!-- ═══ KPI MODAL ════════════════════════════════════════════════ -->
+<div id="kpiModal" class="modal-overlay" onclick="handleModalBackdrop(event)">
+    <div class="modal-box">
+        <div class="modal-head">
+            <div class="modal-head-left">
+                <div class="modal-title" id="kpiModalTitle">Detalle</div>
+                <div class="modal-date"  id="kpiModalDate">—</div>
+            </div>
+            <button class="modal-close" onclick="closeKpiModal()" title="Cerrar">✕</button>
+        </div>
+        <div class="modal-body">
+            <div id="kpiModalContent">
+                <div class="modal-loading"><span>⏳</span>Cargando...</div>
+            </div>
+        </div>
+        <div class="modal-foot" id="kpiModalFoot" style="display:none;">
+            <span class="modal-foot-label" id="kpiModalFootLabel">Monto total mostrado</span>
+            <span class="modal-foot-total" id="kpiModalFootTotal">$0</span>
+        </div>
+    </div>
+</div>
+
+<!-- ═══ LÓGICA PRINCIPAL ═════════════════════════════════════════ -->
+<script>
+    const loginView     = document.getElementById('loginView');
+    const dashboardView = document.getElementById('dashboardView');
+    const loginForm     = document.getElementById('loginForm');
+
+    let salesChartInstance  = null;
+    let statusChartInstance = null;
+    let currentMetricsData  = null;
+
+    // IDs a poner en estado "cargando" / actualizar
+    const KPI_IDS = ['metricIngresos', 'metricPendientes', 'metricOrdenes', 'metricAov', 'metricShipping'];
+    const INV_IDS = ['metricStockValue', 'metricLowStock', 'metricOutOfStock'];
+
+    const STATUS_COLORS = {
+        'Pagado':     '#13C2B3',
+        'Pendiente':  '#F39C12',
+        'Enviado':    '#3498DB',
+        'Preparando': '#8E44AD',
+        'Entregado':  '#27AE60',
+        'Cancelado':  '#E74C3C',
+        'Procesando': '#E67E22',
+    };
+
+    /* ─── INIT ────────────────────────────────────────────────── */
+    window.onload = () => {
+        const today = new Date();
+        const ago30 = new Date(today);
+        ago30.setDate(today.getDate() - 29);
+        document.getElementById('dateTo').value   = today.toISOString().split('T')[0];
+        document.getElementById('dateFrom').value = ago30.toISOString().split('T')[0];
+        document.querySelector('.preset-chip[data-key="30d"]')?.classList.add('active');
+
+        if (localStorage.getItem('admin_token')) {
+            document.getElementById('adminName').textContent = localStorage.getItem('admin_name') || 'Administrador';
+            showDashboard();
+        }
+    };
+
+    /* ─── LOGIN ───────────────────────────────────────────────── */
+    loginForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        document.getElementById('loginError').style.display = 'none';
+        document.getElementById('loginBtnText').textContent = 'Conectando...';
+        try {
+            const res    = await fetch(`${API_BASE_URL}/api/admin/login`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    email:    document.getElementById('loginEmail').value,
+                    password: document.getElementById('loginPassword').value
+                })
+            });
+            const result = await res.json();
+            if (result.success) {
+                localStorage.setItem('admin_token', result.token);
+                localStorage.setItem('admin_name',  result.admin_data.nombre);
+                localStorage.setItem('admin_rol',   result.admin_data.rol);
+                document.getElementById('adminName').textContent = result.admin_data.nombre;
+                showDashboard();
+            } else {
+                document.getElementById('loginError').textContent = result.error || 'Credenciales incorrectas.';
+                document.getElementById('loginError').style.display = 'block';
+            }
+        } catch {
+            document.getElementById('loginError').textContent = 'Error de conexión con el servidor.';
+            document.getElementById('loginError').style.display = 'block';
+        } finally {
+            document.getElementById('loginBtnText').textContent = 'Iniciar Sesión';
+        }
+    });
+
+    function showDashboard() {
+        loginView.style.display    = 'none';
+        dashboardView.style.display = 'block';
+        const adminOnlyNav = document.getElementById('admin-only-nav');
+        if (adminOnlyNav && localStorage.getItem('admin_rol') !== 'superadmin') {
+            adminOnlyNav.style.display = 'none';
+        }
+        loadMetrics(document.getElementById('dateFrom').value, document.getElementById('dateTo').value);
+    }
+
+    /* ─── HELPERS ─────────────────────────────────────────────── */
+    function formatCLP(amount) {
+        const n = Number(amount) || 0;
+        return '$' + Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+    }
+
+    function setLoadingState() {
+        [...KPI_IDS, ...INV_IDS].forEach(id => {
+            const el = document.getElementById(id);
+            if (el) { el.textContent = '···'; el.classList.add('loading'); }
+        });
+    }
+
+    function clearLoadingState() {
+        [...KPI_IDS, ...INV_IDS].forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.classList.remove('loading');
+        });
+    }
+
+    /* ─── DELTA vs PERÍODO ANTERIOR ───────────────────────────── */
+    const DELTA_IDS = ['deltaIngresos', 'deltaOrdenes', 'deltaAov'];
+
+    function hideDeltas() {
+        DELTA_IDS.forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.className = 'metric-delta hidden';
+        });
+    }
+
+    function renderDelta(elId, current, previous) {
+        const el = document.getElementById(elId);
+        if (!el) return;
+        if (previous === null || previous === undefined) { el.className = 'metric-delta hidden'; return; }
+        const cur  = Number(current)  || 0;
+        const prev = Number(previous) || 0;
+        if (prev === 0) {
+            if (cur === 0) { el.className = 'metric-delta flat'; el.textContent = '— sin datos previos'; }
+            else           { el.className = 'metric-delta up';   el.textContent = '▲ nuevo en este período'; }
+            return;
+        }
+        const pct = Math.round(((cur - prev) / prev) * 100);
+        if (pct > 0)      { el.className = 'metric-delta up';   el.textContent = `▲ ${pct}% vs período anterior`; }
+        else if (pct < 0) { el.className = 'metric-delta down'; el.textContent = `▼ ${Math.abs(pct)}% vs período anterior`; }
+        else              { el.className = 'metric-delta flat'; el.textContent = '— sin cambios'; }
+    }
+
+    /* ─── FILTROS ─────────────────────────────────────────────── */
+    function clearPresetChips() {
+        document.querySelectorAll('.preset-chip').forEach(c => c.classList.remove('active'));
+    }
+
+    function applyFilter() {
+        const from = document.getElementById('dateFrom').value;
+        const to   = document.getElementById('dateTo').value;
+        if (from && to && from > to) {
+            alert('La fecha "Desde" no puede ser mayor que "Hasta".');
+            return;
+        }
+        clearPresetChips();
+        loadMetrics(from, to);
+    }
+
+    function clearFilter() {
+        document.getElementById('dateFrom').value = '';
+        document.getElementById('dateTo').value   = '';
+        clearPresetChips();
+        document.querySelector('.preset-chip[data-key="todo"]')?.classList.add('active');
+        loadMetrics('', '');
+    }
+
+    /* ─── PRESETS DE FECHA ────────────────────────────────────── */
+    function setPreset(key, chip) {
+        clearPresetChips();
+        if (chip) chip.classList.add('active');
+
+        const today = new Date();
+        const fmt   = dt => dt.toISOString().split('T')[0];
+        let from = '', to = fmt(today);
+
+        if (key === '7d')        { const d = new Date(today); d.setDate(d.getDate() - 6);  from = fmt(d); }
+        else if (key === '30d')  { const d = new Date(today); d.setDate(d.getDate() - 29); from = fmt(d); }
+        else if (key === 'mes')  { from = fmt(new Date(today.getFullYear(), today.getMonth(), 1)); }
+        else if (key === 'anio') { from = fmt(new Date(today.getFullYear(), 0, 1)); }
+        else if (key === 'todo') { from = ''; to = ''; }
+
+        document.getElementById('dateFrom').value = from;
+        document.getElementById('dateTo').value   = to;
+        loadMetrics(from, to);
+    }
+
+    /* ─── ACCESIBILIDAD: KPI cards + mini-cards por teclado ──── */
+    const INVENTORY_TYPES = ['value', 'low', 'out'];
+    function handleCardKey(e, type) {
+        if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            if (INVENTORY_TYPES.includes(type)) openInventoryModal(type);
+            else openKpiModal(type);
+        }
+    }
+
+    /* ─── CARGA DE MÉTRICAS ───────────────────────────────────── */
+    async function loadMetrics(from = '', to = '') {
+        const filterBtn = document.getElementById('filterBtn');
+        filterBtn.disabled    = true;
+        filterBtn.textContent = 'Cargando...';
+        setLoadingState();
+
+        let endpoint = '/api/admin/metrics';
+        const params = new URLSearchParams();
+        if (from) params.append('from', from);
+        if (to)   params.append('to',   to);
+        if (params.toString()) endpoint += '?' + params.toString();
+
+        const rangeLabel = document.getElementById('rangeLabel');
+        if (from && to)   rangeLabel.textContent = `${from} → ${to}`;
+        else if (from)    rangeLabel.textContent = `Desde ${from}`;
+        else if (to)      rangeLabel.textContent = `Hasta ${to}`;
+        else              rangeLabel.textContent = 'Datos históricos completos';
+
+        try {
+            const response = await adminFetch(endpoint);
+            if (!response) return;
+
+            // Verificar HTTP status ANTES de intentar parsear JSON.
+            // Si el servidor devuelve 500, el body puede ser texto o JSON truncado,
+            // lo que causaría "Unexpected end of JSON input".
+            if (!response.ok) {
+                const errorText = await response.text();
+                console.error('[Mathsoluis Metrics] Error del servidor (' + response.status + '):', errorText);
+                throw new Error('Error ' + response.status + ' — ' + errorText.slice(0, 200));
+            }
+
+            const result = await response.json();
+
+            // Debug: ver exactamente qué responde el servidor (incluye _schema con nombres de columnas detectados)
+            console.log('[Mathsoluis Metrics] Respuesta del servidor:', result);
+            if (result?.data?._schema) {
+                console.log('[Mathsoluis Metrics] Esquema detectado:', result.data._schema);
+            }
+
+            if (result.success && result.data) {
+                const d = result.data;
+                currentMetricsData = { ...d, from, to };
+
+                // KPIs de ventas
+                document.getElementById('metricIngresos').textContent  = formatCLP(d.total_ingresos);
+                document.getElementById('metricPendientes').textContent = d.pedidos_pendientes ?? 0;
+                document.getElementById('metricOrdenes').textContent    = d.total_ordenes ?? 0;
+                document.getElementById('metricAov').textContent        = d.aov ? formatCLP(d.aov) : '$0';
+                document.getElementById('metricShipping').textContent   = formatCLP(d.total_shipping_cost || 0);
+
+                // KPIs de inventario
+                document.getElementById('metricStockValue').textContent = formatCLP(d.total_stock_value);
+                document.getElementById('metricLowStock').textContent   = d.low_stock_items ?? 0;
+                document.getElementById('metricOutOfStock').textContent = d.out_of_stock_count ?? 0;
+
+                clearLoadingState();
+
+                // Deltas vs período anterior (solo si el backend los calculó)
+                const cmp = d.comparison;
+                if (cmp && cmp.has_comparison) {
+                    renderDelta('deltaIngresos', d.total_ingresos, cmp.prev_ingresos);
+                    renderDelta('deltaOrdenes',  d.total_ordenes,  cmp.prev_ordenes);
+                    renderDelta('deltaAov',      d.aov,            cmp.prev_aov);
+                } else {
+                    hideDeltas();
+                }
+
+                renderSalesChart(d.sales_by_day            || []);
+                renderStatusChart(d.status_distribution    || []);
+                renderTopProducts(d.top_products           || []);
+                renderCategoryBars(d.category_distribution || []);
+
+            } else {
+                console.warn('[Mathsoluis Metrics] El servidor respondió success=false:', result?.error);
+                [...KPI_IDS, ...INV_IDS].forEach(id => {
+                    const el = document.getElementById(id);
+                    if (el) { el.textContent = '—'; el.classList.remove('loading'); }
+                });
+                hideDeltas();
+                renderSalesChart([]);
+                renderStatusChart([]);
+                renderTopProducts([]);
+                renderCategoryBars([]);
+            }
+        } catch (err) {
+            console.error('[Mathsoluis Metrics] Error de red o parsing:', err);
+            clearLoadingState();
+            hideDeltas();
+            [...KPI_IDS, ...INV_IDS].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) { el.textContent = '!'; el.classList.remove('loading'); }
+            });
+        } finally {
+            filterBtn.disabled    = false;
+            filterBtn.textContent = 'Filtrar';
+        }
+    }
+
+    /* ─── GRÁFICO DE LÍNEAS ── ventas diarias ─────────────────── */
+    function renderSalesChart(salesByDay) {
+        const canvas   = document.getElementById('salesChart');
+        const emptyDiv = document.getElementById('chartEmpty');
+        const meta     = document.getElementById('chartMeta');
+
+        if (salesChartInstance) { salesChartInstance.destroy(); salesChartInstance = null; }
+
+        if (!salesByDay || salesByDay.length === 0) {
+            canvas.style.display   = 'none';
+            emptyDiv.style.display = 'flex';
+            emptyDiv.innerHTML     = '<span>📊</span>No hay ventas registradas en este período';
+            meta.textContent       = '0 días con ventas';
+            return;
+        }
+
+        canvas.style.display   = 'block';
+        emptyDiv.style.display = 'none';
+
+        const labels = salesByDay.map(d => { const p = d.dia.split('-'); return `${p[2]}/${p[1]}`; });
+        const values = salesByDay.map(d => Number(d.total));
+        const total  = values.reduce((a, b) => a + b, 0);
+        meta.textContent = `${salesByDay.length} días · Total: ${formatCLP(total)}`;
+
+        salesChartInstance = new Chart(canvas.getContext('2d'), {
+            type: 'line',
+            data: {
+                labels,
+                datasets: [{
+                    label: 'Ventas del día',
+                    data: values,
+                    borderColor: '#13C2B3',
+                    backgroundColor: 'rgba(19,194,179,0.07)',
+                    borderWidth: 2.5,
+                    pointBackgroundColor: '#13C2B3',
+                    pointBorderColor: '#fff',
+                    pointBorderWidth: 2,
+                    pointRadius: 4,
+                    pointHoverRadius: 7,
+                    fill: true,
+                    tension: 0.4,
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                interaction: { mode: 'index', intersect: false },
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        backgroundColor: '#1E1E24',
+                        titleColor: '#aaa',
+                        bodyColor: '#fff',
+                        padding: 12,
+                        cornerRadius: 10,
+                        callbacks: { label: ctx => '  ' + formatCLP(ctx.raw) }
+                    }
+                },
+                scales: {
+                    x: { grid: { color: 'rgba(0,0,0,0.04)' }, ticks: { font: { family: 'Poppins', size: 11 }, color: '#bbb', maxTicksLimit: 14 } },
+                    y: {
+                        grid: { color: 'rgba(0,0,0,0.04)' },
+                        ticks: { font: { family: 'Poppins', size: 11 }, color: '#bbb',
+                            callback: v => v >= 1000 ? '$' + (v/1000).toFixed(0) + 'k' : '$' + v }
+                    }
+                }
+            }
+        });
+    }
+
+    /* ─── GRÁFICO DE TORTA ── estados de pedido ───────────────── */
+    function renderStatusChart(statusDist) {
+        const canvas   = document.getElementById('statusChart');
+        const emptyDiv = document.getElementById('statusChartEmpty');
+
+        if (statusChartInstance) { statusChartInstance.destroy(); statusChartInstance = null; }
+
+        if (!statusDist || statusDist.length === 0) {
+            canvas.style.display   = 'none';
+            emptyDiv.style.display = 'flex';
+            emptyDiv.innerHTML     = '<span>🥧</span>Sin pedidos en el período';
+            return;
+        }
+
+        canvas.style.display   = 'block';
+        emptyDiv.style.display = 'none';
+
+        const labels = statusDist.map(s => s.estado);
+        const values = statusDist.map(s => Number(s.count));
+        const colors = labels.map(l => STATUS_COLORS[l] || '#95A5A6');
+        const total  = values.reduce((a, b) => a + b, 0);
+
+        statusChartInstance = new Chart(canvas.getContext('2d'), {
+            type: 'doughnut',
+            data: {
+                labels,
+                datasets: [{
+                    data: values,
+                    backgroundColor: colors,
+                    borderColor: '#fff',
+                    borderWidth: 3,
+                    hoverOffset: 6,
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                cutout: '65%',
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: { font: { family: 'Poppins', size: 11 }, color: '#666', padding: 10, usePointStyle: true, pointStyleWidth: 8 }
+                    },
+                    tooltip: {
+                        backgroundColor: '#1E1E24',
+                        titleColor: '#aaa',
+                        bodyColor: '#fff',
+                        padding: 10,
+                        cornerRadius: 8,
+                        callbacks: {
+                            label: ctx => ` ${ctx.label}: ${ctx.raw} (${total > 0 ? Math.round(ctx.raw / total * 100) : 0}%)`
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    /* ─── TABLA DE PRODUCTOS ESTRELLA ────────────────────────── */
+    function renderTopProducts(products) {
+        const container = document.getElementById('topProductsContainer');
+        if (!products || products.length === 0) {
+            container.innerHTML = '<div class="empty-state"><span>📦</span>Sin datos en el período</div>';
+            return;
+        }
+        const rankCls = ['gold', 'silver', 'bronze', '', ''];
+        const rows = products.map((p, i) => `
+            <tr>
+                <td><div class="rank-badge ${rankCls[i] || ''}">${i + 1}</div></td>
+                <td><span class="product-name">${p.product_name || 'Producto'}</span></td>
+                <td><span class="units-pill">${p.total_unidades ?? 0} uds</span></td>
+                <td><span class="revenue-val">${formatCLP(p.total_recaudado || 0)}</span></td>
+            </tr>
+        `).join('');
+        container.innerHTML = `
+            <table class="star-table">
+                <thead>
+                    <tr>
+                        <th style="width:28px">#</th>
+                        <th>Producto</th>
+                        <th>Uds.</th>
+                        <th>Recaudado</th>
+                    </tr>
+                </thead>
+                <tbody>${rows}</tbody>
+            </table>
+        `;
+    }
+
+    /* ─── BARRAS DE CATEGORÍAS ────────────────────────────────── */
+    function renderCategoryBars(categories) {
+        const container = document.getElementById('categoryContainer');
+        if (!categories || categories.length === 0) {
+            container.innerHTML = '<div class="empty-state"><span>📂</span>Sin datos en el período</div>';
+            return;
+        }
+        const maxTotal = Math.max(...categories.map(c => Number(c.total) || 0));
+        container.innerHTML = categories.map(c => {
+            const total = Number(c.total) || 0;
+            const pct   = maxTotal > 0 ? Math.round((total / maxTotal) * 100) : 0;
+            return `
+                <div class="cat-item">
+                    <div class="cat-row">
+                        <span class="cat-name">${c.categoria}</span>
+                        <span class="cat-val">${formatCLP(total)}</span>
+                    </div>
+                    <div class="cat-track">
+                        <div class="cat-fill" style="width:${pct}%"></div>
+                    </div>
+                </div>
+            `;
+        }).join('');
+    }
+
+    /* ─── KPI MODAL ──────────────────────────────────────────── */
+
+    // Paleta de colores por estado de pedido
+    const STATUS_PILL = {
+        'Pagado':     { bg: '#E0F6F5', color: '#0E9688' },
+        'Pendiente':  { bg: '#FEF9E7', color: '#B7950B' },
+        'Enviado':    { bg: '#EBF5FB', color: '#2874A6' },
+        'Preparando': { bg: '#F4ECF7', color: '#7D3C98' },
+        'Entregado':  { bg: '#EAFAF1', color: '#1E8449' },
+        'Cancelado':  { bg: '#FDEDEC', color: '#C0392B' },
+        'Procesando': { bg: '#FEF0E6', color: '#CA6F1E' },
+    };
+
+    // Configuración de cada tipo de modal
+    const MODAL_CONFIG = {
+        ingresos:  { title: '💰 Ingresos Totales',      filter: o => (o.estado || o.status) === 'Pagado',                           emptyMsg: 'No hay órdenes pagadas en este período.' },
+        pendientes:{ title: '📦 Pendientes por Enviar', filter: o => ['Pendiente','Procesando'].includes(o.estado || o.status || ''), emptyMsg: 'No hay pedidos pendientes.' },
+        ordenes:   { title: '🛒 Todas las Órdenes',     filter: null,                                                                 emptyMsg: 'No hay órdenes en este período.' },
+        ticket:    { title: '🎯 Ticket Promedio',        filter: o => (o.estado || o.status) === 'Pagado',                           emptyMsg: 'No hay órdenes pagadas para calcular el ticket.' },
+        shipping:  { title: '🚚 Inversión en Envíos',   filter: o => (o.estado || o.status) === 'Pagado',                           emptyMsg: 'No hay órdenes pagadas con costo de envío en este período.' },
+    };
+
+    async function openKpiModal(type) {
+        const cfg = MODAL_CONFIG[type] || MODAL_CONFIG.ordenes;
+
+        // Leer fechas actuales del filtro
+        const from = document.getElementById('dateFrom').value;
+        const to   = document.getElementById('dateTo').value;
+        const dateLabel = from && to ? `${from} → ${to}`
+                        : from      ? `Desde ${from}`
+                        : to        ? `Hasta ${to}`
+                        : 'Histórico completo';
+
+        // Poblar cabecera y abrir
+        document.getElementById('kpiModalTitle').textContent   = cfg.title;
+        document.getElementById('kpiModalDate').textContent    = dateLabel;
+        document.getElementById('kpiModalContent').innerHTML   =
+            '<div class="modal-loading"><span>⏳</span>Cargando datos...</div>';
+        document.getElementById('kpiModalFoot').style.display  = 'none';
+        document.getElementById('kpiModal').classList.add('active');
+        document.body.style.overflow = 'hidden';
+
+        // Construir endpoint con filtro de fecha
+        let endpoint = '/api/admin/orders';
+        const qp = new URLSearchParams();
+        if (from) qp.append('from', from);
+        if (to)   qp.append('to',   to);
+        if (qp.toString()) endpoint += '?' + qp.toString();
+
+        try {
+            const response = await adminFetch(endpoint);
+            if (!response) return; // sesión expirada — adminFetch ya redirigió
+
+            if (!response.ok) {
+                const errText = await response.text();
+                console.error('[KPI Modal] Error del servidor:', errText);
+                throw new Error('Error HTTP ' + response.status);
+            }
+
+            const result = await response.json();
+            if (!result.success) throw new Error(result.error || 'Error desconocido');
+
+            // Filtrar según el tipo de KPI
+            let orders = result.data || [];
+            if (cfg.filter) orders = orders.filter(cfg.filter);
+
+            // Renderizar contenido + footer con el total
+            document.getElementById('kpiModalContent').innerHTML =
+                buildModalHTML(type, orders, cfg);
+            updateModalFoot(orders, type);
+
+        } catch (err) {
+            console.error('[KPI Modal]', err);
+            document.getElementById('kpiModalContent').innerHTML =
+                `<div class="modal-empty"><span>❌</span>${err.message}</div>`;
+            document.getElementById('kpiModalFoot').style.display = 'none';
+        }
+    }
+
+    /* Actualiza el footer del modal con la suma de las órdenes mostradas */
+    function updateModalFoot(orders, type) {
+        const foot = document.getElementById('kpiModalFoot');
+        if (!orders || orders.length === 0) { foot.style.display = 'none'; return; }
+
+        let label, footTotal;
+        if (type === 'pendientes') {
+            const total = orders.reduce((s, o) => s + (Number(o.total) || 0), 0);
+            label     = `Monto pendiente · ${orders.length} pedido${orders.length !== 1 ? 's' : ''}`;
+            footTotal = formatCLP(total);
+        } else if (type === 'shipping') {
+            const shippingTotal = orders.reduce((s, o) => s + (Number(o.shipping_cost) || 0), 0);
+            label     = `Inversión logística · ${orders.length} envío${orders.length !== 1 ? 's' : ''}`;
+            footTotal = formatCLP(shippingTotal);
+        } else {
+            const total = orders.reduce((s, o) => s + (Number(o.total) || 0), 0);
+            label     = `Monto total · ${orders.length} orden${orders.length !== 1 ? 'es' : ''}`;
+            footTotal = formatCLP(total);
+        }
+
+        document.getElementById('kpiModalFootLabel').textContent = label;
+        document.getElementById('kpiModalFootTotal').textContent = footTotal;
+        foot.style.display = 'flex';
+    }
+
+    /* Filtra las filas del modal por cliente o N° de orden (búsqueda en vivo) */
+    function filterModalRows(q) {
+        const term = q.trim().toLowerCase();
+        let visibles = 0;
+        document.querySelectorAll('#kpiModalContent .orders-table tbody tr').forEach(tr => {
+            const match = tr.textContent.toLowerCase().includes(term);
+            tr.style.display = match ? '' : 'none';
+            if (match) visibles++;
+        });
+        const counter = document.getElementById('modalCount');
+        if (counter) counter.textContent = `${visibles} resultado${visibles !== 1 ? 's' : ''}`;
+    }
+
+    function buildModalHTML(type, orders, cfg) {
+        // Vista especial: ticket promedio con cálculo explicado
+        if (type === 'ticket') {
+            const totalRev  = orders.reduce((s, o) => s + (Number(o.total) || 0), 0);
+            const totalOrds = orders.length;
+            const aov       = totalOrds > 0 ? Math.round(totalRev / totalOrds) : 0;
+            return `
+                <div class="modal-info-box">
+                    <h4>Cómo se calcula el Ticket Promedio (AOV)</h4>
+                    <div class="modal-formula">AOV = Ingresos Totales ÷ Órdenes Pagadas</div>
+                    <div class="modal-formula">${formatCLP(totalRev)} ÷ ${totalOrds} órdenes = <strong>${formatCLP(aov)}</strong></div>
+                    <div class="modal-big-num">${formatCLP(aov)}</div>
+                </div>
+                ${buildOrdersTable(orders, cfg.emptyMsg)}
+            `;
+        }
+        // Vista especial: inversión logística con explicación y tabla de envíos
+        if (type === 'shipping') {
+            const totalShipping = orders.reduce((s, o) => s + (Number(o.shipping_cost) || 0), 0);
+            const ordsSinCosto  = orders.filter(o => !(Number(o.shipping_cost) > 0)).length;
+            const aviso = ordsSinCosto > 0
+                ? `<div class="modal-formula" style="background:#FEF9E7;border-color:#F39C12;color:#7D6608">
+                       ⚠️ ${ordsSinCosto} orden${ordsSinCosto !== 1 ? 'es no tienen' : ' no tiene'} costo de envío registrado
+                       (creadas antes de implementar esta métrica o con retiro en tienda).
+                   </div>`
+                : '';
+            return `
+                <div class="modal-info-box" style="border-left-color:#2980B9">
+                    <h4>💡 Inversión Logística del Período</h4>
+                    <div class="modal-formula">Este es el monto total que debes destinar (o ya invertiste) en plataformas como Blue Express o Starken para estos pedidos.</div>
+                    ${aviso}
+                    <div class="modal-big-num" style="color:#2980B9">${formatCLP(totalShipping)}</div>
+                </div>
+                ${buildShippingTable(orders, cfg.emptyMsg)}
+            `;
+        }
+        return buildOrdersTable(orders, cfg.emptyMsg);
+    }
+
+    /* Tabla de envíos: ID | Fecha | Cliente | Región/Comuna | Costo Envío */
+    function buildShippingTable(orders, emptyMsg) {
+        if (!orders || orders.length === 0) {
+            return `<div class="modal-empty"><span>📭</span>${emptyMsg}</div>`;
+        }
+
+        const searchBox = orders.length > 6
+            ? `<input class="modal-search" type="text" placeholder="🔎 Buscar por cliente, orden o región..." oninput="filterModalRows(this.value)">`
+            : '';
+
+        const rows = orders.map(o => {
+            const fecha    = (o.created_at || o.fecha_creacion || '').split(' ')[0] || '—';
+            const cliente  = o.cliente_nombre || o.nombre || 'Sin nombre';
+            const region   = o.region   || '—';
+            const comuna   = o.comuna   ? ` / ${o.comuna}` : '';
+            const envCosto = Number(o.shipping_cost) || 0;
+            const costoEl  = envCosto > 0
+                ? `<span class="o-shipping">${formatCLP(envCosto)}</span>`
+                : `<span style="color:#ccc;font-size:0.78rem;text-align:right;display:block">— sin registro</span>`;
+            return `<tr onclick="location.href='pedidos.html?order=${o.id}'" title="Ver pedido #${o.id}">
+                <td><span class="o-id">#${o.id}</span></td>
+                <td><span class="o-date">${fecha}</span></td>
+                <td><span class="o-client" title="${cliente}">${cliente}</span></td>
+                <td style="font-size:0.8rem;color:#666">${region}${comuna}</td>
+                <td>${costoEl}</td>
+            </tr>`;
+        }).join('');
+
+        return `
+            ${searchBox}
+            <p class="modal-count" id="modalCount">${orders.length} resultado${orders.length !== 1 ? 's' : ''}</p>
+            <table class="orders-table">
+                <thead>
+                    <tr>
+                        <th>Orden</th>
+                        <th>Fecha</th>
+                        <th>Cliente</th>
+                        <th>Región / Comuna</th>
+                        <th style="text-align:right">Costo Envío</th>
+                    </tr>
+                </thead>
+                <tbody>${rows}</tbody>
+            </table>`;
+    }
+
+    function buildOrdersTable(orders, emptyMsg) {
+        if (!orders || orders.length === 0) {
+            return `<div class="modal-empty"><span>📭</span>${emptyMsg}</div>`;
+        }
+        const rows = orders.map(o => {
+            const estado  = o.estado || o.status || '—';
+            const s       = STATUS_PILL[estado] || { bg: '#F4F7F6', color: '#666' };
+            const fecha   = (o.created_at || o.fecha_creacion || '').split(' ')[0] || '—';
+            const cliente = o.cliente_nombre || o.nombre || 'Sin nombre';
+            return `<tr onclick="location.href='pedidos.html?order=${o.id}'" title="Ver pedido #${o.id} en Pedidos">
+                <td><span class="o-id">#${o.id}</span></td>
+                <td><span class="o-client" title="${cliente}">${cliente}</span></td>
+                <td><span class="o-date">${fecha}</span></td>
+                <td><span class="status-pill" style="background:${s.bg};color:${s.color}">${estado}</span></td>
+                <td><span class="o-total">${formatCLP(o.total || 0)}</span></td>
+            </tr>`;
+        }).join('');
+
+        // El buscador aparece sólo cuando hay suficientes filas para justificarlo
+        const searchBox = orders.length > 6
+            ? `<input class="modal-search" type="text" placeholder="🔎 Buscar por cliente o N° de orden..." oninput="filterModalRows(this.value)">`
+            : '';
+
+        return `
+            ${searchBox}
+            <p class="modal-count" id="modalCount">${orders.length} resultado${orders.length !== 1 ? 's' : ''}</p>
+            <table class="orders-table">
+                <thead>
+                    <tr>
+                        <th>Orden</th>
+                        <th>Cliente</th>
+                        <th>Fecha</th>
+                        <th>Estado</th>
+                        <th style="text-align:right">Total</th>
+                    </tr>
+                </thead>
+                <tbody>${rows}</tbody>
+            </table>`;
+    }
+
+    function closeKpiModal() {
+        document.getElementById('kpiModal').classList.remove('active');
+        document.getElementById('kpiModalFoot').style.display = 'none';
+        document.body.style.overflow = '';
+    }
+
+    /* ─── MODAL DE INVENTARIO ────────────────────────────────── */
+    const INVENTORY_CONFIG = {
+        value: {
+            title:    '💎 Catálogo con Stock',
+            subtitle: 'Todos los productos con al menos 1 unidad disponible',
+            filter:   p => (p.stock ?? 0) > 0,
+            footerLabel: 'Valor total del inventario mostrado',
+            emptyMsg: 'No hay productos con stock disponible.',
+        },
+        low: {
+            title:    '⚠️ Stock Bajo',
+            subtitle: 'Productos con stock crítico — entre 1 y 4 unidades',
+            filter:   p => (p.stock ?? 0) > 0 && (p.stock ?? 0) < 5,
+            footerLabel: 'Valor total en riesgo',
+            emptyMsg: '¡Todo el stock está en niveles saludables! 🎉',
+        },
+        out: {
+            title:    '🚫 Sin Stock',
+            subtitle: 'Productos agotados — requieren reposición inmediata',
+            filter:   p => (p.stock ?? 0) <= 0,
+            footerLabel: 'Productos agotados',
+            emptyMsg: 'No hay productos sin stock. 🎉',
+        },
+    };
+
+    async function openInventoryModal(type) {
+        const cfg = INVENTORY_CONFIG[type];
+
+        // Preparar encabezado del modal y estado de carga
+        document.getElementById('kpiModalTitle').textContent  = cfg.title;
+        document.getElementById('kpiModalDate').textContent   = cfg.subtitle;
+        document.getElementById('kpiModalContent').innerHTML  =
+            '<div class="modal-loading"><span>⏳</span>Cargando productos...</div>';
+        document.getElementById('kpiModalFoot').style.display = 'none';
+        document.getElementById('kpiModal').classList.add('active');
+        document.body.style.overflow = 'hidden';
+
+        try {
+            const response = await adminFetch('/api/admin/products');
+            if (!response) return; // sesión expirada
+
+            if (!response.ok) {
+                throw new Error('Error HTTP ' + response.status);
+            }
+
+            const result = await response.json();
+            if (!result.success) throw new Error(result.error || 'Error desconocido');
+
+            // Aplanar variantes: cada variante es una "fila" de producto
+            const rawProducts = result.data || [];
+            const rows = [];
+            rawProducts.forEach(p => {
+                if (Array.isArray(p.variantes) && p.variantes.length > 0) {
+                    p.variantes.forEach(v => {
+                        rows.push({
+                            id:      p.id,
+                            nombre:  p.nombre,
+                            sku:     p.sku || '—',
+                            precio:  p.precio_normal ?? 0,
+                            stock:   v.stock ?? 0,
+                            imagen:  v.imagen_1 || null,
+                            color:   v.color_name || null,
+                        });
+                    });
+                } else {
+                    rows.push({
+                        id:      p.id,
+                        nombre:  p.nombre,
+                        sku:     p.sku || '—',
+                        precio:  p.precio_normal ?? 0,
+                        stock:   p.stock ?? 0,
+                        imagen:  p.imagen_url || null,
+                        color:   null,
+                    });
+                }
+            });
+
+            // Aplicar filtro del tipo de inventario
+            const filtered = rows.filter(cfg.filter);
+
+            // Ordenar: primero por stock ascendente (los más críticos arriba)
+            filtered.sort((a, b) => a.stock - b.stock);
+
+            document.getElementById('kpiModalContent').innerHTML =
+                buildInventoryTable(filtered, cfg.emptyMsg);
+
+            // Footer: valor total del inventario mostrado
+            if (filtered.length > 0) {
+                const totalVal = filtered.reduce((s, p) => s + (p.precio * Math.max(p.stock, 0)), 0);
+                document.getElementById('kpiModalFootLabel').textContent =
+                    `${cfg.footerLabel} · ${filtered.length} producto${filtered.length !== 1 ? 's' : ''}`;
+                document.getElementById('kpiModalFootTotal').textContent =
+                    type === 'out' ? `${filtered.length}` : formatCLP(totalVal);
+                document.getElementById('kpiModalFoot').style.display = 'flex';
+            }
+
+        } catch (err) {
+            console.error('[Inventory Modal]', err);
+            document.getElementById('kpiModalContent').innerHTML =
+                `<div class="modal-empty"><span>❌</span>${err.message}</div>`;
+            document.getElementById('kpiModalFoot').style.display = 'none';
+        }
+    }
+
+    function buildInventoryTable(products, emptyMsg) {
+        if (!products || products.length === 0) {
+            return `<div class="modal-empty"><span>📦</span>${emptyMsg}</div>`;
+        }
+
+        // Buscador si hay muchos productos
+        const searchBox = products.length > 6
+            ? `<input class="modal-search" type="text" placeholder="🔎 Buscar por producto o SKU..." oninput="filterModalRows(this.value)">`
+            : '';
+
+        const tableRows = products.map(p => {
+            // Badge de stock coloreado
+            const stockBadge = p.stock <= 0
+                ? `<span class="stock-out">🚫 Agotado</span>`
+                : p.stock < 5
+                    ? `<span class="stock-low">⚠️ ${p.stock} uds</span>`
+                    : `<span class="stock-ok">✓ ${p.stock} uds</span>`;
+
+            // Imagen o placeholder
+            const imgEl = p.imagen && !p.imagen.startsWith('data:')
+                ? `<img class="p-img" src="${p.imagen}" alt="${p.nombre}" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">`
+                  + `<div class="p-img-placeholder" style="display:none">📦</div>`
+                : `<div class="p-img-placeholder">📦</div>`;
+
+            const colorTag = p.color ? `<span style="font-size:0.7rem;color:#bbb;display:block">${p.color}</span>` : '';
+
+            return `<tr>
+                <td style="width:52px;padding-right:0.3rem">${imgEl}</td>
+                <td>
+                    <span class="p-name" title="${p.nombre}">${p.nombre}</span>
+                    ${colorTag}
+                </td>
+                <td><span class="p-sku">${p.sku}</span></td>
+                <td>${stockBadge}</td>
+                <td><span class="p-price">${formatCLP(p.precio)}</span></td>
+            </tr>`;
+        }).join('');
+
+        return `
+            ${searchBox}
+            <p class="modal-count" id="modalCount">${products.length} producto${products.length !== 1 ? 's' : ''}</p>
+            <table class="orders-table">
+                <thead>
+                    <tr>
+                        <th style="width:52px"></th>
+                        <th>Producto</th>
+                        <th>SKU</th>
+                        <th>Stock</th>
+                        <th style="text-align:right">Precio</th>
+                    </tr>
+                </thead>
+                <tbody style="cursor:default">${tableRows}</tbody>
+            </table>`;
+    }
+
+    // Cerrar al hacer clic en el backdrop (fuera del modal-box)
+    function handleModalBackdrop(e) {
+        if (e.target === document.getElementById('kpiModal')) closeKpiModal();
+    }
+
+    // Cerrar con Escape
+    document.addEventListener('keydown', e => {
+        if (e.key === 'Escape') closeKpiModal();
+    });
+
+    /* ─── EXPORTAR A EXCEL ────────────────────────────────────── */
+    function exportToExcel() {
+        if (!currentMetricsData) { alert('Carga las métricas primero.'); return; }
+        const d    = currentMetricsData;
+        const from = d.from || 'Inicio';
+        const to   = d.to   || 'Hoy';
+        const now  = new Date().toLocaleString('es-CL');
+        const wb   = XLSX.utils.book_new();
+
+        // Hoja 1: Resumen
+        const wsResumen = XLSX.utils.aoa_to_sheet([
+            ['REPORTE MATHSOLUIS — Analytics Dashboard'],
+            ['Período:', `${from}  →  ${to}`],
+            ['Generado:', now],
+            [],
+            ['VENTAS'],
+            ['Métrica', 'Valor'],
+            ['Ingresos Totales (CLP)',    d.total_ingresos],
+            ['Órdenes Totales',           d.total_ordenes],
+            ['Pedidos Pendientes',        d.pedidos_pendientes],
+            ['Ticket Promedio / AOV (CLP)', d.aov],
+            [],
+            ['INVENTARIO (estado actual)'],
+            ['Valor del Stock (CLP)',     d.total_stock_value],
+            ['Productos con Stock Bajo',  d.low_stock_items],
+            ['Productos Sin Stock',       d.out_of_stock_count],
+            [],
+            ['ESTADOS DE PEDIDOS'],
+            ['Estado', 'Cantidad'],
+            ...(d.status_distribution || []).map(s => [s.estado, s.count]),
+            [],
+            ['TOP 5 PRODUCTOS'],
+            ['#', 'Producto', 'Unidades', 'Recaudado (CLP)'],
+            ...(d.top_products || []).map((p, i) => [i + 1, p.product_name, p.total_unidades, p.total_recaudado]),
+            [],
+            ['DISTRIBUCIÓN POR CATEGORÍA'],
+            ['Categoría', 'Órdenes', 'Total (CLP)'],
+            ...(d.category_distribution || []).map(c => [c.categoria, c.ordenes, c.total]),
+        ]);
+        wsResumen['!cols'] = [{ wch: 30 }, { wch: 22 }, { wch: 18 }, { wch: 22 }];
+        XLSX.utils.book_append_sheet(wb, wsResumen, 'Resumen');
+
+        // Hoja 2: Ventas diarias
+        const ventasRows = [
+            ['DETALLE DE VENTAS DIARIAS'],
+            ['Período:', `${from}  →  ${to}`],
+            [],
+            ['Fecha', 'Total Ventas (CLP)'],
+            ...(d.sales_by_day || []).map(s => [s.dia, Number(s.total)]),
+        ];
+        if (d.sales_by_day && d.sales_by_day.length > 0) {
+            const gran = d.sales_by_day.reduce((acc, s) => acc + Number(s.total), 0);
+            ventasRows.push([], ['TOTAL PERÍODO', gran]);
+        }
+        const wsVentas = XLSX.utils.aoa_to_sheet(ventasRows);
+        wsVentas['!cols'] = [{ wch: 14 }, { wch: 24 }];
+        XLSX.utils.book_append_sheet(wb, wsVentas, 'Ventas Diarias');
+
+        XLSX.writeFile(wb, `mathsoluis-reporte-${from}-${to}.xlsx`);
+    }
+</script>
+
+<!-- ═══ AUTH HELPER v2.0 ════════════════════════════════════════ -->
+<script>
+    const API_BASE_URL = 'https://mathsoluis-api.studiopixelchile.workers.dev';
+
+    function getAuthHeaders() {
+        const token = localStorage.getItem('admin_token');
+        return { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` };
+    }
+
+    async function adminFetch(endpoint, options = {}) {
+        const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+            ...options,
+            headers: { ...getAuthHeaders(), ...(options.headers || {}) }
+        });
+        if (response.status === 401) {
+            localStorage.clear();
+            alert('Tu sesión ha expirado. Por favor inicia sesión nuevamente.');
+            window.location.href = 'configuracion.html';
+            return null;
+        }
+        return response;
+    }
+
+    async function logout() {
+        try {
+            await fetch(`${API_BASE_URL}/api/admin/logout`, { method: 'POST', headers: getAuthHeaders() });
+        } catch (e) { console.warn('No se pudo notificar logout al servidor:', e); }
+        finally { localStorage.clear(); window.location.href = 'configuracion.html'; }
+    }
+</script>
+
+</body>
+</html>

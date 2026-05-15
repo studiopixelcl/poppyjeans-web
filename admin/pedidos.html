@@ -4,34 +4,36 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mathsoluis | Gestión de Pedidos</title>
-    
+
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;600;700;800&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
-    
+
     <style>
         /* --- STUDIO PIXEL TOKENS --- */
         :root {
             --blanco-puro: #FFFFFF;
-            --fondo-claro: #F4F7F6; 
-            --teal-studio: #13C2B3; 
-            --teal-claro: #E0F6F5;  
-            --dark-studio: #1E1E24; 
+            --fondo-claro: #F4F7F6;
+            --teal-studio: #13C2B3;
+            --teal-claro: #E0F6F5;
+            --dark-studio: #1E1E24;
             --gris-claro: #E8ECEB;
             --danger-color: #E74C3C;
             --danger-light: #FDEDEC;
-            
+            --blue-courier: #2980B9;
+            --blue-light: #EBF5FB;
+
             --font-main: 'Poppins', sans-serif;
             --font-display: 'Montserrat', sans-serif;
-            
+
             --radius-md: 12px;
             --radius-lg: 24px;
             --radius-pill: 50px;
-            
+
             --shadow-subtle: 0 10px 30px rgba(30, 30, 36, 0.08);
             --transition-smooth: all 0.3s ease;
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        
+
         body { font-family: var(--font-main); background-color: var(--fondo-claro); color: var(--dark-studio); }
 
         /* --- LOGIN VIEW --- */
@@ -68,14 +70,14 @@
         .card { background: var(--blanco-puro); border-radius: var(--radius-md); padding: 1.5rem; box-shadow: var(--shadow-subtle); }
         .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; }
         .card-header h3 { font-family: var(--font-display); font-size: 1.2rem; }
-        
+
         table { width: 100%; border-collapse: collapse; text-align: left; }
         th { padding: 1rem; border-bottom: 2px solid var(--gris-claro); color: #888; font-weight: 600; font-size: 0.85rem; text-transform: uppercase; }
         td { padding: 1rem; border-bottom: 1px solid var(--gris-claro); font-size: 0.95rem; vertical-align: middle; }
         tbody tr:hover { background: var(--fondo-claro); }
-        
+
         .badge { padding: 0.3rem 0.8rem; border-radius: 50px; font-size: 0.75rem; font-weight: 700; letter-spacing: 0.5px;}
-        
+
         .action-btn { background: none; border: none; cursor: pointer; font-size: 0.95rem; font-weight: 600; margin-right: 0.5rem; color: var(--teal-studio); transition: var(--transition-smooth); background: var(--teal-claro); padding: 0.4rem 1rem; border-radius: 8px;}
         .action-btn:hover { background: var(--teal-studio); color: var(--blanco-puro); }
 
@@ -88,37 +90,70 @@
         th.sortable.active { color: var(--teal-studio); }
         th.sortable.active .sort-icon { opacity: 1; }
 
-        /* --- MODAL PEDIDO (DISEÑO MEJORADO) --- */
-        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(30, 30, 36, 0.6); backdrop-filter: blur(5px); display: none; align-items: center; justify-content: center; z-index: 1000; opacity: 0; transition: opacity 0.3s ease; padding: 1rem;}
-        .modal-overlay.active { display: flex; opacity: 1; }
-        .modal-content { background: var(--blanco-puro); width: 100%; max-width: 900px; max-height: 90vh; border-radius: var(--radius-lg); box-shadow: 0 25px 50px rgba(0,0,0,0.15); transform: translateY(20px); transition: transform 0.3s ease; display: flex; flex-direction: column; overflow: hidden; }
-        .modal-overlay.active .modal-content { transform: translateY(0); }
-        .modal-header { display: flex; justify-content: space-between; align-items: center; padding: 2rem 2.5rem; border-bottom: 1px solid var(--gris-claro); background: var(--blanco-puro); z-index: 10; }
-        .modal-header h3 { font-family: var(--font-display); font-size: 1.5rem; color: var(--dark-studio); }
-        .close-modal { background: none; border: none; font-size: 1.5rem; cursor: pointer; color: #888; transition: color 0.3s ease; }
-        .close-modal:hover { color: var(--danger-color); }
-        
-        #orderForm { display: flex; flex-direction: column; overflow: hidden; height: 100%; }
-        .modal-body-scroll { padding: 2rem 2.5rem; overflow-y: auto; flex: 1; }
-        .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
-        .modal-actions { display: flex; justify-content: flex-end; gap: 1rem; padding: 1.5rem 2.5rem; border-top: 1px solid var(--gris-claro); background: var(--fondo-claro); z-index: 10; }
-        .section-divider { grid-column: span 2; margin-top: 0.5rem; border-bottom: 2px solid var(--gris-claro); padding-bottom: 0.5rem; font-family: var(--font-display); font-weight: 700; color: var(--dark-studio); font-size: 1.2rem;}
+        /* Columna Envío en tabla principal */
+        .col-shipping { color: var(--blue-courier); font-weight: 600; font-size: 0.88rem; }
+        .col-shipping-empty { color: #bbb; font-size: 0.85rem; }
 
-        /* Detalles del Pedido UI */
-        .info-box { background: var(--fondo-claro); padding: 1.5rem; border-radius: var(--radius-md); border: 1px solid var(--gris-claro); }
-        .info-box h4 { font-family: var(--font-display); font-size: 1rem; color: var(--teal-studio); margin-bottom: 1rem; }
-        .info-row { display: flex; margin-bottom: 0.5rem; font-size: 0.9rem; }
-        .info-label { font-weight: 600; width: 100px; color: #888; }
-        .info-value { font-weight: 500; color: var(--dark-studio); flex: 1; }
-        
-        .contact-link { color: var(--teal-studio); text-decoration: none; display: inline-flex; align-items: center; gap: 5px; transition: var(--transition-smooth); font-weight: 600;}
+        /* --- MODAL OVERLAY --- */
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(30, 30, 36, 0.65); backdrop-filter: blur(6px); display: none; align-items: center; justify-content: center; z-index: 1000; opacity: 0; transition: opacity 0.3s ease; padding: 1rem; }
+        .modal-overlay.active { display: flex; opacity: 1; }
+        .modal-content { background: var(--blanco-puro); width: 100%; max-width: 860px; max-height: 92vh; border-radius: var(--radius-lg); box-shadow: 0 30px 60px rgba(0,0,0,0.2); transform: translateY(20px); transition: transform 0.3s ease; display: flex; flex-direction: column; overflow: hidden; }
+        .modal-overlay.active .modal-content { transform: translateY(0); }
+
+        /* --- TICKET HEADER (dark) --- */
+        .ticket-header { background: linear-gradient(135deg, var(--dark-studio) 0%, #2c2c3a 100%); padding: 1.6rem 2.2rem; display: flex; align-items: center; gap: 1.2rem; flex-shrink: 0; }
+        .ticket-num { font-family: var(--font-display); font-size: 2rem; font-weight: 800; color: var(--blanco-puro); line-height: 1; }
+        .ticket-date { font-size: 0.8rem; color: rgba(255,255,255,0.5); margin-top: 4px; }
+        .ticket-info { flex: 1; }
+        .ticket-badge { padding: 0.45rem 1.1rem; border-radius: var(--radius-pill); font-weight: 700; font-size: 0.82rem; letter-spacing: 0.4px; white-space: nowrap; }
+        .close-ticket { background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.2); color: var(--blanco-puro); width: 36px; height: 36px; border-radius: 50%; cursor: pointer; font-size: 1rem; display: flex; align-items: center; justify-content: center; transition: var(--transition-smooth); flex-shrink: 0; }
+        .close-ticket:hover { background: rgba(255,255,255,0.25); }
+
+        /* --- FORM + SCROLL --- */
+        #orderForm { display: flex; flex-direction: column; overflow: hidden; height: 100%; }
+        .modal-body-scroll { padding: 0 0 1rem; overflow-y: auto; flex: 1; }
+        .modal-actions { display: flex; justify-content: flex-end; gap: 1rem; padding: 1.2rem 2.2rem; border-top: 1px solid var(--gris-claro); background: var(--fondo-claro); z-index: 10; flex-shrink: 0; }
+
+        /* --- TICKET SECTIONS --- */
+        .ticket-section { padding: 1.5rem 2.2rem 0; }
+        .ticket-section-title { font-family: var(--font-display); font-weight: 700; font-size: 0.72rem; text-transform: uppercase; letter-spacing: 1.8px; color: #999; margin-bottom: 0.75rem; }
+
+        /* --- CUSTOMER CARD --- */
+        .customer-card { background: var(--fondo-claro); border-radius: var(--radius-md); border: 1px solid var(--gris-claro); overflow: hidden; }
+        .cc-row { display: flex; align-items: flex-start; gap: 0.8rem; padding: 0.75rem 1.2rem; border-bottom: 1px solid var(--gris-claro); }
+        .cc-row:last-child { border-bottom: none; }
+        .cc-icon { font-size: 1rem; line-height: 1.4; flex-shrink: 0; width: 20px; text-align: center; }
+        .cc-label { font-weight: 600; color: #aaa; font-size: 0.8rem; width: 72px; flex-shrink: 0; line-height: 1.4; padding-top: 1px; }
+        .cc-val { color: var(--dark-studio); font-weight: 500; flex: 1; line-height: 1.45; font-size: 0.9rem; }
+        .contact-link { color: var(--teal-studio); text-decoration: none; display: inline-flex; align-items: center; gap: 5px; transition: var(--transition-smooth); font-weight: 600; }
         .contact-link:hover { color: #10a89b; text-decoration: underline; }
 
-        .order-items-table { width: 100%; border-collapse: collapse; margin-top: 1rem; }
-        .order-items-table th { background: var(--fondo-claro); padding: 0.8rem; font-size: 0.8rem; border-radius: 6px; text-align: left; color: #888; text-transform: uppercase;}
-        .order-items-table td { padding: 1rem 0.8rem; border-bottom: 1px solid var(--gris-claro); font-size: 0.9rem; font-weight: 500; }
-        .order-total-row { display: flex; justify-content: flex-end; padding: 1.5rem 0; font-size: 1.3rem; font-weight: 800; color: var(--dark-studio); border-top: 2px solid var(--gris-claro); margin-top: 1rem;}
-        
+        /* --- ITEMS TABLE --- */
+        .order-items-table { width: 100%; border-collapse: collapse; margin-top: 0.3rem; }
+        .order-items-table th { background: var(--fondo-claro); padding: 0.7rem 0.8rem; font-size: 0.75rem; text-align: left; color: #999; text-transform: uppercase; letter-spacing: 0.8px; }
+        .order-items-table td { padding: 0.9rem 0.8rem; border-bottom: 1px solid var(--gris-claro); font-size: 0.9rem; font-weight: 500; vertical-align: middle; }
+        .order-items-table tbody tr:last-child td { border-bottom: none; }
+
+        .prod-thumb { width: 52px; height: 52px; object-fit: cover; border-radius: 8px; border: 1px solid var(--gris-claro); display: block; }
+        .prod-thumb-ph { width: 52px; height: 52px; border-radius: 8px; background: var(--gris-claro); display: flex; align-items: center; justify-content: center; font-size: 1.4rem; flex-shrink: 0; }
+        .item-name { font-weight: 600; color: var(--dark-studio); font-size: 0.9rem; line-height: 1.3; }
+        .item-variant { font-size: 0.78rem; color: #888; margin-top: 2px; }
+        .item-sku { font-family: 'Courier New', monospace; font-size: 0.7rem; color: #aaa; background: var(--gris-claro); padding: 1px 5px; border-radius: 4px; display: inline-block; margin-top: 3px; }
+
+        /* --- FINANCIAL BREAKDOWN --- */
+        .financial-breakdown { border-top: 2px solid var(--gris-claro); margin-top: 0.5rem; padding-top: 0.4rem; }
+        .fin-row { display: flex; justify-content: space-between; align-items: center; padding: 0.45rem 0.8rem; font-size: 0.92rem; color: #666; }
+        .fin-row.fin-shipping { color: var(--blue-courier); font-weight: 600; }
+        .fin-row.fin-total { border-top: 2px solid var(--gris-claro); margin-top: 0.4rem; padding: 0.9rem 0.8rem 0.5rem; font-size: 1.25rem; font-weight: 800; color: var(--dark-studio); }
+        .fin-total-val { color: var(--teal-studio); }
+
+        /* --- BLUE EXPRESS ADVISORY --- */
+        .be-advisory { background: var(--blue-light); border: 1px solid #AED6F1; border-left: 4px solid var(--blue-courier); border-radius: 10px; padding: 0.9rem 1.2rem; font-size: 0.86rem; color: #1A5276; margin-top: 1rem; display: none; line-height: 1.5; }
+        .be-advisory strong { display: block; font-weight: 700; margin-bottom: 0.2rem; }
+
+        /* --- MANAGEMENT FORM --- */
+        .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.2rem; }
+
     </style>
 </head>
 <body>
@@ -149,10 +184,19 @@
             <div class="sidebar-logo">MATHSO<span>LUIS</span></div>
             <ul class="nav-menu">
                 <li class="nav-item"><a href="index.html" class="nav-link">📦 Inventario</a></li>
-                <li class="nav-item"><a href="pedidos.html" class="nav-link active">🛒 Pedidos</a></li>
+                <li class="nav-item"><a href="pedidos.html" class="nav-link active">📝 Pedidos</a></li>
                 <li class="nav-item"><a href="clientes.html" class="nav-link">👥 Clientes</a></li>
-                <li class="nav-item"><a href="configuracion.html" class="nav-link">⚙️ Configuración</a></li>
-                <li class="nav-item" style="margin-top: 2rem;"><a href="actividades.html" class="nav-link">📊 Actividades (Admin)</a></li>
+                <li id="admin-only-nav" style="margin-top: 1.5rem;">
+                    <span style="display:block; font-size:0.65rem; font-weight:700; text-transform:uppercase; letter-spacing:1px; color:#555; padding:0 1rem 0.5rem;">Solo Admin</span>
+                    <ul style="list-style:none; padding:0; margin:0;">
+                        <li class="nav-item"><a href="metricas.html" class="nav-link">📈 Métricas</a></li>
+                        <li class="nav-item"><a href="actividades.html" class="nav-link">📜 Actividades</a></li>
+                        <li class="nav-item"><a href="configuracion.html" class="nav-link">⚙️ Configuración</a></li>
+                    </ul>
+                </li>
+                <li class="nav-item" style="margin-top: 2rem; border-top: 1px solid rgba(255,255,255,0.08); padding-top: 1rem;">
+                    <a href="#" class="nav-link" onclick="logout(); return false;">🚪 Cerrar Sesión</a>
+                </li>
             </ul>
         </aside>
 
@@ -172,7 +216,7 @@
                         <input type="text" id="searchInput" class="search-input" placeholder="🔍 Buscar por ID, cliente o tracking...">
                     </div>
                 </div>
-                
+
                 <div style="overflow-x: auto;">
                     <table>
                         <thead>
@@ -181,13 +225,14 @@
                                 <th class="sortable" onclick="sortData('fecha_creacion')">Fecha <span class="sort-icon" id="sort-fecha_creacion">↕️</span></th>
                                 <th class="sortable" onclick="sortData('cliente_nombre')">Cliente <span class="sort-icon" id="sort-cliente_nombre">↕️</span></th>
                                 <th class="sortable" onclick="sortData('total')">Monto Total <span class="sort-icon" id="sort-total">↕️</span></th>
-                                <th class="sortable" onclick="sortData('estado')">Estado Operativo <span class="sort-icon" id="sort-estado">↕️</span></th>
+                                <th>Envío</th>
+                                <th class="sortable" onclick="sortData('estado')">Estado <span class="sort-icon" id="sort-estado">↕️</span></th>
                                 <th>Courier / Tracking</th>
                                 <th>Acciones</th>
                             </tr>
                         </thead>
                         <tbody id="ordersTableBody">
-                            <tr><td colspan="7" style="text-align: center; padding: 2rem;">Cargando registro de pedidos...</td></tr>
+                            <tr><td colspan="8" style="text-align: center; padding: 2rem;">Cargando registro de pedidos...</td></tr>
                         </tbody>
                     </table>
                 </div>
@@ -195,102 +240,143 @@
         </main>
     </div>
 
-    <!-- MODAL GESTIÓN DE PEDIDO -->
+    <!-- ═══════════════════════════════════════════════════════
+         MODAL — TICKET DE PEDIDO
+    ═══════════════════════════════════════════════════════ -->
     <div id="orderModal" class="modal-overlay">
         <div class="modal-content">
-            <div class="modal-header">
-                <h3 id="modalTitle">Detalles del Pedido #...</h3>
-                <button class="close-modal" onclick="closeOrderModal()">✕</button>
+
+            <!-- CABECERA OSCURA TIPO TICKET -->
+            <div class="ticket-header">
+                <div class="ticket-info">
+                    <div class="ticket-num" id="ticketOrderNum">#—</div>
+                    <div class="ticket-date" id="ticketDate">—</div>
+                </div>
+                <div id="ticketStatusBadge" class="ticket-badge"></div>
+                <button type="button" class="close-ticket" onclick="closeOrderModal()" title="Cerrar">✕</button>
             </div>
-            
+
             <form id="orderForm">
                 <div class="modal-body-scroll">
-                    
-                    <div class="form-grid" style="margin-bottom: 2rem;">
-                        <!-- Columna Cliente -->
-                        <div class="info-box">
-                            <h4>Datos del Cliente</h4>
-                            <div class="info-row"><span class="info-label">Nombre:</span> <span class="info-value" id="detNombre">Cargando...</span></div>
-                            <div class="info-row"><span class="info-label">Correo:</span> <span class="info-value" id="detEmail">Cargando...</span></div>
-                            <div class="info-row"><span class="info-label">Teléfono:</span> <span class="info-value" id="detTelefono">Cargando...</span></div>
-                        </div>
-                        
-                        <!-- Columna Despacho -->
-                        <div class="info-box">
-                            <h4>Información de Despacho</h4>
-                            <div class="info-row"><span class="info-label">Dirección:</span> <span class="info-value" id="detDireccion">Cargando...</span></div>
-                            <div class="info-row"><span class="info-label">Comuna:</span> <span class="info-value" id="detComuna">Cargando...</span></div>
-                            <div class="info-row"><span class="info-label">Región:</span> <span class="info-value" id="detRegion">Cargando...</span></div>
+
+                    <!-- CLIENTE & DESPACHO -->
+                    <div class="ticket-section">
+                        <div class="ticket-section-title">Cliente &amp; Despacho</div>
+                        <div class="customer-card">
+                            <div class="cc-row">
+                                <span class="cc-icon">👤</span>
+                                <span class="cc-label">Nombre</span>
+                                <span class="cc-val" id="detNombre">—</span>
+                            </div>
+                            <div class="cc-row">
+                                <span class="cc-icon">✉️</span>
+                                <span class="cc-label">Email</span>
+                                <span class="cc-val" id="detEmail">—</span>
+                            </div>
+                            <div class="cc-row">
+                                <span class="cc-icon">📱</span>
+                                <span class="cc-label">Teléfono</span>
+                                <span class="cc-val" id="detTelefono">—</span>
+                            </div>
+                            <div class="cc-row">
+                                <span class="cc-icon">📍</span>
+                                <span class="cc-label">Despacho</span>
+                                <span class="cc-val" id="detAddress" style="word-break: break-word;">—</span>
+                            </div>
                         </div>
                     </div>
 
-                    <!-- Lista de Productos -->
-                    <div class="section-divider">Prendas Compradas</div>
-                    <table class="order-items-table">
-                        <thead>
-                            <tr>
-                                <th style="text-align: left;">Producto y Variante</th>
-                                <th style="text-align: center;">Cantidad</th>
-                                <th style="text-align: right;">Precio Unitario</th>
-                                <th style="text-align: right;">Subtotal</th>
-                            </tr>
-                        </thead>
-                        <tbody id="orderItemsBody">
-                            <!-- Inyectado por JS -->
-                        </tbody>
-                    </table>
-                    
-                    <div class="order-total-row">
-                        Total Pagado: <span id="detTotal" style="color: var(--teal-studio); margin-left: 1rem;">$0</span>
-                    </div>
+                    <!-- PRENDAS DEL PEDIDO -->
+                    <div class="ticket-section" style="margin-top: 1.5rem;">
+                        <div class="ticket-section-title">Prendas del Pedido</div>
+                        <table class="order-items-table">
+                            <thead>
+                                <tr>
+                                    <th style="width: 68px;"></th>
+                                    <th>Producto</th>
+                                    <th style="width: 90px;">SKU</th>
+                                    <th style="text-align: center; width: 60px;">Cant.</th>
+                                    <th style="text-align: right; width: 100px;">Precio U.</th>
+                                    <th style="text-align: right; width: 110px;">Subtotal</th>
+                                </tr>
+                            </thead>
+                            <tbody id="orderItemsBody">
+                                <tr><td colspan="6" style="text-align:center; color:#888; padding: 1.5rem;">Cargando productos...</td></tr>
+                            </tbody>
+                        </table>
 
-                    <!-- Panel de Gestión -->
-                    <div class="section-divider" style="margin-top: 2rem;">Gestión Operativa (Fulfillment)</div>
-                    <div class="form-grid">
-                        <div class="input-group">
-                            <label>Estado del Pedido</label>
-                            <select id="ordEstado" style="font-weight: bold; color: var(--dark-studio);">
-                                <option value="Pendiente">🟡 Pendiente (Sin Pagar)</option>
-                                <option value="Pagado">🔵 Pagado (Confirmado)</option>
-                                <option value="Preparando">🟣 Preparando (En Bodega)</option>
-                                <option value="Enviado">🟢 Enviado (Despachado)</option>
-                                <option value="Entregado">✅ Entregado (Finalizado)</option>
-                                <option value="Cancelado">🔴 Cancelado / Reembolsado</option>
-                            </select>
+                        <!-- DESGLOSE FINANCIERO -->
+                        <div class="financial-breakdown">
+                            <div class="fin-row">
+                                <span>Subtotal productos</span>
+                                <span id="detSubtotal">$0</span>
+                            </div>
+                            <div class="fin-row fin-shipping">
+                                <span>🚚 Costo de Envío</span>
+                                <span id="detShipping">$0</span>
+                            </div>
+                            <div class="fin-row fin-total">
+                                <span>Total Pagado</span>
+                                <span class="fin-total-val" id="detTotal">$0</span>
+                            </div>
                         </div>
-                        <div class="input-group">
-                            <label>Courier / Transportista</label>
-                            <select id="ordCourier" onchange="toggleCourierOther(this.value)">
-                                <option value="">— Sin asignar —</option>
-                                <option value="Blue Express">Blue Express</option>
-                                <option value="Starken">Starken</option>
-                                <option value="Correos de Chile">Correos de Chile</option>
-                                <option value="Chilexpress">Chilexpress</option>
-                                <option value="Otro">Otro</option>
-                            </select>
-                        </div>
-                        <div class="input-group" id="courierOtherGroup" style="display:none; grid-column: span 2;">
-                            <label>Nombre del courier (especificar)</label>
-                            <input type="text" id="ordCourierOther" placeholder="Ej: Shalom, DHL, FedEx...">
-                        </div>
-                        <div class="input-group">
-                            <label>Nº de Seguimiento</label>
-                            <input type="text" id="ordTracking" placeholder="Ej: BLX-123456789" style="font-family: monospace;">
-                        </div>
-                        <div class="input-group" style="display: flex; align-items: flex-end; padding-bottom: 0.6rem;">
-                            <label for="ordNotify" style="display: flex; align-items: center; gap: 0.75rem; cursor: pointer; font-weight: 600; margin: 0; background: var(--teal-claro); padding: 0.8rem 1rem; border-radius: 8px; border: 1px solid var(--teal-studio); width: 100%;">
-                                <input type="checkbox" id="ordNotify" checked style="width: 18px; height: 18px; accent-color: var(--teal-studio); cursor: pointer; flex-shrink: 0;">
-                                <span style="font-size: 0.88rem; color: var(--dark-studio);">Notificar al cliente por correo</span>
-                            </label>
-                        </div>
-                        <div class="input-group" style="grid-column: span 2;">
-                            <label>Notas Internas (Solo equipo)</label>
-                            <textarea id="ordNotas" rows="2" placeholder="Añade notas sobre el despacho o peticiones del cliente..."></textarea>
+
+                        <!-- AVISO BLUE EXPRESS -->
+                        <div id="blueExpressAdvisory" class="be-advisory">
+                            <strong>🔵 Aviso Blue Express</strong>
+                            Recuerda generar la etiqueta en el portal de Blue Express. Usa el <em>Costo de Envío</em> indicado arriba como referencia para el cargo al cliente.
                         </div>
                     </div>
 
-                </div>
-                
+                    <!-- GESTIÓN OPERATIVA -->
+                    <div class="ticket-section" style="margin-top: 1.8rem; margin-bottom: 0.5rem;">
+                        <div class="ticket-section-title" style="margin-bottom: 1rem;">Gestión Operativa (Fulfillment)</div>
+                        <div class="form-grid">
+                            <div class="input-group">
+                                <label>Estado del Pedido</label>
+                                <select id="ordEstado" style="font-weight: bold; color: var(--dark-studio);">
+                                    <option value="Pendiente">🟡 Pendiente (Sin Pagar)</option>
+                                    <option value="Pagado">🔵 Pagado (Confirmado)</option>
+                                    <option value="Preparando">🟣 Preparando (En Bodega)</option>
+                                    <option value="Enviado">🟢 Enviado (Despachado)</option>
+                                    <option value="Entregado">✅ Entregado (Finalizado)</option>
+                                    <option value="Cancelado">🔴 Cancelado / Reembolsado</option>
+                                </select>
+                            </div>
+                            <div class="input-group">
+                                <label>Courier / Transportista</label>
+                                <select id="ordCourier" onchange="toggleCourierOther(this.value); toggleBEAdvisory(this.value);">
+                                    <option value="">— Sin asignar —</option>
+                                    <option value="Blue Express">Blue Express</option>
+                                    <option value="Starken">Starken</option>
+                                    <option value="Correos de Chile">Correos de Chile</option>
+                                    <option value="Chilexpress">Chilexpress</option>
+                                    <option value="Otro">Otro</option>
+                                </select>
+                            </div>
+                            <div class="input-group" id="courierOtherGroup" style="display:none; grid-column: span 2;">
+                                <label>Nombre del courier (especificar)</label>
+                                <input type="text" id="ordCourierOther" placeholder="Ej: Shalom, DHL, FedEx...">
+                            </div>
+                            <div class="input-group">
+                                <label>Nº de Seguimiento</label>
+                                <input type="text" id="ordTracking" placeholder="Ej: BLX-123456789" style="font-family: monospace;">
+                            </div>
+                            <div class="input-group" style="display: flex; align-items: flex-end; padding-bottom: 0.6rem;">
+                                <label for="ordNotify" style="display: flex; align-items: center; gap: 0.75rem; cursor: pointer; font-weight: 600; margin: 0; background: var(--teal-claro); padding: 0.8rem 1rem; border-radius: 8px; border: 1px solid var(--teal-studio); width: 100%;">
+                                    <input type="checkbox" id="ordNotify" checked style="width: 18px; height: 18px; accent-color: var(--teal-studio); cursor: pointer; flex-shrink: 0;">
+                                    <span style="font-size: 0.88rem; color: var(--dark-studio);">Notificar al cliente por correo</span>
+                                </label>
+                            </div>
+                            <div class="input-group" style="grid-column: span 2;">
+                                <label>Notas Internas (Solo equipo)</label>
+                                <textarea id="ordNotas" rows="2" placeholder="Añade notas sobre el despacho o peticiones del cliente..."></textarea>
+                            </div>
+                        </div>
+                    </div>
+
+                </div><!-- /modal-body-scroll -->
+
                 <div class="modal-actions">
                     <button type="button" class="btn-secondary" onclick="closeOrderModal()">Cancelar</button>
                     <button type="submit" class="btn-primary" style="width: auto;" id="btnSaveOrder">Actualizar Pedido</button>
@@ -301,18 +387,21 @@
 
     <!-- LÓGICA JAVASCRIPT -->
     <script>
-                const loginView = document.getElementById('loginView');
-        const dashboardView = document.getElementById('dashboardView');
-        const loginForm = document.getElementById('loginForm');
+        const loginView      = document.getElementById('loginView');
+        const dashboardView  = document.getElementById('dashboardView');
+        const loginForm      = document.getElementById('loginForm');
         const ordersTableBody = document.getElementById('ordersTableBody');
-        
-        let allOrders = []; 
-        let filteredOrders = []; 
-        let currentSortColumn = 'id'; 
-        let sortAscending = false; 
-        let editingOrderId = null; 
 
-        const formatCurrency = (amount) => '$' + amount.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+        let allOrders        = [];
+        let filteredOrders   = [];
+        let currentSortColumn = 'id';
+        let sortAscending    = false;
+        let editingOrderId   = null;
+
+        const formatCurrency = (amount) => '$' + Number(amount || 0).toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+
+        /* Obtiene el campo de fecha del pedido (puede ser created_at o fecha_creacion según la DB) */
+        const getOrderDate = (order) => order.created_at || order.fecha_creacion || '';
 
         window.onload = () => {
             const token = localStorage.getItem('admin_token');
@@ -326,19 +415,16 @@
             e.preventDefault();
             document.getElementById('loginError').style.display = 'none';
             document.getElementById('loginBtnText').textContent = 'Conectando...';
-
             try {
                 const response = await fetch(`${API_BASE_URL}/api/admin/login`, {
-                    method: 'POST', 
-                    headers: { 'Content-Type': 'application/json' }, 
-                    body: JSON.stringify({ 
-                        email: document.getElementById('loginEmail').value, 
-                        password: document.getElementById('loginPassword').value 
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        email: document.getElementById('loginEmail').value,
+                        password: document.getElementById('loginPassword').value
                     })
                 });
-                
                 const result = await response.json();
-
                 if (result.success) {
                     localStorage.setItem('admin_token', result.token);
                     localStorage.setItem('admin_name', result.admin_data.nombre);
@@ -357,77 +443,99 @@
             }
         });
 
-        function showDashboard() { 
-            loginView.style.display = 'none'; 
-            dashboardView.style.display = 'block'; 
-            loadOrders(); 
+        function showDashboard() {
+            loginView.style.display = 'none';
+            dashboardView.style.display = 'block';
+            const adminOnlyNav = document.getElementById('admin-only-nav');
+            if (adminOnlyNav && localStorage.getItem('admin_rol') !== 'superadmin') {
+                adminOnlyNav.style.display = 'none';
+            }
+            loadOrders();
         }
-        
-        function logout() { 
-            localStorage.clear(); 
-            dashboardView.style.display = 'none'; 
-            loginView.style.display = 'flex'; 
+
+        function logout() {
+            localStorage.clear();
+            dashboardView.style.display = 'none';
+            loginView.style.display = 'flex';
         }
 
         // ==========================================
-        // OBTENER PEDIDOS (CONEXIÓN API)
+        // OBTENER PEDIDOS
         // ==========================================
         async function loadOrders() {
             try {
                 const response = await adminFetch('/api/admin/orders');
                 if (!response) return;
                 const result = await response.json();
-                
                 if (result.success) {
                     allOrders = result.data;
                     filteredOrders = [...allOrders];
                     applySort(currentSortColumn, sortAscending);
                 } else {
-                    ordersTableBody.innerHTML = `<tr><td colspan="7" style="color:#888; text-align:center; padding: 2rem;">Esperando primer pedido.</td></tr>`;
+                    ordersTableBody.innerHTML = `<tr><td colspan="8" style="color:#888; text-align:center; padding: 2rem;">Esperando primer pedido.</td></tr>`;
                 }
             } catch (error) {
-                ordersTableBody.innerHTML = `<tr><td colspan="7" style="color:var(--danger-color); text-align:center; padding: 2rem;">Error de red. Verifica tu conexión a internet.</td></tr>`;
+                ordersTableBody.innerHTML = `<tr><td colspan="8" style="color:var(--danger-color); text-align:center; padding: 2rem;">Error de red. Verifica tu conexión a internet.</td></tr>`;
             }
         }
 
         function getStatusBadge(estado) {
-            const cleanState = (estado || 'Pendiente').toLowerCase();
-            if (cleanState.includes('pendiente')) return `<span class="badge" style="background:#FEF9E7; color:#D4AC0D; border:1px solid #F9E79F;">Pendiente</span>`;
-            if (cleanState.includes('pagado')) return `<span class="badge" style="background:#E0F6F5; color:#13C2B3; border:1px solid #A3E4D7;">Pagado</span>`;
-            if (cleanState.includes('preparan')) return `<span class="badge" style="background:#F4ECF7; color:#8E44AD; border:1px solid #E8DAEF;">Preparando</span>`;
-            if (cleanState.includes('envia') || cleanState.includes('despach')) return `<span class="badge" style="background:#E8F8F5; color:#1ABC9C; border:1px solid #A3E4D7;">Enviado</span>`;
-            if (cleanState.includes('entrega')) return `<span class="badge" style="background:#EAFAF1; color:#27AE60; border:1px solid #D1F2EB;">Entregado</span>`;
-            if (cleanState.includes('cancel')) return `<span class="badge" style="background:#FDEDEC; color:#E74C3C; border:1px solid #F5B7B1;">Cancelado</span>`;
+            const s = (estado || 'Pendiente').toLowerCase();
+            if (s.includes('pendiente'))  return `<span class="badge" style="background:#FEF9E7; color:#D4AC0D; border:1px solid #F9E79F;">Pendiente</span>`;
+            if (s.includes('pagado'))     return `<span class="badge" style="background:#E0F6F5; color:#13C2B3; border:1px solid #A3E4D7;">Pagado</span>`;
+            if (s.includes('preparan'))   return `<span class="badge" style="background:#F4ECF7; color:#8E44AD; border:1px solid #E8DAEF;">Preparando</span>`;
+            if (s.includes('envia') || s.includes('despach')) return `<span class="badge" style="background:#E8F8F5; color:#1ABC9C; border:1px solid #A3E4D7;">Enviado</span>`;
+            if (s.includes('entrega'))    return `<span class="badge" style="background:#EAFAF1; color:#27AE60; border:1px solid #D1F2EB;">Entregado</span>`;
+            if (s.includes('cancel'))     return `<span class="badge" style="background:#FDEDEC; color:#E74C3C; border:1px solid #F5B7B1;">Cancelado</span>`;
             return `<span class="badge" style="background:#f4f4f4; color:#666; border:1px solid #ddd;">${estado}</span>`;
+        }
+
+        /* Retorna { bg, color, text } para el badge del ticket header */
+        function getTicketBadgeStyle(estado) {
+            const s = (estado || '').toLowerCase();
+            if (s.includes('pendiente'))  return { bg:'#FEF9E7', color:'#B7950B', text:'🟡 Pendiente' };
+            if (s.includes('pagado'))     return { bg:'#E0F6F5', color:'#0E8A7E', text:'🔵 Pagado' };
+            if (s.includes('preparan'))   return { bg:'#F4ECF7', color:'#7D3C98', text:'🟣 Preparando' };
+            if (s.includes('envia') || s.includes('despach')) return { bg:'#E8F8F5', color:'#148F77', text:'🟢 Enviado' };
+            if (s.includes('entrega'))    return { bg:'#EAFAF1', color:'#1E8449', text:'✅ Entregado' };
+            if (s.includes('cancel'))     return { bg:'#FDEDEC', color:'#C0392B', text:'🔴 Cancelado' };
+            return { bg:'#f0f0f0', color:'#555', text: estado };
         }
 
         function renderOrders(orders) {
             ordersTableBody.innerHTML = '';
-            
-            if (orders.length === 0) { 
-                ordersTableBody.innerHTML = `<tr><td colspan="7" style="text-align: center; padding: 3rem; color: #888;">No se encontraron resultados.</td></tr>`; 
-                return; 
+            if (orders.length === 0) {
+                ordersTableBody.innerHTML = `<tr><td colspan="8" style="text-align: center; padding: 3rem; color: #888;">No se encontraron resultados.</td></tr>`;
+                return;
             }
-
             orders.forEach(order => {
-                const fecha = new Date(order.fecha_creacion).toLocaleDateString('es-CL', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute:'2-digit' });
-                
+                const rawDate = getOrderDate(order);
+                const fecha = rawDate
+                    ? new Date(rawDate).toLocaleDateString('es-CL', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute:'2-digit' })
+                    : '—';
+
+                const shipping = Number(order.shipping_cost);
+                const shippingCell = (!isNaN(shipping) && shipping > 0)
+                    ? `<span class="col-shipping">${formatCurrency(shipping)}</span>`
+                    : `<span class="col-shipping-empty">—</span>`;
+
                 const tr = document.createElement('tr');
                 tr.innerHTML = `
-                    <td><strong style="color: var(--dark-studio); font-size: 1.1rem;">#${order.id}</strong></td>
+                    <td><strong style="color: var(--dark-studio); font-size: 1.05rem;">#${order.id}</strong></td>
                     <td style="color: #666; font-size: 0.85rem;">${fecha}</td>
                     <td>
                         <span style="font-weight: 600; color: var(--dark-studio); display:block;">${order.cliente_nombre || 'Cliente Borrado'}</span>
                         <span style="font-size: 0.8rem; color: #888;">${order.cliente_email || 'Sin correo'}</span>
                     </td>
-                    <td><strong style="font-size:1.1rem; color: var(--teal-studio);">${formatCurrency(order.total)}</strong></td>
+                    <td><strong style="font-size:1.05rem; color: var(--teal-studio);">${formatCurrency(order.total)}</strong></td>
+                    <td>${shippingCell}</td>
                     <td>${getStatusBadge(order.estado)}</td>
                     <td style="font-size:0.85rem; font-weight:600; color:#888;">
                         ${order.courier ? `<span style="display:block; color:var(--teal-studio); font-size:0.78rem; margin-bottom:2px;">${order.courier}</span>` : ''}
-                        ${order.tracking_code || '---'}
+                        ${order.tracking_code || '—'}
                     </td>
                     <td>
-                        <button class="action-btn" onclick="openOrderModal(${order.id})">Gestionar Pedido ➔</button>
+                        <button class="action-btn" onclick="openOrderModal(${order.id})">Ver Pedido ➔</button>
                     </td>
                 `;
                 ordersTableBody.appendChild(tr);
@@ -439,11 +547,11 @@
         // ==========================================
         document.getElementById('searchInput').addEventListener('input', function(e) {
             const term = e.target.value.toLowerCase().trim();
-            filteredOrders = allOrders.filter(o => {
-                return (o.id.toString().includes(term) || 
-                        o.cliente_nombre?.toLowerCase().includes(term) || 
-                        o.tracking_code?.toLowerCase().includes(term));
-            });
+            filteredOrders = allOrders.filter(o =>
+                o.id.toString().includes(term) ||
+                (o.cliente_nombre || '').toLowerCase().includes(term) ||
+                (o.tracking_code || '').toLowerCase().includes(term)
+            );
             applySort(currentSortColumn, sortAscending);
         });
 
@@ -455,115 +563,189 @@
 
         function applySort(column, isAscending) {
             filteredOrders.sort((a, b) => {
-                let vA = a[column] || ''; let vB = b[column] || '';
+                let vA = a[column] ?? '';
+                let vB = b[column] ?? '';
                 if (typeof vA === 'string') { vA = vA.toLowerCase(); vB = vB.toLowerCase(); }
                 if (vA < vB) return isAscending ? -1 : 1;
                 if (vA > vB) return isAscending ? 1 : -1;
                 return 0;
             });
-            
             document.querySelectorAll('th.sortable').forEach(th => {
                 th.classList.remove('active');
                 th.querySelector('.sort-icon').textContent = '↕️';
             });
-            
             const currentIcon = document.getElementById(`sort-${column}`);
-            if(currentIcon) {
-                currentIcon.textContent = sortAscending ? '⬆️' : '⬇️';
+            if (currentIcon) {
+                currentIcon.textContent = isAscending ? '⬆️' : '⬇️';
                 currentIcon.parentElement.classList.add('active');
             }
-
             renderOrders(filteredOrders);
         }
 
         // ==========================================
-        // MODAL Y GESTIÓN DE PEDIDO ESPECÍFICO
+        // MODAL — ABRIR Y POBLAR
         // ==========================================
         const orderModal = document.getElementById('orderModal');
-        const orderForm = document.getElementById('orderForm');
+        const orderForm  = document.getElementById('orderForm');
 
         async function openOrderModal(id) {
-            editingOrderId = id; 
-            document.getElementById('modalTitle').textContent = 'Detalles del Pedido #' + id;
-            document.getElementById('orderItemsBody').innerHTML = `<tr><td colspan="4" style="text-align:center; color:#888;">Cargando productos...</td></tr>`;
+            editingOrderId = id;
+
+            // Reset ticket header
+            document.getElementById('ticketOrderNum').textContent = `#${id}`;
+            document.getElementById('ticketDate').textContent = '—';
+            const badgeEl = document.getElementById('ticketStatusBadge');
+            badgeEl.textContent = '…';
+            badgeEl.style.cssText = 'background:#eee; color:#666;';
+
+            // Reset items area
+            document.getElementById('orderItemsBody').innerHTML = `<tr><td colspan="6" style="text-align:center; color:#888; padding:1.5rem;">Cargando productos...</td></tr>`;
+            document.getElementById('detSubtotal').textContent = '$0';
+            document.getElementById('detShipping').textContent = '$0';
+            document.getElementById('detTotal').textContent = '$0';
+            document.getElementById('blueExpressAdvisory').style.display = 'none';
+
             orderModal.classList.add('active');
 
             try {
                 const response = await adminFetch(`/api/admin/orders/${id}`);
                 if (!response) return;
                 const result = await response.json();
-                
-                if (result.success) {
-                    const order = result.data;
-                    
-                    // Enlaces rápidos de Contacto
-                    const mailLink = order.email ? `<a href="mailto:${order.email}" class="contact-link">${order.email}</a>` : 'No registrado';
-                    let phoneLink = 'No registrado';
-                    if (order.telefono) {
-                        const cleanPhone = order.telefono.replace(/\\D/g, ''); // Limpiar para WhatsApp
-                        phoneLink = `<a href="https://wa.me/${cleanPhone}" target="_blank" class="contact-link"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg> ${order.telefono}</a>`;
-                    }
 
-                    // Llenar Datos Cliente y Envío
-                    document.getElementById('detNombre').textContent = order.nombre || 'Desconocido';
-                    document.getElementById('detEmail').innerHTML = mailLink;
-                    document.getElementById('detTelefono').innerHTML = phoneLink;
-                    document.getElementById('detDireccion').textContent = order.direccion || 'Retiro en Tienda / No especificado';
-                    document.getElementById('detComuna').textContent = order.comuna || '-';
-                    document.getElementById('detRegion').textContent = order.region || '-';
-                    
-                    // Llenar Items
-                    const itemsBody = document.getElementById('orderItemsBody');
-                    itemsBody.innerHTML = '';
-                    if (order.items && order.items.length > 0) {
-                        order.items.forEach(item => {
-                            const sub = item.cantidad * item.precio_unitario;
-                            itemsBody.insertAdjacentHTML('beforeend', `
-                                <tr>
-                                    <td>
-                                        <div style="font-weight: 600; color: var(--dark-studio);">${item.product_name}</div>
-                                        <div style="font-size: 0.8rem; color: #888; margin-top: 2px;">${item.variant_details || 'Estándar'}</div>
-                                    </td>
-                                    <td style="text-align: center; font-weight:700; color:var(--dark-studio);">x${item.cantidad}</td>
-                                    <td style="text-align: right; color:#666;">${formatCurrency(item.precio_unitario)}</td>
-                                    <td style="text-align: right; font-weight:700; color: var(--teal-studio);">${formatCurrency(sub)}</td>
-                                </tr>
-                            `);
-                        });
-                    } else {
-                        itemsBody.innerHTML = `<tr><td colspan="4" style="text-align:center; color:#999;">No se encontraron artículos en este pedido.</td></tr>`;
-                    }
-                    
-                    document.getElementById('detTotal').textContent = formatCurrency(order.total);
-
-                    // Formularios de Gestión Operativa
-                    document.getElementById('ordEstado').value = order.estado || 'Pendiente';
-                    document.getElementById('ordTracking').value = order.tracking_code || '';
-                    document.getElementById('ordNotas').value = order.notas || '';
-
-                    // Courier
-                    const knownCouriers = ['Blue Express', 'Starken', 'Correos de Chile', 'Chilexpress'];
-                    const cv = order.courier || '';
-                    if (knownCouriers.includes(cv)) {
-                        document.getElementById('ordCourier').value = cv;
-                        document.getElementById('courierOtherGroup').style.display = 'none';
-                        document.getElementById('ordCourierOther').value = '';
-                    } else if (cv) {
-                        document.getElementById('ordCourier').value = 'Otro';
-                        document.getElementById('courierOtherGroup').style.display = 'block';
-                        document.getElementById('ordCourierOther').value = cv;
-                    } else {
-                        document.getElementById('ordCourier').value = '';
-                        document.getElementById('courierOtherGroup').style.display = 'none';
-                        document.getElementById('ordCourierOther').value = '';
-                    }
-                    document.getElementById('ordNotify').checked = true;
-
-                } else {
-                    document.getElementById('orderItemsBody').innerHTML = `<tr><td colspan="4" style="text-align:center; color:red;">${result.error}</td></tr>`;
+                if (!result.success) {
+                    document.getElementById('orderItemsBody').innerHTML = `<tr><td colspan="6" style="text-align:center; color:red; padding:1.5rem;">${result.error}</td></tr>`;
+                    return;
                 }
+
+                const order = result.data;
+
+                /* ─── CABECERA TICKET ─── */
+                const rawDate = order.created_at || order.fecha_creacion || '';
+                const fechaDisplay = rawDate
+                    ? new Date(rawDate).toLocaleDateString('es-CL', { weekday:'long', day:'numeric', month:'long', year:'numeric', hour:'2-digit', minute:'2-digit' })
+                    : '—';
+                document.getElementById('ticketDate').textContent = fechaDisplay;
+
+                const bs = getTicketBadgeStyle(order.estado);
+                badgeEl.textContent = bs.text;
+                badgeEl.style.cssText = `background:${bs.bg}; color:${bs.color};`;
+
+                /* ─── CLIENTE Y DESPACHO ─── */
+                document.getElementById('detNombre').textContent = order.nombre || 'Desconocido';
+
+                // Email
+                const mailEl = document.getElementById('detEmail');
+                if (order.email) {
+                    mailEl.innerHTML = `<a href="mailto:${order.email}" class="contact-link">${order.email}</a>`;
+                } else {
+                    mailEl.textContent = 'No registrado';
+                }
+
+                // Teléfono con enlace WhatsApp
+                const phoneEl = document.getElementById('detTelefono');
+                if (order.telefono) {
+                    const clean = order.telefono.replace(/\D/g, '');
+                    const wNum  = clean.startsWith('56') ? clean : '56' + clean;
+                    phoneEl.innerHTML = `<a href="https://wa.me/${wNum}" target="_blank" class="contact-link">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>
+                        ${order.telefono}</a>`;
+                } else {
+                    phoneEl.textContent = 'No registrado';
+                }
+
+                // Dirección completa
+                const addrParts = [order.direccion, order.comuna, order.region].filter(Boolean);
+                document.getElementById('detAddress').textContent = addrParts.length
+                    ? addrParts.join(', ')
+                    : 'Retiro en Tienda / No especificado';
+
+                /* ─── ITEMS CON THUMBNAILS ─── */
+                const itemsBody = document.getElementById('orderItemsBody');
+                itemsBody.innerHTML = '';
+                let subtotal = 0;
+
+                if (order.items && order.items.length > 0) {
+                    order.items.forEach(item => {
+                        const lineTotal = (item.cantidad || 0) * (item.precio_unitario || 0);
+                        subtotal += lineTotal;
+
+                        // Imagen: usa la URL resuelta por COALESCE en el backend
+                        const imgHtml = item.imagen_url
+                            ? `<img src="${item.imagen_url}" alt="${item.product_name || ''}" class="prod-thumb" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">
+                               <div class="prod-thumb-ph" style="display:none;">👗</div>`
+                            : `<div class="prod-thumb-ph">👗</div>`;
+
+                        // SKU
+                        const skuHtml = item.sku
+                            ? `<span class="item-sku">${item.sku}</span>`
+                            : `<span style="color:#ccc; font-size:0.75rem;">—</span>`;
+
+                        // Variante: mostrar swatch de color si está disponible.
+                        // "Estándar" no aporta info — se oculta.
+                        const variantIsGeneric = !item.variant_details || item.variant_details.toLowerCase() === 'estándar' || item.variant_details.toLowerCase() === 'estandar';
+                        let variantHtml = '';
+                        if (item.color_name && item.color_name !== 'Único') {
+                            const swatch = item.color_hex
+                                ? `<span style="width:9px;height:9px;border-radius:50%;background:${item.color_hex};border:1px solid rgba(0,0,0,0.15);display:inline-block;margin-right:4px;vertical-align:middle;"></span>`
+                                : '';
+                            variantHtml = `<div class="item-variant">${swatch}${item.color_name}</div>`;
+                        } else if (!variantIsGeneric) {
+                            variantHtml = `<div class="item-variant">${item.variant_details}</div>`;
+                        }
+
+                        itemsBody.insertAdjacentHTML('beforeend', `
+                            <tr>
+                                <td style="padding: 0.7rem 0.8rem;">${imgHtml}</td>
+                                <td>
+                                    <div class="item-name">${item.product_name || 'Producto'}</div>
+                                    ${variantHtml}
+                                </td>
+                                <td>${skuHtml}</td>
+                                <td style="text-align: center; font-weight: 700; color: var(--dark-studio);">×${item.cantidad}</td>
+                                <td style="text-align: right; color: #666;">${formatCurrency(item.precio_unitario)}</td>
+                                <td style="text-align: right; font-weight: 700; color: var(--teal-studio);">${formatCurrency(lineTotal)}</td>
+                            </tr>
+                        `);
+                    });
+                } else {
+                    itemsBody.innerHTML = `<tr><td colspan="6" style="text-align:center; color:#999; padding:1.5rem;">No se encontraron artículos en este pedido.</td></tr>`;
+                }
+
+                /* ─── DESGLOSE FINANCIERO ─── */
+                const shippingCost = Number(order.shipping_cost) || 0;
+                document.getElementById('detSubtotal').textContent = formatCurrency(subtotal);
+                document.getElementById('detShipping').textContent = shippingCost > 0
+                    ? formatCurrency(shippingCost)
+                    : '— sin registro';
+                document.getElementById('detTotal').textContent = formatCurrency(order.total);
+
+                /* ─── GESTIÓN OPERATIVA ─── */
+                document.getElementById('ordEstado').value   = order.estado || 'Pendiente';
+                document.getElementById('ordTracking').value = order.tracking_code || '';
+                document.getElementById('ordNotas').value    = order.notas || '';
+
+                const knownCouriers = ['Blue Express', 'Starken', 'Correos de Chile', 'Chilexpress'];
+                const cv = order.courier || '';
+                if (knownCouriers.includes(cv)) {
+                    document.getElementById('ordCourier').value = cv;
+                    document.getElementById('courierOtherGroup').style.display = 'none';
+                    document.getElementById('ordCourierOther').value = '';
+                } else if (cv) {
+                    document.getElementById('ordCourier').value = 'Otro';
+                    document.getElementById('courierOtherGroup').style.display = 'block';
+                    document.getElementById('ordCourierOther').value = cv;
+                } else {
+                    document.getElementById('ordCourier').value = '';
+                    document.getElementById('courierOtherGroup').style.display = 'none';
+                    document.getElementById('ordCourierOther').value = '';
+                }
+                document.getElementById('ordNotify').checked = true;
+
+                // Aviso Blue Express
+                toggleBEAdvisory(cv);
+
             } catch (error) {
-                document.getElementById('orderItemsBody').innerHTML = `<tr><td colspan="4" style="text-align:center; color:red;">Error de conexión.</td></tr>`;
+                document.getElementById('orderItemsBody').innerHTML = `<tr><td colspan="6" style="text-align:center; color:red; padding:1.5rem;">Error de conexión al cargar el pedido.</td></tr>`;
             }
         }
 
@@ -574,6 +756,11 @@
             if (val !== 'Otro') document.getElementById('ordCourierOther').value = '';
         }
 
+        function toggleBEAdvisory(courierVal) {
+            const advisory = document.getElementById('blueExpressAdvisory');
+            advisory.style.display = (courierVal === 'Blue Express') ? 'block' : 'none';
+        }
+
         // ==========================================
         // GUARDAR ESTADO Y TRACKING
         // ==========================================
@@ -581,14 +768,14 @@
             e.preventDefault();
             const btnSave = document.getElementById('btnSaveOrder');
 
-            const estado = document.getElementById('ordEstado').value;
+            const estado      = document.getElementById('ordEstado').value;
             const trackingCode = document.getElementById('ordTracking').value.trim();
-            const courierRaw = document.getElementById('ordCourier').value;
+            const courierRaw  = document.getElementById('ordCourier').value;
             const courierOther = document.getElementById('ordCourierOther').value.trim();
-            const courier = courierRaw === 'Otro' ? (courierOther || 'Otro') : courierRaw;
+            const courier     = courierRaw === 'Otro' ? (courierOther || 'Otro') : courierRaw;
 
             if (estado === 'Enviado' && (!courier || !trackingCode)) {
-                alert('Para marcar como Enviado debes ingresar el Courier y el Número de Seguimiento');
+                alert('Para marcar como Enviado debes ingresar el Courier y el Número de Seguimiento.');
                 return;
             }
 
@@ -605,30 +792,28 @@
             };
 
             try {
-                const response = await adminFetch(`/api/admin/orders/${editingOrderId}`, { 
-                    method: 'PUT', 
-                    body: JSON.stringify(orderData) 
+                const response = await adminFetch(`/api/admin/orders/${editingOrderId}`, {
+                    method: 'PUT',
+                    body: JSON.stringify(orderData)
                 });
                 if (!response) return;
-                
                 const result = await response.json();
-                
                 if (result.success) {
-                    closeOrderModal(); 
-                    loadOrders(); // Recarga la tabla silenciosamente
+                    closeOrderModal();
+                    loadOrders();
                 } else {
                     alert('Error del servidor: ' + result.error);
                 }
             } catch (error) {
                 alert('Error de red al intentar actualizar el pedido.');
             } finally {
-                btnSave.textContent = 'Actualizar Pedido'; 
+                btnSave.textContent = 'Actualizar Pedido';
                 btnSave.disabled = false;
             }
         });
     </script>
 
-    <!-- ✅ AUTH HELPER v2.0 - Sesiones seguras con token UUID -->
+    <!-- ✅ AUTH HELPER v2.0 -->
     <script>
         const API_BASE_URL = 'https://mathsoluis-api.studiopixelchile.workers.dev';
 

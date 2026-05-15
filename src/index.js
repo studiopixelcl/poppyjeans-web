@@ -85,7 +85,7 @@ async function uploadBase64ToR2(env, dataUrl, meta = {}) {
 
 // ============================================================================
 // MIDDLEWARE DE AUTENTICACIÓN ADMIN
-// Verifica que el token Bearer sea válido y no haya expirado (8 horas)
+// Verifica que el token Bearer sea válido y no haya expirado (7 días)
 // ============================================================================
 
 async function verifyAdminToken(request, env) {
@@ -454,7 +454,7 @@ export default {
 
     if (url.pathname === "/api/checkout" && request.method === "POST") {
         try {
-            const { customer, cart, total } = await request.json();
+            const { customer, cart, total, shipping_cost } = await request.json();
 
             let cust = await env.DB.prepare("SELECT id FROM Customers WHERE email = ?").bind(customer.email).first();
             let customerId;
@@ -467,14 +467,22 @@ export default {
             }
 
             // La orden nace 'Pendiente'. Solo pasa a 'Pagado' tras la confirmación AUTHORIZED en /api/checkout/confirm.
-            const orderInfo = await env.DB.prepare("INSERT INTO Orders (customer_id, total, estado) VALUES (?, ?, 'Pendiente')").bind(customerId, total).run();
+            // shipping_cost: costo de envío calculado por /api/shipping/quote y enviado desde el frontend de checkout.
+            const shippingCostSafe = (typeof shipping_cost === 'number' && shipping_cost >= 0) ? shipping_cost : 0;
+            const orderInfo = await env.DB.prepare("INSERT INTO Orders (customer_id, total, shipping_cost, estado) VALUES (?, ?, ?, 'Pendiente')").bind(customerId, total, shippingCostSafe).run();
             const orderId = orderInfo.meta.last_row_id;
 
             if (cart && cart.length > 0) {
                 const itemStmts = cart.map(item => {
-                    const originalProductId = item.id.split('_')[1];
-                    return env.DB.prepare("INSERT INTO OrderItems (order_id, product_id, product_name, variant_details, cantidad, precio_unitario) VALUES (?, ?, ?, ?, ?, ?)")
-                    .bind(orderId, originalProductId, item.name, 'Estándar', item.quantity, item.price);
+                    // ID formato: "cart_{productId}_{variantId}_{...size}"
+                    const parts = item.id.split('_');
+                    const originalProductId = parts[1] || null;
+                    const variantId = parts[2] ? (parseInt(parts[2]) || null) : null;
+                    // Guardar la imagen de la variante directamente; descartar rutas relativas.
+                    const imgUrl = (item.img && !item.img.startsWith('./') && !item.img.startsWith('../')) ? item.img : null;
+                    return env.DB.prepare(
+                        "INSERT INTO OrderItems (order_id, product_id, variant_id, product_name, variant_details, cantidad, precio_unitario, imagen_url) VALUES (?, ?, ?, ?, ?, ?, ?, ?)"
+                    ).bind(orderId, originalProductId, variantId, item.name, 'Estándar', item.quantity, item.price, imgUrl);
                 });
                 await env.DB.batch(itemStmts);
             }
@@ -651,7 +659,7 @@ export default {
     if (custOrderMatch && request.method === "GET") {
         try {
             const emailDecoded = decodeURIComponent(custOrderMatch[1]);
-            const query = `SELECT o.*, c.nombre as cliente_nombre, c.email as cliente_email FROM Orders o JOIN Customers c ON o.customer_id = c.id WHERE c.email = ? ORDER BY o.fecha_creacion DESC`;
+            const query = `SELECT o.*, c.nombre as cliente_nombre, c.email as cliente_email FROM Orders o JOIN Customers c ON o.customer_id = c.id WHERE c.email = ? ORDER BY o.created_at DESC`;
             const { results } = await env.DB.prepare(query).bind(emailDecoded).all();
             return Response.json({ success: true, data: results }, { headers: corsHeaders });
         } catch(e) { return Response.json({ success: false, error: e.message }, { status: 500, headers: corsHeaders }); }
@@ -680,8 +688,8 @@ export default {
         // ✅ NUEVO: Generar token seguro con UUID
         const token = crypto.randomUUID() + '-' + crypto.randomUUID();
 
-        // Calcular expiración: ahora + 8 horas
-        const expiresAt = new Date(Date.now() + 8 * 60 * 60 * 1000).toISOString().replace('T', ' ').substring(0, 19);
+        // Calcular expiración: ahora + 7 días (604800 segundos)
+        const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().replace('T', ' ').substring(0, 19);
 
         // Crear tabla de sesiones si no existe
         await env.DB.prepare(`
@@ -723,6 +731,63 @@ export default {
         ).run();
       }
       return Response.json({ success: true, message: "Sesión cerrada" }, { headers: corsHeaders });
+    }
+
+    // ========================================================================
+    // CONFIGURACIÓN GLOBAL DE LA TIENDA (clave/valor en tabla Config)
+    // Usada por admin/configuracion.html. Requiere token admin válido.
+    // Almacena aiAgents como JSON string bajo la clave 'aiAgents'.
+    // ========================================================================
+    if (url.pathname === "/api/config" && (request.method === "GET" || request.method === "POST")) {
+      const session = await verifyAdminToken(request, env);
+      if (!session) return unauthorizedResponse();
+
+      // Asegurar que la tabla de configuración exista (clave/valor)
+      await env.DB.prepare(`
+        CREATE TABLE IF NOT EXISTS Config (
+          key TEXT PRIMARY KEY,
+          value TEXT,
+          updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+        )
+      `).run();
+
+      // --- LEER configuración ---
+      if (request.method === "GET") {
+        try {
+          const { results } = await env.DB.prepare("SELECT key, value FROM Config").all();
+          const data = {};
+          for (const row of (results || [])) {
+            try { data[row.key] = JSON.parse(row.value); }
+            catch (_) { data[row.key] = row.value; }
+          }
+          // Garantizar que aiAgents siempre sea un array
+          if (!Array.isArray(data.aiAgents)) data.aiAgents = [];
+          return Response.json({ success: true, data }, { headers: corsHeaders });
+        } catch (error) {
+          return Response.json({ success: false, error: error.message }, { status: 500, headers: corsHeaders });
+        }
+      }
+
+      // --- GUARDAR configuración ---
+      if (request.method === "POST") {
+        try {
+          const body = await request.json();
+
+          // Extraer y guardar aiAgents como JSON string
+          if (body.aiAgents !== undefined) {
+            const agentsArr = Array.isArray(body.aiAgents) ? body.aiAgents : [];
+            await env.DB.prepare(
+              `INSERT INTO Config (key, value, updated_at) VALUES ('aiAgents', ?, CURRENT_TIMESTAMP)
+               ON CONFLICT(key) DO UPDATE SET value = excluded.value, updated_at = CURRENT_TIMESTAMP`
+            ).bind(JSON.stringify(agentsArr)).run();
+          }
+
+          ctx.waitUntil(logActivity(env, session.admin_name, 'EDITAR', 'Configuracion', 0, `Configuración de agentes IA actualizada (${(body.aiAgents || []).length} agentes)`));
+          return Response.json({ success: true, message: "Configuración guardada" }, { headers: corsHeaders });
+        } catch (error) {
+          return Response.json({ success: false, error: error.message }, { status: 500, headers: corsHeaders });
+        }
+      }
     }
 
     // ========================================================================
@@ -841,8 +906,8 @@ export default {
           const _tagsP  = body.tags         || body.etiquetas   || null;
           const _isoP   = body.isOffer      || body.en_oferta   || 0;
           const _ofpP   = body.offerPrice   || body.precio_oferta || null;
-          const info = await env.DB.prepare(`INSERT INTO Products (sku, nombre, descripcion, description, precio_normal, precio_oferta, offerPrice, en_oferta, isOffer, oferta_limitada, fecha_fin_oferta, stock, categoria_id, categorias_ids, etiquetas, tags, es_kit, weight) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`)
-            .bind(body.sku || null, body.nombre, _descP, _descP, body.precio_normal, _ofpP, body.offerPrice || 0, _isoP, _isoP, body.oferta_limitada || 0, body.fecha_fin_oferta || null, body.stock || 0, categoriaIdPrimary, categoriasStr, _tagsP, _tagsP, body.es_kit || 0, body.weight || 0).run();
+          const info = await env.DB.prepare(`INSERT INTO Products (sku, nombre, descripcion, precio_normal, precio_oferta, en_oferta, oferta_limitada, fecha_fin_oferta, stock, categoria_id, etiquetas) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`)
+            .bind(body.sku || null, body.nombre, _descP, body.precio_normal, _ofpP, _isoP, body.oferta_limitada || 0, body.fecha_fin_oferta || null, body.stock || 0, categoriaIdPrimary, _tagsP).run();
 
           const newProductId = info.meta.last_row_id;
           if (body.variantes && body.variantes.length > 0) {
@@ -875,8 +940,8 @@ export default {
             const _tagsU  = body.tags         || body.etiquetas   || null;
             const _isoU   = body.isOffer      || body.en_oferta   || 0;
             const _ofpU   = body.offerPrice   || body.precio_oferta || null;
-            await env.DB.prepare(`UPDATE Products SET sku = ?, nombre = ?, descripcion = ?, description = ?, precio_normal = ?, precio_oferta = ?, offerPrice = ?, en_oferta = ?, isOffer = ?, oferta_limitada = ?, fecha_fin_oferta = ?, stock = ?, categoria_id = ?, categorias_ids = ?, visible = ?, etiquetas = ?, tags = ?, es_kit = ?, weight = ? WHERE id = ?`)
-              .bind(body.sku || null, body.nombre, _descU, _descU, body.precio_normal, _ofpU, body.offerPrice || 0, _isoU, _isoU, body.oferta_limitada || 0, body.fecha_fin_oferta || null, body.stock || 0, categoriaIdPrimary, categoriasStr, body.visible !== undefined ? body.visible : 1, _tagsU, _tagsU, body.es_kit || 0, body.weight || 0, pId).run();
+            await env.DB.prepare(`UPDATE Products SET sku = ?, nombre = ?, descripcion = ?, precio_normal = ?, precio_oferta = ?, en_oferta = ?, oferta_limitada = ?, fecha_fin_oferta = ?, stock = ?, categoria_id = ?, visible = ?, etiquetas = ? WHERE id = ?`)
+              .bind(body.sku || null, body.nombre, _descU, body.precio_normal, _ofpU, _isoU, body.oferta_limitada || 0, body.fecha_fin_oferta || null, body.stock || 0, categoriaIdPrimary, body.visible !== undefined ? body.visible : 1, _tagsU, pId).run();
             await env.DB.prepare("DELETE FROM ProductVariants WHERE product_id = ?").bind(pId).run();
             if (body.variantes && body.variantes.length > 0) {
                 const variantStmts = body.variantes.map(v => env.DB.prepare(`INSERT INTO ProductVariants (product_id, color_name, color_hex, tallas, stock, imagen_1, imagen_2, imagen_3, imagen_4, imagen_5) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`)
@@ -947,10 +1012,38 @@ export default {
       }
 
       // ---- PEDIDOS ----
+      // Acepta ?from=YYYY-MM-DD&to=YYYY-MM-DD para filtrar por rango de fecha de creación.
+      // El filtro se aplica en una subquery sobre Orders ANTES del LEFT JOIN con Customers,
+      // evitando "ambiguous column name: created_at" cuando ambas tablas tienen esa columna.
       if (url.pathname === "/api/admin/orders" && request.method === "GET") {
         try {
-          const query = `SELECT o.*, c.nombre as cliente_nombre, c.email as cliente_email FROM Orders o LEFT JOIN Customers c ON o.customer_id = c.id ORDER BY o.fecha_creacion DESC`;
-          const { results } = await env.DB.prepare(query).all();
+          const fromQ = url.searchParams.get('from');
+          const toQ   = url.searchParams.get('to');
+
+          // Detección dinámica del nombre de la columna de fecha en Orders.
+          // Igual que en /api/admin/metrics: soporta esquemas en inglés
+          // (created_at) y en español (fecha_creacion).
+          const { results: ordersSchema } = await env.DB.prepare("PRAGMA table_info(Orders)").all();
+          const colNames = (ordersSchema || []).map(c => c.name);
+          const fechaCol = colNames.includes('created_at') ? 'created_at' : 'fecha_creacion';
+
+          // Condiciones dentro de la subquery: sólo Orders → la columna de
+          // fecha no es ambigua porque no hay JOIN en ese scope.
+          const conditions = [];
+          const bindParams = [];
+          if (fromQ) { conditions.push(`strftime('%Y-%m-%d', ${fechaCol}) >= ?`); bindParams.push(fromQ); }
+          if (toQ)   { conditions.push(`strftime('%Y-%m-%d', ${fechaCol}) <= ?`); bindParams.push(toQ); }
+          const innerWhere = conditions.length ? 'WHERE ' + conditions.join(' AND ') : '';
+
+          // El JOIN opera sobre el resultado ya filtrado; sub.<fechaCol> es inequívoco
+          const query = `
+            SELECT sub.*, c.nombre AS cliente_nombre, c.email AS cliente_email
+            FROM   (SELECT * FROM Orders ${innerWhere}) AS sub
+            LEFT   JOIN Customers c ON sub.customer_id = c.id
+            ORDER  BY sub.${fechaCol} DESC`;
+
+          const stmt = bindParams.length ? env.DB.prepare(query).bind(...bindParams) : env.DB.prepare(query);
+          const { results } = await stmt.all();
           return Response.json({ success: true, data: results }, { headers: corsHeaders });
         } catch (error) { return Response.json({ success: false, error: error.message }, { status: 500, headers: corsHeaders }); }
       }
@@ -963,7 +1056,27 @@ export default {
             const order = await env.DB.prepare(`SELECT o.*, c.nombre, c.email, c.telefono, c.direccion, c.comuna, c.region FROM Orders o LEFT JOIN Customers c ON o.customer_id = c.id WHERE o.id = ?`).bind(oId).first();
             if (!order) return Response.json({success: false, error: "Pedido no encontrado"}, {status: 404, headers: corsHeaders});
             try {
-              const { results: items } = await env.DB.prepare(`SELECT * FROM OrderItems WHERE order_id = ?`).bind(oId).all();
+              const { results: items } = await env.DB.prepare(
+                `SELECT oi.id, oi.order_id, oi.product_id, oi.variant_id,
+                        oi.product_name, oi.variant_details, oi.cantidad, oi.precio_unitario,
+                        COALESCE(
+                            oi.imagen_url,
+                            pv.imagen_1,
+                            (SELECT pv2.imagen_1 FROM ProductVariants pv2
+                             WHERE pv2.product_id = oi.product_id
+                               AND pv2.imagen_1 IS NOT NULL
+                             LIMIT 1),
+                            p.imagen_url
+                        ) AS imagen_url,
+                        p.sku,
+                        pv.color_name,
+                        pv.color_hex,
+                        pv.tallas AS variant_tallas
+                 FROM OrderItems oi
+                 LEFT JOIN Products p  ON oi.product_id = p.id
+                 LEFT JOIN ProductVariants pv ON oi.variant_id = pv.id
+                 WHERE oi.order_id = ?`
+              ).bind(oId).all();
               order.items = items;
             } catch(e) { order.items = []; }
             return Response.json({success: true, data: order}, {headers: corsHeaders});
@@ -998,6 +1111,215 @@ export default {
         }
       }
 
+      // ---- MÉTRICAS DEL DASHBOARD ----
+      // Acepta ?from=YYYY-MM-DD&to=YYYY-MM-DD (ambos opcionales — sin params devuelve histórico completo).
+      if (url.pathname === "/api/admin/metrics" && request.method === "GET") {
+        try {
+          const from = url.searchParams.get('from');
+          const to   = url.searchParams.get('to');
+
+          // ── Detección automática de nombres de columna de Orders ────────
+          // Soporta esquemas en español (estado / fecha_creacion) e inglés
+          // (status / created_at). PRAGMA devuelve el esquema real de D1.
+          // Prioridad: nombre confirmado por el usuario → fallback alternativo.
+          const { results: ordersSchema } = await env.DB.prepare("PRAGMA table_info(Orders)").all();
+          const colNames  = (ordersSchema || []).map(c => c.name);
+          const estadoCol = colNames.includes('estado')     ? 'estado'     : 'status';
+          const fechaCol  = colNames.includes('created_at') ? 'created_at' : 'fecha_creacion';
+
+          // ── Columnas de Products — nombres confirmados en schema.sql ───────
+          // precio_normal: definida en schema.sql línea 29 (REAL NOT NULL)
+          // visible: definida en schema.sql línea 34 (BOOLEAN DEFAULT 1)
+          // stock: definida en schema.sql línea 31 (INTEGER DEFAULT 0)
+          const precioCol  = 'precio_normal';
+          const hasVisible = true;
+
+          // ── Helper: sólo llama .bind() si hay parámetros ─────────────────
+          // D1 puede lanzar un error si se llama .bind() sin argumentos
+          // en una query que no tiene placeholders '?'.
+          const exec = (stmt, params) => params.length ? stmt.bind(...params) : stmt;
+
+          // ── Helper: construye cláusula AND para filtro de fechas ─────────
+          const buildFilter = (col) => {
+            const conds = [], params = [];
+            if (from) { conds.push(`strftime('%Y-%m-%d', ${col}) >= ?`); params.push(from); }
+            if (to)   { conds.push(`strftime('%Y-%m-%d', ${col}) <= ?`); params.push(to); }
+            return { clause: conds.length ? 'AND ' + conds.join(' AND ') : '', params };
+          };
+
+          // Una sola variante de filtro: cláusula SIN alias sobre la tabla
+          // Orders desnuda. Se usa tanto en las queries de tabla única como
+          // DENTRO de las subqueries de las queries con JOIN (top_products y
+          // category_distribution). Al estar Orders sola en ese scope,
+          // 'created_at' nunca es ambigua.
+          const f = buildFilter(fechaCol);
+
+          // Ingresos totales + conteo de órdenes pagadas en el rango
+          const ingresosRow = await exec(
+            env.DB.prepare(
+              `SELECT COALESCE(SUM(total), 0) AS total, COUNT(*) AS count
+               FROM Orders WHERE ${estadoCol} = 'Pagado' ${f.clause}`
+            ), f.params
+          ).first();
+
+          // Pendientes (estado actual — sin filtro de fecha, refleja hoy)
+          const pendientesRow = await env.DB.prepare(
+            `SELECT COUNT(*) AS c FROM Orders WHERE ${estadoCol} IN ('Pendiente', 'Procesando')`
+          ).first();
+
+          // Total órdenes en el rango (todos los estados)
+          const totalesRow = await exec(
+            env.DB.prepare(`SELECT COUNT(*) AS c FROM Orders WHERE 1=1 ${f.clause}`),
+            f.params
+          ).first();
+
+          const totalIngresos = ingresosRow?.total || 0;
+          const totalPagados  = ingresosRow?.count || 0;
+          const aov = totalPagados > 0 ? Math.round(totalIngresos / totalPagados) : 0;
+
+          // ── Comparación con el período anterior ─────────────────────────
+          // Solo si hay rango completo (from + to). El período previo es el
+          // bloque inmediatamente anterior, de exactamente la misma duración.
+          let comparison = { has_comparison: false };
+          if (from && to) {
+            const d1 = new Date(from + 'T00:00:00');
+            const d2 = new Date(to   + 'T00:00:00');
+            const days = Math.round((d2 - d1) / 86400000) + 1;
+            if (days > 0 && !isNaN(days)) {
+              const prevTo   = new Date(d1.getTime() - 86400000);
+              const prevFrom = new Date(prevTo.getTime() - (days - 1) * 86400000);
+              const pf = prevFrom.toISOString().slice(0, 10);
+              const pt = prevTo.toISOString().slice(0, 10);
+
+              const prevIngresos = await env.DB.prepare(
+                `SELECT COALESCE(SUM(total), 0) AS total, COUNT(*) AS count
+                 FROM Orders WHERE ${estadoCol} = 'Pagado'
+                 AND strftime('%Y-%m-%d', ${fechaCol}) >= ?
+                 AND strftime('%Y-%m-%d', ${fechaCol}) <= ?`
+              ).bind(pf, pt).first();
+
+              const prevTotales = await env.DB.prepare(
+                `SELECT COUNT(*) AS c FROM Orders
+                 WHERE strftime('%Y-%m-%d', ${fechaCol}) >= ?
+                 AND strftime('%Y-%m-%d', ${fechaCol}) <= ?`
+              ).bind(pf, pt).first();
+
+              const pIng = prevIngresos?.total || 0;
+              const pPag = prevIngresos?.count || 0;
+              comparison = {
+                has_comparison: true,
+                period:        { from: pf, to: pt },
+                prev_ingresos: pIng,
+                prev_ordenes:  prevTotales?.c || 0,
+                prev_aov:      pPag > 0 ? Math.round(pIng / pPag) : 0,
+              };
+            }
+          }
+
+          // Ventas agrupadas por día para el gráfico de líneas
+          const { results: salesByDay } = await exec(
+            env.DB.prepare(
+              `SELECT strftime('%Y-%m-%d', ${fechaCol}) AS dia, COALESCE(SUM(total), 0) AS total
+               FROM Orders WHERE ${estadoCol} = 'Pagado' ${f.clause}
+               GROUP BY strftime('%Y-%m-%d', ${fechaCol}) ORDER BY dia ASC`
+            ), f.params
+          ).all();
+
+          // Top 5 productos más vendidos.
+          // El filtro (estado + fecha) se aplica DENTRO de la subquery sobre
+          // Orders sola → 'created_at' inequívoca. El JOIN externo solo ve la
+          // subquery 'o', que expone 'id'.
+          const { results: topProducts } = await exec(
+            env.DB.prepare(
+              `SELECT oi.product_name, oi.product_id,
+                      SUM(oi.cantidad) AS total_unidades,
+                      SUM(oi.cantidad * oi.precio_unitario) AS total_recaudado
+               FROM OrderItems oi
+               JOIN (SELECT id FROM Orders
+                     WHERE ${estadoCol} = 'Pagado' ${f.clause}) o
+                 ON oi.order_id = o.id
+               GROUP BY oi.product_id, oi.product_name
+               ORDER BY total_unidades DESC LIMIT 5`
+            ), f.params
+          ).all();
+
+          // Distribución de ventas por categoría.
+          // Mismo patrón: Orders se filtra dentro de la subquery 'o'; el JOIN
+          // externo encadena OrderItems → Products → Categories sin tocar
+          // ninguna columna ambigua.
+          const { results: categoryDistribution } = await exec(
+            env.DB.prepare(
+              `SELECT COALESCE(c.nombre, 'Sin categoría') AS categoria,
+                      COUNT(DISTINCT o.id) AS ordenes,
+                      SUM(oi.cantidad * oi.precio_unitario) AS total
+               FROM OrderItems oi
+               JOIN (SELECT id FROM Orders
+                     WHERE ${estadoCol} = 'Pagado' ${f.clause}) o
+                 ON oi.order_id = o.id
+               LEFT JOIN Products p ON oi.product_id = p.id
+               LEFT JOIN Categories c ON p.categoria_id = c.id
+               GROUP BY c.id, c.nombre
+               ORDER BY total DESC`
+            ), f.params
+          ).all();
+
+          // Distribución de pedidos por estado (sujeta al filtro de fecha)
+          const { results: statusDistribution } = await exec(
+            env.DB.prepare(
+              `SELECT ${estadoCol} AS estado, COUNT(*) AS count
+               FROM Orders WHERE 1=1 ${f.clause}
+               GROUP BY ${estadoCol} ORDER BY count DESC`
+            ), f.params
+          ).all();
+
+          // Costo total de envíos en órdenes pagadas — inversión logística real
+          // COALESCE por compatibilidad: si shipping_cost es NULL en órdenes
+          // anteriores a la migración, cuenta como 0 sin romper la suma.
+          const shippingRow = await exec(
+            env.DB.prepare(
+              `SELECT COALESCE(SUM(shipping_cost), 0) AS total_shipping
+               FROM Orders WHERE ${estadoCol} = 'Pagado' ${f.clause}`
+            ), f.params
+          ).first();
+
+          // Métricas de inventario — estado actual sin filtro de fecha
+          const inventoryWhere = hasVisible ? 'WHERE visible = 1' : '';
+          const inventoryRow = await env.DB.prepare(
+            `SELECT COALESCE(SUM(${precioCol} * stock), 0)                      AS stock_value,
+                    SUM(CASE WHEN stock > 0 AND stock < 5 THEN 1 ELSE 0 END)   AS low_stock,
+                    SUM(CASE WHEN stock = 0 OR stock IS NULL THEN 1 ELSE 0 END) AS out_of_stock
+             FROM Products ${inventoryWhere}`
+          ).first();
+
+          return Response.json({
+            success: true,
+            data: {
+              // Incluimos los nombres detectados para que el frontend pueda depurar
+              _schema: { estadoCol, fechaCol, precioCol, hasVisible },
+              total_ingresos:        totalIngresos,
+              pedidos_pendientes:    pendientesRow?.c || 0,
+              total_ordenes:         totalesRow?.c    || 0,
+              aov,
+              comparison,
+              sales_by_day:          salesByDay          || [],
+              top_products:          topProducts          || [],
+              category_distribution: categoryDistribution || [],
+              status_distribution:   statusDistribution   || [],
+              total_stock_value:     inventoryRow?.stock_value  || 0,
+              low_stock_items:       inventoryRow?.low_stock    || 0,
+              out_of_stock_count:    inventoryRow?.out_of_stock || 0,
+              total_shipping_cost:   shippingRow?.total_shipping || 0,
+            }
+          }, { headers: corsHeaders });
+        } catch (error) {
+          return Response.json({
+            success: false,
+            error: error.message,
+            hint: "Revisa la consola del Worker en Cloudflare Dashboard para el stack trace completo."
+          }, { status: 500, headers: corsHeaders });
+        }
+      }
+
       // ---- CONFIGURACIÓN / USUARIOS ADMIN ----
       if (url.pathname === "/api/admin/users" && request.method === "GET") {
         try {
@@ -1009,9 +1331,27 @@ export default {
       if (url.pathname === "/api/admin/users" && request.method === "POST") {
         try {
           const body = await request.json();
+
+          // Validación de campos obligatorios
+          if (!body.nombre || !body.email || !body.password) {
+            return Response.json({ success: false, error: "Nombre, correo y contraseña son obligatorios." }, { status: 400, headers: corsHeaders });
+          }
+
+          // Evitar correos duplicados (la BD no debe perder ni pisar registros)
+          const existing = await env.DB.prepare("SELECT id FROM Admins WHERE email = ?").bind(body.email).first();
+          if (existing) {
+            return Response.json({ success: false, error: "Ya existe un administrador con ese correo." }, { status: 400, headers: corsHeaders });
+          }
+
           const hashedPass = await hashPassword(body.password);
-          await env.DB.prepare("INSERT INTO Admins (nombre, email, rol, password_hash) VALUES (?, ?, ?, ?)").bind(body.nombre, body.email, body.rol, hashedPass).run();
-          return Response.json({ success: true, message: "Usuario creado" }, { headers: corsHeaders });
+          // fecha_creacion explícita para que el frontend la muestre correctamente al recargar
+          const fechaCreacion = new Date().toISOString().replace('T', ' ').substring(0, 19);
+          const info = await env.DB.prepare(
+            "INSERT INTO Admins (nombre, email, rol, password_hash, fecha_creacion) VALUES (?, ?, ?, ?, ?)"
+          ).bind(body.nombre, body.email, body.rol || 'agente', hashedPass, fechaCreacion).run();
+
+          ctx.waitUntil(logActivity(env, adminName, 'CREAR', 'Admin', info.meta.last_row_id, body.nombre));
+          return Response.json({ success: true, message: "Usuario creado", id: info.meta.last_row_id }, { status: 201, headers: corsHeaders });
         } catch (error) { return Response.json({ success: false, error: error.message }, { status: 500, headers: corsHeaders }); }
       }
 

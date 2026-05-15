@@ -325,10 +325,19 @@
             <div class="sidebar-logo">MATHSO<span>LUIS</span></div>
             <ul class="nav-menu">
                 <li class="nav-item"><a href="index.html" class="nav-link active">📦 Inventario</a></li>
-                <li class="nav-item"><a href="pedidos.html" class="nav-link">🛒 Pedidos</a></li>
+                <li class="nav-item"><a href="pedidos.html" class="nav-link">📝 Pedidos</a></li>
                 <li class="nav-item"><a href="clientes.html" class="nav-link">👥 Clientes</a></li>
-                <li class="nav-item"><a href="configuracion.html" class="nav-link">⚙️ Configuración</a></li>
-                <li class="nav-item" style="margin-top: 2rem;"><a href="actividades.html" class="nav-link">📊 Actividades (Admin)</a></li>
+                <li id="admin-only-nav" style="margin-top: 1.5rem;">
+                    <span style="display:block; font-size:0.65rem; font-weight:700; text-transform:uppercase; letter-spacing:1px; color:#555; padding:0 1rem 0.5rem;">Solo Admin</span>
+                    <ul style="list-style:none; padding:0; margin:0;">
+                        <li class="nav-item"><a href="metricas.html" class="nav-link">📈 Métricas</a></li>
+                        <li class="nav-item"><a href="actividades.html" class="nav-link">📜 Actividades</a></li>
+                        <li class="nav-item"><a href="configuracion.html" class="nav-link">⚙️ Configuración</a></li>
+                    </ul>
+                </li>
+                <li class="nav-item" style="margin-top: 2rem; border-top: 1px solid rgba(255,255,255,0.08); padding-top: 1rem;">
+                    <a href="#" class="nav-link" onclick="logout(); return false;">🚪 Cerrar Sesión</a>
+                </li>
             </ul>
         </aside>
 
@@ -643,7 +652,16 @@
             } finally { document.getElementById('loginBtnText').textContent = 'Iniciar Sesión'; }
         });
 
-        function showDashboard() { loginView.style.display = 'none'; dashboardView.style.display = 'block'; loadCategorias().then(loadProducts); }
+        function showDashboard() {
+            loginView.style.display = 'none';
+            dashboardView.style.display = 'block';
+            // Control de acceso visual: oculta sección Admin Only para agentes
+            const adminOnlyNav = document.getElementById('admin-only-nav');
+            if (adminOnlyNav && localStorage.getItem('admin_rol') !== 'superadmin') {
+                adminOnlyNav.style.display = 'none';
+            }
+            loadCategorias().then(loadProducts);
+        }
 
         // Carga el mapeo real (id -> nombre) desde el backend para evitar cruces.
         async function loadCategorias() {
