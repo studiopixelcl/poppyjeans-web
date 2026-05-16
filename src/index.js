@@ -156,10 +156,20 @@ async function sendOrderConfirmationEmail(env, customer, orderId, cart, total) {
 
     let itemsHtml = '';
     cart.forEach(item => {
+        // Si hay URL de imagen → <img> real. Si no → cuadrado beige con emoji 📦
+        // (display:flex no funciona en todos los clientes de correo; usamos text-align + padding)
+        const imgCell = item.img
+            ? `<img src="${item.img}" alt="${item.name}" width="65" height="65"
+                    style="width:65px;height:65px;object-fit:cover;border-radius:10px;
+                           display:block;border:1px solid #FCEEF2;" />`
+            : `<div style="width:65px;height:65px;background-color:#F4F0EC;
+                           border-radius:10px;text-align:center;
+                           padding-top:14px;font-size:28px;
+                           box-sizing:border-box;">📦</div>`;
         itemsHtml += `
             <tr>
                 <td style="padding: 15px 0; border-bottom: 1px solid #FCEEF2; width: 75px;" valign="top">
-                    <img src="${item.img || ''}" alt="${item.name}" width="65" height="85" style="width: 65px; height: 85px; object-fit: cover; border-radius: 10px; background-color: #F4F0EC; display: block; border: none; outline: none;" />
+                    ${imgCell}
                 </td>
                 <td style="padding: 15px 10px; border-bottom: 1px solid #FCEEF2;" valign="middle">
                     <p style="margin: 0 0 5px 0; font-weight: bold; color: #8A7360; font-size: 15px; line-height: 1.3;">${item.name}</p>
@@ -566,12 +576,21 @@ export default {
                 await env.DB.prepare("UPDATE Orders SET estado = 'Pagado' WHERE id = ?").bind(order.id).run();
 
                 // Reconstruir el carrito desde OrderItems para el correo de confirmación.
-                const { results: items } = await env.DB.prepare(`SELECT * FROM OrderItems WHERE order_id = ?`).bind(order.id).all();
+                // JOIN con ProductVariants para obtener pv.imagen_1 como fallback cuando
+                // el ítem no tenía imagen propia al momento del checkout (variant.imagen_1 null → './ico.jpg' → filtrado).
+                const { results: items } = await env.DB.prepare(
+                    `SELECT oi.product_name, oi.cantidad, oi.precio_unitario,
+                            oi.imagen_url      AS oi_imagen_url,
+                            pv.imagen_1        AS pv_imagen_1
+                     FROM   OrderItems oi
+                     LEFT   JOIN ProductVariants pv ON oi.variant_id = pv.id
+                     WHERE  oi.order_id = ?`
+                ).bind(order.id).all();
                 const cartForEmail = (items || []).map(it => ({
-                    name: it.product_name,
+                    name:     it.product_name,
                     quantity: it.cantidad,
-                    price: it.precio_unitario,
-                    img: null
+                    price:    it.precio_unitario,
+                    img:      it.oi_imagen_url || it.pv_imagen_1 || null
                 }));
                 const customerForEmail = {
                     nombre: order.nombre || 'Cliente',
