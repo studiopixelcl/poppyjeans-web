@@ -659,7 +659,7 @@ export default {
     if (custOrderMatch && request.method === "GET") {
         try {
             const emailDecoded = decodeURIComponent(custOrderMatch[1]);
-            const query = `SELECT o.*, c.nombre as cliente_nombre, c.email as cliente_email FROM Orders o JOIN Customers c ON o.customer_id = c.id WHERE c.email = ? ORDER BY o.created_at DESC`;
+            const query = `SELECT o.*, c.nombre as cliente_nombre, c.email as cliente_email FROM Orders o JOIN Customers c ON o.customer_id = c.id WHERE c.email = ? ORDER BY o.fecha_creacion DESC`;
             const { results } = await env.DB.prepare(query).bind(emailDecoded).all();
             return Response.json({ success: true, data: results }, { headers: corsHeaders });
         } catch(e) { console.error("[Orders Customer] D1 error:", e.message); return Response.json({ success: false, error: e.message }, { status: 500, headers: corsHeaders }); }
