@@ -409,6 +409,24 @@
         /* Obtiene el campo de fecha del pedido (puede ser created_at o fecha_creacion según la DB) */
         const getOrderDate = (order) => order.created_at || order.fecha_creacion || '';
 
+        /**
+         * Formatea una fecha de D1/SQLite a hora de Chile (America/Santiago).
+         *
+         * D1 guarda CURRENT_TIMESTAMP como "YYYY-MM-DD HH:MM:SS" en UTC sin sufijo.
+         * Si se pasa directamente a `new Date()`, Chrome lo interpreta como hora LOCAL
+         * (no UTC), lo que introduce un desfase de +4 h en invierno chileno.
+         * La solución: añadir "T" y "Z" para que el parser de JS lo trate como UTC.
+         */
+        function toChileDate(raw, opts = {}) {
+            if (!raw) return '—';
+            // Si ya tiene indicador de timezone ('Z', '+', '-xx:xx') no tocar.
+            // Si usa espacio en vez de 'T' (formato SQLite), convertir a ISO 8601 UTC.
+            let iso = raw;
+            if (!iso.includes('T')) iso = iso.replace(' ', 'T');
+            if (!/Z|[+-]\d{2}:\d{2}$/.test(iso)) iso += 'Z';
+            return new Date(iso).toLocaleDateString('es-CL', { timeZone: 'America/Santiago', ...opts });
+        }
+
         window.onload = () => {
             const token = localStorage.getItem('admin_token');
             if (token) {
@@ -516,9 +534,7 @@
             }
             orders.forEach(order => {
                 const rawDate = getOrderDate(order);
-                const fecha = rawDate
-                    ? new Date(rawDate).toLocaleDateString('es-CL', { timeZone: 'America/Santiago', day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute:'2-digit' })
-                    : '—';
+                const fecha = toChileDate(rawDate, { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
 
                 const shipping = Number(order.shipping_cost);
                 const shippingCell = (!isNaN(shipping) && shipping > 0)
@@ -647,9 +663,7 @@
 
                 /* ─── CABECERA TICKET ─── */
                 const rawDate = order.created_at || order.fecha_creacion || '';
-                const fechaDisplay = rawDate
-                    ? new Date(rawDate).toLocaleDateString('es-CL', { timeZone: 'America/Santiago', weekday:'long', day:'numeric', month:'long', year:'numeric', hour:'2-digit', minute:'2-digit' })
-                    : '—';
+                const fechaDisplay = toChileDate(rawDate, { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' });
                 document.getElementById('ticketDate').textContent = fechaDisplay;
 
                 const bs = getTicketBadgeStyle(order.estado);
