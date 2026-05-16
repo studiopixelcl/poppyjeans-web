@@ -374,7 +374,11 @@
             try {
                 // Hacemos el llamado a la API
                 const response = await fetchWithRetry(`${API_BASE_URL}/api/orders/customer/${encodeURIComponent(currentCustomer.email)}`);
-                if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    console.error("[Mathsoluis Perfil] Error del servidor:", errorText);
+                    throw new Error("Status: " + response.status + " - " + errorText);
+                }
                 const result = await response.json();
                 
                 if (result.success) {
@@ -480,7 +484,8 @@
                     container.innerHTML = '<p style="color:red;">No se pudieron cargar los pedidos.</p>';
                 }
             } catch (error) {
-                container.innerHTML = '<p style="color:red;">Error de red al consultar tus pedidos.</p>';
+                console.error("[Mathsoluis Perfil] Error al cargar pedidos:", error.message);
+                container.innerHTML = `<p style="color:red; padding: 1rem; text-align:center;">No se pudieron cargar tus pedidos.<br><small style="color:#aaa;">${error.message}</small></p>`;
             }
         }
 
