@@ -6,7 +6,9 @@
       "Bash(ls \"C:\\\\Users\\\\MAVERICK\\\\Documents\\\\Studio Pixel\\\\Proyectos\\\\MathsoluisWeb\\\\\"*.html)",
       "PowerShell($path = \"C:\\\\Users\\\\MAVERICK\\\\Documents\\\\Studio Pixel\\\\Proyectos\\\\MathsoluisWeb\\\\terminos.html\"; $content = Get-Content -Path $path -Raw; $marker = \"</html>\"; $idx = $content.IndexOf\\($marker\\); if \\($idx -ge 0\\) { $truncated = $content.Substring\\(0, $idx + $marker.Length\\); [System.IO.File]::WriteAllText\\($path, $truncated, [System.Text.Encoding]::UTF8\\); Write-Output \"Truncado en $\\($idx + $marker.Length\\) chars. Líneas finales: $\\(\\(\\($truncated -split \"`n\"\\).Count\\)\\)\" } else { Write-Output \"No se encontró </html>\" })",
       "Bash(node --check \"C:\\\\Users\\\\MAVERICK\\\\Documents\\\\Studio Pixel\\\\Proyectos\\\\MathsoluisWeb\\\\src\\\\index.js\")",
-      "Bash(node --input-type=module --check)"
+      "Bash(node --input-type=module --check)",
+      "Bash(Get-ChildItem -Path \"C:\\\\Users\\\\MAVERICK\\\\Documents\\\\Studio Pixel\\\\Proyectos\\\\MathsoluisWeb\" -Recurse -File)",
+      "Bash(Select-Object FullName)"
     ]
   }
 }

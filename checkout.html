@@ -127,6 +127,71 @@
         .toast-notification.show { bottom: 30px; } .toast-notification.error { background: #e74c3c; } .toast-notification.success { background: #2ecc71; }
         .spinner { width: 20px; height: 20px; border: 2px solid rgba(255,255,255,0.3); border-top-color: #fff; border-radius: 50%; animation: spin 1s linear infinite; display: inline-block; vertical-align: middle; margin-right: 10px; }
         @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* ── MOBILE UX ── */
+        @media (max-width: 768px) {
+            /* Sin scroll horizontal */
+            body, .checkout-container { overflow-x: hidden; }
+
+            /* Header compacto */
+            header { padding: 1rem 4%; }
+
+            /* Columna de formularios sin padding lateral excesivo */
+            .checkout-main { padding: 1.5rem 5%; }
+
+            /* Inputs táctiles: mínimo 48 px (Apple HIG / Material) */
+            .input-group input,
+            .input-group select {
+                min-height: 48px;
+                font-size: 1rem;
+                padding: 0.85rem 1rem;
+            }
+
+            /* Fila de campos apilados en móvil */
+            .row { flex-direction: column; gap: 0; }
+            .row > * { min-width: 100%; }
+
+            /* Botones de paso: full-width, separados */
+            .row .btn-secondary,
+            .row .btn-primary { flex: unset; width: 100%; margin-top: 0.8rem; }
+
+            /* Sidebar: va arriba (column-reverse), compacto */
+            .checkout-sidebar {
+                padding: 1.2rem 5% 0.5rem;
+                position: static;
+            }
+            .summary-header { font-size: 1.1rem; margin-bottom: 1rem; }
+
+            /* Ítems del resumen más compactos */
+            .summary-item { gap: 0.8rem; margin-bottom: 1rem; }
+            .summary-img-wrap { width: 54px; height: 66px; flex-shrink: 0; }
+            .summary-title { font-size: 0.85rem; }
+            .summary-price { font-size: 0.95rem; }
+
+            /* Fila de totales */
+            .total-row { font-size: 0.9rem; }
+            .total-row.final { font-size: 1.25rem; }
+
+            /* Botón de pago: teal llamativo, full-width, padding generoso */
+            #btnPay {
+                width: 100% !important;
+                padding: 1.2rem 1rem !important;
+                font-size: 1.05rem !important;
+                background: var(--teal-studio) !important;
+                border-radius: 14px !important;
+                letter-spacing: 0.5px;
+                box-shadow: 0 6px 20px rgba(0, 164, 153, 0.35) !important;
+            }
+
+            /* Monto a pagar: tamaño legible */
+            #finalPayAmount { font-size: 1.8rem !important; }
+
+            /* Step title más pequeño */
+            .step-title { font-size: 1.2rem; }
+
+            /* Paso 3: card de pago sin padding lateral excesivo */
+            .checkout-main > div:last-child > div { padding: 1.5rem 1rem; }
+        }
     </style>
 </head>
 <body>
@@ -179,15 +244,6 @@
                 <div class="step-header">
                     <div class="step-number">2</div>
                     <h2 class="step-title">Dirección de Despacho</h2>
-                </div>
-
-                <!-- NUEVO: SELECTOR DE MÉTODO DE ENVÍO -->
-                <div style="margin-bottom: 1.5rem;">
-                    <label style="font-weight: 600; font-size: 0.9rem; color: var(--gris-oscuro); display: block; margin-bottom: 5px;">Método de Entrega *</label>
-                    <select id="shippingMethod" style="width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #ddd; background: var(--fondo-claro); font-family: inherit; font-size: 0.95rem; outline: none;" onchange="toggleShippingMethod()">
-                        <option value="delivery">Despacho a Domicilio (Blue Express)</option>
-                        <option value="pickup">Retiro en Bodega (Toesca 2765, Santiago - GRATIS)</option>
-                    </select>
                 </div>
 
                 <div class="input-group">
@@ -389,34 +445,9 @@
             document.getElementById('finalPayAmount').textContent = formatCurrency(finalTotal);
         }
 
-        // NUEVO: LÓGICA DEL MÉTODO DE ENVÍO
-        window.toggleShippingMethod = () => {
-            const isPickup = document.getElementById('shippingMethod').value === 'pickup';
-            
-            // Habilitar / Deshabilitar inputs
-            document.getElementById('chkAddress').disabled = isPickup;
-            document.getElementById('chkComuna').disabled = isPickup;
-            document.getElementById('chkRegion').disabled = isPickup;
-            
-            // Limpiar valores si es retiro para evitar confusiones visuales
-            if(isPickup) {
-                document.getElementById('chkAddress').value = '';
-                document.getElementById('chkComuna').value = '';
-                document.getElementById('chkRegion').value = '';
-                
-                shippingCost = 0;
-                document.getElementById('summShippingCost').innerHTML = '<span style="color: var(--teal-studio); font-weight:800; background: transparent; padding: 0;">GRATIS</span>';
-                renderSummary();
-            } else {
-                calculateShipping(); // Recalcula si vuelve a Domicilio
-            }
-        };
 
         // 3. COTIZACIÓN DE ENVÍO (Blue Express)
         async function calculateShipping() {
-            // Evitar petición a la API si está en modo retiro en tienda
-            if (document.getElementById('shippingMethod').value === 'pickup') return;
-
             const region = document.getElementById('chkRegion').value;
             const comuna = document.getElementById('chkComuna').value.trim();
             if (!region || !comuna) return;
@@ -429,7 +460,17 @@
                 const res = await fetch('https://mathsoluis-api.studiopixelchile.workers.dev/api/shipping/quote', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ region, comuna, cart: cart })
+                    body: JSON.stringify({
+                        region,
+                        comuna,
+                        cart: cart.map(item => ({
+                            id: item.id,
+                            name: item.name,
+                            price: item.price,
+                            weight: item.weight || 0,
+                            quantity: item.quantity
+                        }))
+                    })
                 });
                 const data = await res.json();
                 if (data.success) {
@@ -463,17 +504,11 @@
             
             // Validar Paso 2 -> 3
             if (stepNumber > 2) {
-                const isPickup = document.getElementById('shippingMethod').value === 'pickup';
-                
-                // Solo validar dirección si NO es retiro en tienda
-                if (!isPickup) {
-                    const addr = document.getElementById('chkAddress').value.trim();
-                    const comuna = document.getElementById('chkComuna').value.trim();
-                    const region = document.getElementById('chkRegion').value;
-                    
-                    if (!addr || !comuna) return showToast('La dirección y la comuna son obligatorias.', 'error');
-                    if (!region) return showToast('Por favor, selecciona tu Región en la lista.', 'error');
-                }
+                const addr = document.getElementById('chkAddress').value.trim();
+                const comuna = document.getElementById('chkComuna').value.trim();
+                const region = document.getElementById('chkRegion').value;
+                if (!addr || !comuna) return showToast('La dirección y la comuna son obligatorias.', 'error');
+                if (!region) return showToast('Por favor, selecciona tu Región en la lista.', 'error');
             }
 
             // Cambiar UI Activa
@@ -496,16 +531,13 @@
             btn.innerHTML = '<div class="spinner"></div> Conectando de forma segura...';
             btn.disabled = true;
 
-            const isPickup = document.getElementById('shippingMethod').value === 'pickup';
-
             const customerData = {
                 nombre: document.getElementById('chkName').value.trim(),
                 email: document.getElementById('chkEmail').value.trim(),
                 telefono: document.getElementById('chkPhone').value.trim(),
-                // Si es pickup enviamos una nota, sino la dirección real
-                direccion: isPickup ? 'Retiro en Bodega' : document.getElementById('chkAddress').value.trim(),
-                comuna: isPickup ? 'Santiago' : document.getElementById('chkComuna').value.trim(),
-                region: isPickup ? 'Región Metropolitana' : document.getElementById('chkRegion').value
+                direccion: document.getElementById('chkAddress').value.trim(),
+                comuna: document.getElementById('chkComuna').value.trim(),
+                region: document.getElementById('chkRegion').value
             };
 
             const payload = {

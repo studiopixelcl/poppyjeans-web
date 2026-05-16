@@ -1087,9 +1087,10 @@
             const cartItemId = `cart_${cartItemIdStr}`;
             
             const itemObj = {
-                id: cartItemId, 
+                id: cartItemId,
                 name: finalName,
                 price: currentProduct.en_oferta === 1 ? currentProduct.precio_oferta : currentProduct.precio_normal,
+                weight: currentProduct.weight || 0,
                 img: variant.imagen_1 || './ico.jpg'
             };
 

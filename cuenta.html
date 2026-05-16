@@ -395,7 +395,7 @@
                     // Renderizar las Tarjetas de los Pedidos Reales
                     let ordersHTML = '';
                     myOrders.forEach(order => {
-                        const dateStr = new Date(order.fecha_creacion).toLocaleDateString('es-CL', { day: '2-digit', month: 'short', year: 'numeric' });
+                        const dateStr = new Date(order.created_at || order.fecha_creacion).toLocaleDateString('es-CL', { day: '2-digit', month: 'short', year: 'numeric' });
                         
                         // Lógica de Tracking
                         let step1 = 'completed', step2 = '', step3 = '', step4 = '';
