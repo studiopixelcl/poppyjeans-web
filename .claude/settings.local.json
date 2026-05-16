@@ -8,7 +8,9 @@
       "Bash(node --check \"C:\\\\Users\\\\MAVERICK\\\\Documents\\\\Studio Pixel\\\\Proyectos\\\\MathsoluisWeb\\\\src\\\\index.js\")",
       "Bash(node --input-type=module --check)",
       "Bash(Get-ChildItem -Path \"C:\\\\Users\\\\MAVERICK\\\\Documents\\\\Studio Pixel\\\\Proyectos\\\\MathsoluisWeb\" -Recurse -File)",
-      "Bash(Select-Object FullName)"
+      "Bash(Select-Object FullName)",
+      "Bash(npx wrangler *)",
+      "Bash(Select-String -Pattern \"OrderItems|INSERT INTO Order\" -Context 0,2)"
     ]
   }
 }

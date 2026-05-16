@@ -478,13 +478,22 @@ export default {
                     const parts = item.id.split('_');
                     const originalProductId = parts[1] || null;
                     const variantId = parts[2] ? (parseInt(parts[2]) || null) : null;
+                    // Extraer talla del id (parts[3+]); 'u' = sin talla / Estándar
+                    const sizeRaw = parts.slice(3).join('_');
+                    const variantDetail = (sizeRaw && sizeRaw !== 'u') ? `Talla: ${sizeRaw}` : 'Estándar';
                     // Guardar la imagen de la variante directamente; descartar rutas relativas.
                     const imgUrl = (item.img && !item.img.startsWith('./') && !item.img.startsWith('../')) ? item.img : null;
                     return env.DB.prepare(
                         "INSERT INTO OrderItems (order_id, product_id, variant_id, product_name, variant_details, cantidad, precio_unitario, imagen_url) VALUES (?, ?, ?, ?, ?, ?, ?, ?)"
-                    ).bind(orderId, originalProductId, variantId, item.name, 'Estándar', item.quantity, item.price, imgUrl);
+                    ).bind(orderId, originalProductId, variantId, item.name, variantDetail, item.quantity, item.price, imgUrl);
                 });
-                await env.DB.batch(itemStmts);
+                try {
+                    await env.DB.batch(itemStmts);
+                } catch (batchErr) {
+                    // Si falla el batch de items, cancelar la orden para no dejarla huérfana
+                    await env.DB.prepare("UPDATE Orders SET estado = 'Cancelado' WHERE id = ?").bind(orderId).run();
+                    return Response.json({ success: false, error: `Error al guardar productos del pedido: ${batchErr.message}` }, { status: 500, headers: corsHeaders });
+                }
             }
 
             // Crear transacción en Webpay Plus (entorno PRODUCCIÓN).
@@ -1035,11 +1044,20 @@ export default {
           if (toQ)   { conditions.push(`strftime('%Y-%m-%d', ${fechaCol}) <= ?`); bindParams.push(toQ); }
           const innerWhere = conditions.length ? 'WHERE ' + conditions.join(' AND ') : '';
 
-          // El JOIN opera sobre el resultado ya filtrado; sub.<fechaCol> es inequívoco
+          // El JOIN opera sobre el resultado ya filtrado; sub.<fechaCol> es inequívoco.
+          // oi_sum agrega los items por pedido en una tabla derivada (sin subquery correlacionada).
           const query = `
-            SELECT sub.*, c.nombre AS cliente_nombre, c.email AS cliente_email
+            SELECT sub.*, c.nombre AS cliente_nombre, c.email AS cliente_email,
+                   oi_sum.items_summary, oi_sum.items_count
             FROM   (SELECT * FROM Orders ${innerWhere}) AS sub
             LEFT   JOIN Customers c ON sub.customer_id = c.id
+            LEFT   JOIN (
+                SELECT order_id,
+                       GROUP_CONCAT(product_name || ' ×' || cantidad, ' | ') AS items_summary,
+                       COUNT(*) AS items_count
+                FROM   OrderItems
+                GROUP  BY order_id
+            ) AS oi_sum ON oi_sum.order_id = sub.id
             ORDER  BY sub.${fechaCol} DESC`;
 
           const stmt = bindParams.length ? env.DB.prepare(query).bind(...bindParams) : env.DB.prepare(query);
@@ -1056,29 +1074,41 @@ export default {
             const order = await env.DB.prepare(`SELECT o.*, c.nombre, c.email, c.telefono, c.direccion, c.comuna, c.region FROM Orders o LEFT JOIN Customers c ON o.customer_id = c.id WHERE o.id = ?`).bind(oId).first();
             if (!order) return Response.json({success: false, error: "Pedido no encontrado"}, {status: 404, headers: corsHeaders});
             try {
-              const { results: items } = await env.DB.prepare(
+              const { results: rawItems } = await env.DB.prepare(
                 `SELECT oi.id, oi.order_id, oi.product_id, oi.variant_id,
                         oi.product_name, oi.variant_details, oi.cantidad, oi.precio_unitario,
-                        COALESCE(
-                            oi.imagen_url,
-                            pv.imagen_1,
-                            (SELECT pv2.imagen_1 FROM ProductVariants pv2
-                             WHERE pv2.product_id = oi.product_id
-                               AND pv2.imagen_1 IS NOT NULL
-                             LIMIT 1),
-                            p.imagen_url
-                        ) AS imagen_url,
+                        oi.imagen_url AS oi_imagen_url,
                         p.sku,
                         pv.color_name,
                         pv.color_hex,
-                        pv.tallas AS variant_tallas
+                        pv.imagen_1   AS pv_imagen_1,
+                        pv.tallas     AS variant_tallas
                  FROM OrderItems oi
-                 LEFT JOIN Products p  ON oi.product_id = p.id
+                 LEFT JOIN Products p  ON oi.product_id  = p.id
                  LEFT JOIN ProductVariants pv ON oi.variant_id = pv.id
                  WHERE oi.order_id = ?`
               ).bind(oId).all();
-              order.items = items;
-            } catch(e) { order.items = []; }
+              // imagen_url: prioridad oi → variante elegida (pv.imagen_1).
+              // Products no tiene imagen_url en el schema de producción.
+              order.items = (rawItems || []).map(it => ({
+                id:              it.id,
+                order_id:        it.order_id,
+                product_id:      it.product_id,
+                variant_id:      it.variant_id,
+                product_name:    it.product_name,
+                variant_details: it.variant_details,
+                cantidad:        it.cantidad,
+                precio_unitario: it.precio_unitario,
+                imagen_url:      it.oi_imagen_url || it.pv_imagen_1 || null,
+                sku:             it.sku,
+                color_name:      it.color_name,
+                color_hex:       it.color_hex,
+                variant_tallas:  it.variant_tallas,
+              }));
+            } catch(e) {
+              order.items = [];
+              console.error('[OrderItems query error]', e.message);
+            }
             return Response.json({success: true, data: order}, {headers: corsHeaders});
           } catch(err) { return Response.json({success: false, error: err.message}, {status:500, headers: corsHeaders}); }
         }
