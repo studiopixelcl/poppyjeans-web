@@ -608,7 +608,8 @@
         };
         const tallasKit = {
             bata: ["S", "M", "L", "XL", "XXL"],
-            sosten: ["S", "M", "L", "XL"],
+            bata_camisa: ["S", "M", "L", "XL", "XXL"],
+            sosten: ["42", "44", "46", "48", "50", "52"],
             calzon_elasticado: ["S/M", "L/XL"],
             calzon_embarazo: ["0 a 6 meses", "6 a 10 meses"],
             camisa: ["S", "M", "L", "XL", "XXL"],
@@ -1079,7 +1080,8 @@
         window.changeVariantSizeType = (vId, type, btnElem) => {
             const container = document.getElementById(`sizeOptions_${vId}`);
             container.innerHTML = renderSizeCheckboxes('normal', tallasNormal[type], null);
-            
+            container.dataset.sizeType = type;
+
             if (btnElem) {
                 const wrapper = btnElem.closest('.size-type-selector');
                 wrapper.querySelectorAll('.type-pill').forEach(b => b.classList.remove('active'));
@@ -1258,6 +1260,7 @@
             if (isKit) {
                 const components = [
                     { id: 'bata', name: 'Bata', icon: '👘' },
+                    { id: 'bata_camisa', name: 'Bata + Camisa', icon: '👘' },
                     { id: 'sosten', name: 'Sostén Maternal', icon: '👙' },
                     { id: 'calzon_elasticado', name: 'Calzón Elasticado', icon: '🩲' },
                     { id: 'calzon_embarazo', name: 'Calzón Embarazo', icon: '🩲' },
@@ -1293,14 +1296,17 @@
                 `;
 
             } else {
-                let initType = 'adulto';
-                if (parsedTallas && Array.isArray(parsedTallas) && parsedTallas.length > 0) {
-                    if (tallasNormal.bebe.includes(parsedTallas[0].size)) initType = 'bebe';
-                    else if (tallasNormal.unica.includes(parsedTallas[0].size)) initType = 'unica';
-                    else if (tallasNormal.sosten.includes(parsedTallas[0].size)) initType = 'sosten';
-                    else if (tallasNormal.calzon.includes(parsedTallas[0].size)) initType = 'calzon';
+                let initType = (variantData && variantData.tipo_talla) ? variantData.tipo_talla : 'adulto';
+                if (!variantData || !variantData.tipo_talla) {
+                    if (parsedTallas && Array.isArray(parsedTallas) && parsedTallas.length > 0) {
+                        if (tallasNormal.bebe.includes(parsedTallas[0].size)) initType = 'bebe';
+                        else if (tallasNormal.unica.includes(parsedTallas[0].size)) initType = 'unica';
+                        else if (tallasNormal.sosten.includes(parsedTallas[0].size)) initType = 'sosten';
+                        else if (tallasNormal.adulto.includes(parsedTallas[0].size)) initType = 'adulto';
+                        else if (tallasNormal.calzon.includes(parsedTallas[0].size)) initType = 'calzon';
+                    }
                 }
-                
+
                 sizesUI = `
                     <div class="size-type-selector">
                         <button type="button" class="type-pill ${initType==='adulto'?'active':''}" onclick="changeVariantSizeType(${vId}, 'adulto', this)">Adulto</button>
@@ -1309,7 +1315,7 @@
                         <button type="button" class="type-pill ${initType==='sosten'?'active':''}" onclick="changeVariantSizeType(${vId}, 'sosten', this)">Sostén Maternal</button>
                         <button type="button" class="type-pill ${initType==='calzon'?'active':''}" onclick="changeVariantSizeType(${vId}, 'calzon', this)">Calzón Maternal</button>
                     </div>
-                    <div id="sizeOptions_${vId}" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 1rem;">
+                    <div id="sizeOptions_${vId}" data-size-type="${initType}" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 1rem;">
                         ${renderSizeCheckboxes('normal', tallasNormal[initType], parsedTallas)}
                     </div>`;
             }
@@ -1561,7 +1567,7 @@
                 let totalStock = 0;
 
                 if (isKit) {
-                    tallasPayload = { bata: [], sosten: [], calzon_elasticado: [], calzon_embarazo: [], camisa: [], pantuflas: [], bebe: [] };
+                    tallasPayload = { bata: [], bata_camisa: [], sosten: [], calzon_elasticado: [], calzon_embarazo: [], camisa: [], pantuflas: [], bebe: [] };
                     let firstActiveComp = null;
 
                     card.querySelectorAll('.kit-comp-pill.active').forEach(pill => {
@@ -1585,10 +1591,14 @@
                     tallasPayload = JSON.stringify(tallasPayload);
                 }
 
+                const sizeOptionsEl = card.querySelector(`#sizeOptions_${vId}`);
+                const tipoTalla = (sizeOptionsEl && sizeOptionsEl.dataset.sizeType) ? sizeOptionsEl.dataset.sizeType : 'adulto';
+
                 cleanVariants.push({
                     color_name: name,
                     color_hex: hex,
-                    tallas: tallasPayload, 
+                    tallas: tallasPayload,
+                    tipo_talla: isKit ? null : tipoTalla,
                     stock: totalStock,
                     images: stateVariant ? stateVariant.images : ["","","","",""]
                 });
