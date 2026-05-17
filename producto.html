@@ -956,7 +956,7 @@
                 const missing = requiredKitComponents.find(comp => !selectedKeys.includes(comp));
                 if (missing) {
                     btn.disabled = true; btn.className = 'btn-cart-smart waiting';
-                    const names = {bata: 'Bata', sosten: 'Sostén', calzon: 'Calzón', camisa: 'Camisa', pantuflas: 'Pantuflas', bebe: 'Ropa Bebé'};
+                    const names = {bata: 'Bata', bata_camisa: 'Bata + Camisa', sosten: 'Sostén', calzon: 'Calzón', camisa: 'Camisa', pantuflas: 'Pantuflas', bebe: 'Ropa Bebé'};
                     btn.textContent = `Falta seleccionar ${names[missing] || missing}`;
                 } else {
                     btn.disabled = false; btn.className = 'btn-cart-smart ready'; btn.textContent = 'Agregar al Carrito';
@@ -1012,7 +1012,7 @@
 
             let sizesHTML = '';
             if (isKit && typeof tallasData === 'object' && !Array.isArray(tallasData)) {
-                const labels = { bata: 'Talla Bata', sosten: 'Talla Sostén Maternal', calzon: 'Talla Calzón', calzon_elasticado: 'Talla Calzón Elasticado', calzon_embarazo: 'Talla Calzón Embarazo', camisa: 'Talla Camisa', pantuflas: 'Nº Pantuflas', bebe: 'Talla Bebé' };
+                const labels = { bata: 'Talla Bata', bata_camisa: 'Talla Bata + Camisa', sosten: 'Talla Sostén Maternal', calzon: 'Talla Calzón', calzon_elasticado: 'Talla Calzón Elasticado', calzon_embarazo: 'Talla Calzón Embarazo', camisa: 'Talla Camisa', pantuflas: 'Nº Pantuflas', bebe: 'Talla Bebé' };
                 for (const [comp, sizes] of Object.entries(tallasData)) {
                     if (sizes && sizes.length > 0) {
                         requiredKitComponents.push(comp);
