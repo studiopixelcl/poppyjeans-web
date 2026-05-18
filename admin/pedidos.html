@@ -341,7 +341,7 @@
                             <div class="input-group">
                                 <label>Estado del Pedido</label>
                                 <select id="ordEstado" style="font-weight: bold; color: var(--dark-studio);">
-                                    <option value="Pendiente">🟡 Pendiente (Sin Pagar)</option>
+                                    <option value="Pendiente">🟡 Sin Pagar</option>
                                     <option value="Pagado">🔵 Pagado (Confirmado)</option>
                                     <option value="Preparando">🟣 Preparando (En Bodega)</option>
                                     <option value="Enviado">🟢 Enviado (Despachado)</option>
@@ -505,7 +505,7 @@
 
         function getStatusBadge(estado) {
             const s = (estado || 'Pendiente').toLowerCase();
-            if (s.includes('pendiente'))  return `<span class="badge" style="background:#FEF9E7; color:#D4AC0D; border:1px solid #F9E79F;">Pendiente</span>`;
+            if (s.includes('pendiente'))  return `<span class="badge" style="background:#FEF9E7; color:#D4AC0D; border:1px solid #F9E79F;">Sin Pagar</span>`;
             if (s.includes('pagado'))     return `<span class="badge" style="background:#E0F6F5; color:#13C2B3; border:1px solid #A3E4D7;">Pagado</span>`;
             if (s.includes('preparan'))   return `<span class="badge" style="background:#F4ECF7; color:#8E44AD; border:1px solid #E8DAEF;">Preparando</span>`;
             if (s.includes('envia') || s.includes('despach')) return `<span class="badge" style="background:#E8F8F5; color:#1ABC9C; border:1px solid #A3E4D7;">Enviado</span>`;
@@ -517,7 +517,7 @@
         /* Retorna { bg, color, text } para el badge del ticket header */
         function getTicketBadgeStyle(estado) {
             const s = (estado || '').toLowerCase();
-            if (s.includes('pendiente'))  return { bg:'#FEF9E7', color:'#B7950B', text:'🟡 Pendiente' };
+            if (s.includes('pendiente'))  return { bg:'#FEF9E7', color:'#B7950B', text:'🟡 Sin Pagar' };
             if (s.includes('pagado'))     return { bg:'#E0F6F5', color:'#0E8A7E', text:'🔵 Pagado' };
             if (s.includes('preparan'))   return { bg:'#F4ECF7', color:'#7D3C98', text:'🟣 Preparando' };
             if (s.includes('envia') || s.includes('despach')) return { bg:'#E8F8F5', color:'#148F77', text:'🟢 Enviado' };

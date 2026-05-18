@@ -318,7 +318,7 @@
                 <span class="metric-icon">📦</span>
                 <div class="metric-label">Pendientes por Enviar</div>
                 <div class="metric-value loading" id="metricPendientes">···</div>
-                <div class="metric-sub">Estado Pendiente o Procesando</div>
+                <div class="metric-sub">Estado Pagado (sin despachar)</div>
                 <div class="metric-hint">Ver detalle →</div>
             </div>
             <div class="metric-card is-neutral" tabindex="0" role="button" onclick="openKpiModal('ordenes')" onkeydown="handleCardKey(event,'ordenes')">
@@ -926,7 +926,7 @@
     // Configuración de cada tipo de modal
     const MODAL_CONFIG = {
         ingresos:  { title: '💰 Ingresos Totales',      filter: o => (o.estado || o.status) === 'Pagado',                           emptyMsg: 'No hay órdenes pagadas en este período.' },
-        pendientes:{ title: '📦 Pendientes por Enviar', filter: o => ['Pendiente','Procesando'].includes(o.estado || o.status || ''), emptyMsg: 'No hay pedidos pendientes.' },
+        pendientes:{ title: '📦 Pendientes por Enviar', filter: o => (o.estado || o.status || '') === 'Pagado',                           emptyMsg: 'No hay pedidos pagados por despachar.' },
         ordenes:   { title: '🛒 Todas las Órdenes',     filter: null,                                                                 emptyMsg: 'No hay órdenes en este período.' },
         ticket:    { title: '🎯 Ticket Promedio',        filter: o => (o.estado || o.status) === 'Pagado',                           emptyMsg: 'No hay órdenes pagadas para calcular el ticket.' },
         shipping:  { title: '🚚 Inversión en Envíos',   filter: o => (o.estado || o.status) === 'Pagado',                           emptyMsg: 'No hay órdenes pagadas con costo de envío en este período.' },
@@ -952,12 +952,15 @@
         document.getElementById('kpiModal').classList.add('active');
         document.body.style.overflow = 'hidden';
 
-        // Construir endpoint con filtro de fecha
+        // Construir endpoint — "pendientes" no filtra por fecha porque
+        // queremos ver TODOS los pedidos pagados sin despachar, sin importar cuándo se hicieron.
         let endpoint = '/api/admin/orders';
-        const qp = new URLSearchParams();
-        if (from) qp.append('from', from);
-        if (to)   qp.append('to',   to);
-        if (qp.toString()) endpoint += '?' + qp.toString();
+        if (type !== 'pendientes') {
+            const qp = new URLSearchParams();
+            if (from) qp.append('from', from);
+            if (to)   qp.append('to',   to);
+            if (qp.toString()) endpoint += '?' + qp.toString();
+        }
 
         try {
             const response = await adminFetch(endpoint);

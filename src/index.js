@@ -1213,7 +1213,7 @@ export default {
 
           // Pendientes (estado actual — sin filtro de fecha, refleja hoy)
           const pendientesRow = await env.DB.prepare(
-            `SELECT COUNT(*) AS c FROM Orders WHERE ${estadoCol} IN ('Pendiente', 'Procesando')`
+            `SELECT COUNT(*) AS c FROM Orders WHERE ${estadoCol} = 'Pagado'`
           ).first();
 
           // Total órdenes en el rango (todos los estados)
