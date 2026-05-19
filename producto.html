@@ -1660,16 +1660,21 @@
         document.getElementById('mobileMenuOverlay').addEventListener('click', closeMenu);
 
         // --- BÚSQUEDA MÓVIL ---
-        const mobileSearchBtn = document.getElementById('mobileSearchBtn');
-        const mobileSearchBar = document.getElementById('mobileSearchBar');
+        const mobileSearchBtn   = document.getElementById('mobileSearchBtn');
+        const mobileSearchBar   = document.getElementById('mobileSearchBar');
         const mobileSearchInput = document.getElementById('mobileSearchInput');
 
+        function closeMobileSearch() {
+            mobileSearchBar.classList.remove('open');
+            mobileSearchInput.value = '';
+        }
+        window.closeMobileSearch = closeMobileSearch;
+
         mobileSearchBtn.addEventListener('click', () => {
-            const isOpen = mobileSearchBar.classList.toggle('open');
-            if (isOpen) {
+            if (mobileSearchBar.classList.toggle('open')) {
                 setTimeout(() => mobileSearchInput.focus(), 80);
             } else {
-                mobileSearchInput.value = '';
+                closeMobileSearch();
             }
         });
 
@@ -1679,11 +1684,6 @@
                 window.location.href = 'index.html#catalogo';
             }
         });
-
-        window.closeMobileSearch = () => {
-            mobileSearchBar.classList.remove('open');
-            mobileSearchInput.value = '';
-        };
 
         // --- STICKY CART MÓVIL (IntersectionObserver) ---
         const stickyCart = document.getElementById('stickyCartMobile');

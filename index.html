@@ -1418,44 +1418,40 @@
             document.getElementById('activeFilterContainer').style.display = 'none';
         });
 
-        // =========================================================
-        // BÚSQUEDA MÓVIL
-        // =========================================================
-        const mobileSearchBtn = document.getElementById('mobileSearchBtn');
-        const mobileSearchBar = document.getElementById('mobileSearchBar');
+        // --- BÚSQUEDA MÓVIL ---
+        const mobileSearchBtn   = document.getElementById('mobileSearchBtn');
+        const mobileSearchBar   = document.getElementById('mobileSearchBar');
         const mobileSearchInput = document.getElementById('mobileSearchInput');
+        const mainInput         = document.getElementById('searchInput');
+        const catalogoSection   = document.getElementById('catalogo');
+
+        function closeMobileSearch() {
+            mobileSearchBar.classList.remove('open');
+            mobileSearchInput.value = '';
+            mainInput.value = '';
+            mainInput.dispatchEvent(new Event('input'));
+        }
+        window.closeMobileSearch = closeMobileSearch;
 
         mobileSearchBtn.addEventListener('click', () => {
-            const isOpen = mobileSearchBar.classList.toggle('open');
-            if (isOpen) {
+            if (mobileSearchBar.classList.toggle('open')) {
                 setTimeout(() => mobileSearchInput.focus(), 80);
             } else {
-                mobileSearchInput.value = '';
-                document.getElementById('searchInput').value = '';
-                document.getElementById('searchInput').dispatchEvent(new Event('input'));
+                closeMobileSearch();
             }
         });
 
         mobileSearchInput.addEventListener('input', (e) => {
-            const mainInput = document.getElementById('searchInput');
             mainInput.value = e.target.value;
             mainInput.dispatchEvent(new Event('input'));
         });
 
         mobileSearchInput.addEventListener('keydown', (e) => {
             if (e.key === 'Enter') {
-                document.getElementById('catalogo').scrollIntoView({ behavior: 'smooth' });
+                catalogoSection.scrollIntoView({ behavior: 'smooth' });
                 mobileSearchBar.classList.remove('open');
             }
         });
-
-        window.closeMobileSearch = () => {
-            mobileSearchBar.classList.remove('open');
-            mobileSearchInput.value = '';
-            const mainInput = document.getElementById('searchInput');
-            mainInput.value = '';
-            mainInput.dispatchEvent(new Event('input'));
-        };
 
         // Revisar si viene una búsqueda guardada de otra página
         const savedSearch = localStorage.getItem('mathsoluis_search');
