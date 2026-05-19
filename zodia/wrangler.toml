@@ -1,0 +1,20 @@
+name = "zodia-backend"
+main = "src/index.js"
+compatibility_date = "2024-05-17"
+
+# Variables de entorno (para desarrollo local usa .dev.vars en vez de poner el secreto aquí)
+[vars]
+# JWT_SECRET se carga desde .dev.vars en local y desde wrangler secret en producción
+
+# Conexión a la Base de Datos SQLite (D1)
+# Para crearla: npx wrangler d1 create zodia_db
+[[d1_databases]]
+binding = "DB"
+database_name = "zodia_db"
+database_id = "fdafd4fb-34e5-4ee3-86d2-8331452e8d43"
+
+# Bóveda de Cristal — Bucket de almacenamiento R2
+# Para crearlo: npx wrangler r2 bucket create zodia-avatars
+[[r2_buckets]]
+binding = "BUCKET_AVATARS"
+bucket_name = "zodia-avatars"

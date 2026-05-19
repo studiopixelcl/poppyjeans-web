@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Bienvenido al Cosmos - Zodia</title>
+    
+    <!-- Fuentes Maestras -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Playfair+Display:wght@400;600&display=swap" rel="stylesheet">
+    
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <div class="space-background"></div>
+    <div class="stars-overlay"></div>
+
+    <div class="welcome-wrapper">
+        <div class="welcome-glass-card animate-fade-up">
+            
+            <!-- LOGOTIPO OFICIAL: LA TRÍADA EVOLUTIVA -->
+            <div class="logo-icon floating-slow">
+                <svg width="54" height="54" viewBox="0 0 24 24" fill="none" stroke="var(--accent-cyan)" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M12 3L3 19h18L12 3z"/>
+                    <path d="M12 21L3 5h18L12 21z" opacity="0.3"/>
+                    <circle cx="12" cy="12" r="1.5" fill="var(--accent-cyan)"/>
+                </svg>
+            </div>
+
+            <h1 class="welcome-title">Bienvenido, <span id="userNickname">Iniciado</span></h1>
+            <p class="welcome-intro">Tu sello energético ha sido impreso en el tejido de Zodia. Esta es la vibración basal que elegiste para transitar en esta encarnación.</p>
+
+            <!-- SECCIÓN: TRANSMUTACIÓN DE AVATAR -->
+            <section class="avatar-upload-box delayed-1 animate-fade-up">
+                <div class="avatar-preview-wrapper">
+                    <img id="avatarImage" src="https://via.placeholder.com/120" alt="Tu Avatar Astral" loading="lazy">
+                </div>
+                <form id="avatarForm" class="avatar-form">
+                    <label for="avatarInput" class="btn btn-outline" style="min-height: 44px; margin: 0 auto; max-width: 200px;">Cambiar Rostro</label>
+                    <input type="file" id="avatarInput" accept="image/*" style="display: none;">
+                    <p class="helper-text" style="text-align: center;">Formatos PNG/JPG. Optimizado para alta resolución.</p>
+                </form>
+            </section>
+
+            <!-- SECCIÓN: MATRIZ CÓSMICA RESUMIDA -->
+            <div class="cosmic-grid delayed-2 animate-fade-up">
+                
+                <div class="cosmic-badge border-astral">
+                    <span class="badge-category">Astrología</span>
+                    <h3 id="astralSign">-</h3>
+                    <p id="astralElement" class="badge-sub">-</p>
+                    <p class="badge-desc">Tu arquetipo psicológico y el vector de tu fuerza elemental en el plano físico.</p>
+                </div>
+
+                <div class="cosmic-badge border-numerology">
+                    <span class="badge-category">Camino de Vida</span>
+                    <h3 id="numLifePath">-</h3>
+                    <p class="badge-desc">La misión principal y el equipaje que tu alma seleccionó aprender en esta vida.</p>
+                </div>
+
+                <div class="cosmic-badge border-numerology">
+                    <span class="badge-category">Frecuencia del Verbo</span>
+                    <h3 id="numExpression">-</h3>
+                    <p class="badge-desc">Tu Número de Expresión. Las capacidades intelectuales y el vehículo de manifestación externa.</p>
+                </div>
+
+                <div class="cosmic-badge border-numerology">
+                    <span class="badge-category">Deseo del Alma</span>
+                    <h3 id="numSoul">-</h3>
+                    <p class="badge-desc">El anhelo secreto de tu corazón. Lo que necesitas para sentirte completo en tu interior.</p>
+                </div>
+
+                <div id="karmaBox" class="cosmic-badge border-karma full-width-badge" style="display: none;">
+                    <span class="badge-category" style="color: #ef4444;">Ciclos Pendientes</span>
+                    <h3>Deudas Kármicas</h3>
+                    <p id="karmaList" class="badge-sub" style="color: #f87171; letter-spacing: 0.1em;"></p>
+                    <p class="badge-desc">El Motor Akáshico ha interceptado lecciones no resueltas de tus líneas temporales pasadas.</p>
+                </div>
+
+            </div>
+
+            <!-- ACCIÓN DE ENTRADA -->
+            <div class="welcome-actions delayed-3 animate-fade-up">
+                <button id="btnEnterPlatform" class="btn btn-glow w-full">Ingresar al Feed Social</button>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Archivo JS Temporal de simulación front-end -->
+    <script src="js/bienvenida.js"></script>
+</body>
+</html>

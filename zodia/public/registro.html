@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Sello de Ingreso - Zodia</title>
+    
+    <!-- Fuentes Elegantes -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Playfair+Display:wght@400;600&display=swap" rel="stylesheet">
+    
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body class="auth-page">
+    <!-- El vacío cósmico animado de fondo -->
+    <div class="space-background"></div>
+    <div class="stars-overlay"></div>
+
+    <div class="auth-wrapper">
+        <div class="auth-glass-card animate-fade-up">
+            
+            <!-- Icono Zodia -->
+            <div class="logo-icon floating-slow">
+                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="var(--accent-cyan)" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M12 3L3 19h18L12 3z"/>
+                    <path d="M12 21L3 5h18L12 21z" opacity="0.4"/>
+                    <circle cx="12" cy="12" r="1.5" fill="var(--accent-cyan)"/>
+                </svg>
+            </div>
+
+            <h1 class="auth-title">Sello de Ingreso</h1>
+            <p class="auth-subtitle">Decodifica la arquitectura de tu alma</p>
+            
+            <form id="registroForm" class="auth-form">
+                
+                <div class="form-group delayed-1 animate-fade-up">
+                    <label for="nombreCompleto">Nombre Completo de Nacimiento</label>
+                    <input type="text" id="nombreCompleto" class="form-input" placeholder="Ej: Ana María Silva Rojas" required autocomplete="name">
+                    <div class="helper-text">Esencial para decodificar la Frecuencia de tu Verbo.</div>
+                </div>
+                
+                <div class="form-group delayed-1 animate-fade-up">
+                    <label for="nombreActual">Apodo o Nombre Actual</label>
+                    <input type="text" id="nombreActual" class="form-input" placeholder="Ej: Ana Silva" required>
+                </div>
+
+                <div class="form-group delayed-2 animate-fade-up">
+                    <label for="fechaNacimiento">Fecha de Nacimiento</label>
+                    <input type="date" id="fechaNacimiento" class="form-input" required>
+                    <div class="helper-text">El Sello del Tiempo. No se puede alterar.</div>
+                </div>
+
+                <div class="form-group delayed-2 animate-fade-up">
+                    <label for="email">Correo Electrónico</label>
+                    <input type="email" id="email" class="form-input" placeholder="tu@correo.com" required autocomplete="email">
+                </div>
+
+                <div class="form-group delayed-3 animate-fade-up">
+                    <label for="password">Contraseña (Llave Energética)</label>
+                    <input type="password" id="password" class="form-input" placeholder="••••••••" required>
+                </div>
+
+                <div class="auth-actions delayed-3 animate-fade-up">
+                    <button type="submit" class="btn btn-glow w-full">Calcular Perfil y Unirme</button>
+                    <a href="index.html" class="btn btn-outline w-full">Volver al Portal</a>
+                </div>
+            </form>
+
+        </div>
+    </div>
+
+    <script src="js/api.js"></script>
+    <script src="js/registro.js"></script>
+</body>
+</html>
