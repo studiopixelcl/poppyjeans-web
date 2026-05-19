@@ -93,6 +93,19 @@
         .mobile-only { display: block; } .desktop-only { display: none; }
         @media (min-width: 900px) { .mobile-only { display: none; } .desktop-only { display: flex; } }
 
+        /* ── Barra de búsqueda móvil ── */
+        .mobile-search-bar { display: none; position: fixed; top: 65px; left: 0; width: 100%; background: var(--blanco-puro); padding: 0.85rem 1.2rem; z-index: 998; box-shadow: 0 8px 20px rgba(138,115,96,0.12); border-top: 1px solid var(--gris-claro); animation: slideDownSearch 0.2s ease; }
+        .mobile-search-bar.open { display: block; }
+        @keyframes slideDownSearch { from { opacity:0; transform:translateY(-8px); } to { opacity:1; transform:translateY(0); } }
+        .mobile-search-inner { display: flex; align-items: center; gap: 0.6rem; background: var(--gris-claro); border-radius: var(--radius-pill); padding: 0.6rem 1rem; border: 1px solid transparent; transition: var(--transition-smooth); }
+        .mobile-search-inner:focus-within { border-color: var(--rosa-intenso); background: var(--blanco-puro); box-shadow: var(--shadow-subtle); }
+        .mobile-search-inner svg { flex-shrink: 0; color: #A09389; width: 17px; height: 17px; }
+        .mobile-search-inner input { flex: 1; border: none; background: transparent; font-family: var(--font-main); font-size: 0.9rem; outline: none; color: var(--dark-studio); }
+        .mobile-search-inner input::placeholder { color: #A09389; }
+        .mobile-search-close { background: none; border: none; cursor: pointer; color: #A09389; font-size: 1.1rem; line-height: 1; padding: 0; display: flex; align-items: center; transition: color 0.2s; }
+        .mobile-search-close:hover { color: var(--rosa-intenso); }
+        @media (min-width: 900px) { .mobile-search-bar { display: none !important; } }
+
         /* --- BREADCRUMB --- */
         .breadcrumb { max-width: 1200px; margin: 2rem auto 1rem; padding: 0 5%; font-size: 0.85rem; color: #888; font-weight: 600;}
         .breadcrumb a { color: var(--rosa-intenso); transition: var(--transition-smooth); }
@@ -449,6 +462,10 @@
             </nav>
             
             <div class="header-right">
+                <!-- Lupa en móvil -->
+                <button class="icon-btn mobile-only" id="mobileSearchBtn" aria-label="Buscar">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                </button>
                 <div class="search-container desktop-only">
                     <input type="text" class="search-input" id="searchInput" placeholder="Buscar prendas..." onkeydown="if(event.key==='Enter') { localStorage.setItem('mathsoluis_search', this.value); window.location.href='index.html#catalogo'; }">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="width:16px; height:16px;"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
@@ -471,6 +488,16 @@
             </div>
         </div>
     </header>
+
+    <!-- Panel de búsqueda móvil -->
+    <div class="mobile-search-bar" id="mobileSearchBar">
+        <div class="mobile-search-inner">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+            <input type="text" id="mobileSearchInput" placeholder="Buscar prendas...">
+            <button class="mobile-search-close" onclick="closeMobileSearch()" aria-label="Cerrar búsqueda">✕</button>
+        </div>
+    </div>
+
     <div class="mobile-menu-overlay" id="mobileMenuOverlay"></div>
     <nav class="mobile-menu-drawer" id="mobileMenuDrawer">
         <button class="close-menu" id="closeMenuBtn">✕</button>
@@ -1631,6 +1658,32 @@
         };
         document.getElementById('closeMenuBtn').addEventListener('click', closeMenu);
         document.getElementById('mobileMenuOverlay').addEventListener('click', closeMenu);
+
+        // --- BÚSQUEDA MÓVIL ---
+        const mobileSearchBtn = document.getElementById('mobileSearchBtn');
+        const mobileSearchBar = document.getElementById('mobileSearchBar');
+        const mobileSearchInput = document.getElementById('mobileSearchInput');
+
+        mobileSearchBtn.addEventListener('click', () => {
+            const isOpen = mobileSearchBar.classList.toggle('open');
+            if (isOpen) {
+                setTimeout(() => mobileSearchInput.focus(), 80);
+            } else {
+                mobileSearchInput.value = '';
+            }
+        });
+
+        mobileSearchInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && mobileSearchInput.value.trim()) {
+                localStorage.setItem('mathsoluis_search', mobileSearchInput.value.trim());
+                window.location.href = 'index.html#catalogo';
+            }
+        });
+
+        window.closeMobileSearch = () => {
+            mobileSearchBar.classList.remove('open');
+            mobileSearchInput.value = '';
+        };
 
         // --- STICKY CART MÓVIL (IntersectionObserver) ---
         const stickyCart = document.getElementById('stickyCartMobile');
