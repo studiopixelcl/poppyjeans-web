@@ -79,26 +79,73 @@
         .btn-export { margin-left: auto; background: var(--dark-studio); color: var(--blanco-puro); border: none; padding: 0.5rem 1.3rem; border-radius: 8px; font-family: var(--font-main); font-size: 0.88rem; font-weight: 600; cursor: pointer; transition: var(--transition); display: flex; align-items: center; gap: 0.4rem; white-space: nowrap; }
         .btn-export:hover { background: #2a2a35; transform: translateY(-1px); }
 
+        /* ── KPI SECTIONS ────────────────────────────────────────── */
+        .kpi-section { margin-bottom: 2.5rem; }
+        .kpi-section-title {
+            font-family: var(--font-display); font-size: 0.75rem; font-weight: 700;
+            color: #aaa; text-transform: uppercase; letter-spacing: 1.8px;
+            margin-bottom: 1.1rem; padding-bottom: 0.65rem;
+            border-bottom: 2px solid var(--gris-claro);
+            display: flex; align-items: center; gap: 0.55rem;
+        }
+        .kpi-section-title::before {
+            content: ''; display: inline-block; width: 4px; height: 14px;
+            border-radius: 2px; background: var(--teal-studio);
+        }
+        .kpi-section:nth-child(2) .kpi-section-title::before { background: #2980B9; }
+
         /* ── KPI GRID ────────────────────────────────────────────── */
-        .metrics-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.3rem; margin-bottom: 2rem; }
-        .metric-card { background: var(--blanco-puro); border-radius: var(--radius-lg); padding: 1.6rem; box-shadow: var(--shadow); border: 1px solid var(--gris-claro); position: relative; overflow: hidden; transition: var(--transition); cursor: pointer; user-select: none; }
-        .metric-card:hover { transform: translateY(-3px) scale(1.02); box-shadow: 0 20px 44px rgba(30,30,36,0.14); border-color: var(--teal-studio); }
-        .metric-card:active { transform: scale(0.99); }
-        .metric-card::before { content: ''; position: absolute; top: 0; left: 0; width: 5px; height: 100%; background: var(--teal-studio); border-radius: 3px 0 0 3px; }
+        .metrics-grid { display: grid; gap: 1.3rem; margin-bottom: 0; }
+        .metrics-grid--fin { grid-template-columns: repeat(3, 1fr); }
+        .metrics-grid--log { grid-template-columns: repeat(4, 1fr); }
+        @media (max-width: 1100px) {
+            .metrics-grid--fin { grid-template-columns: repeat(2, 1fr); }
+            .metrics-grid--log { grid-template-columns: repeat(2, 1fr); }
+        }
+        @media (max-width: 640px) {
+            .metrics-grid--fin, .metrics-grid--log { grid-template-columns: 1fr; }
+        }
+
+        .metric-card {
+            background: var(--blanco-puro);
+            border-radius: var(--radius-lg);
+            padding: 1.65rem 1.75rem;
+            box-shadow: 0 2px 6px rgba(30,30,36,0.04), 0 8px 26px rgba(30,30,36,0.07);
+            border: 1px solid var(--gris-claro);
+            position: relative; overflow: hidden;
+            transition: transform 0.22s ease, box-shadow 0.22s ease, border-color 0.22s ease;
+            cursor: pointer; user-select: none;
+        }
+        .metric-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 6px 16px rgba(30,30,36,0.09), 0 22px 52px rgba(30,30,36,0.15);
+            border-color: var(--teal-studio);
+        }
+        .metric-card:active { transform: translateY(-1px); }
+        .metric-card::before {
+            content: ''; position: absolute; top: 0; left: 0;
+            width: 5px; height: 100%;
+            background: var(--teal-studio); border-radius: 3px 0 0 3px;
+        }
         .metric-card.is-warning::before { background: var(--warn-color); }
         .metric-card.is-neutral::before { background: var(--dark-studio); }
         .metric-card.is-purple::before  { background: #8E44AD; }
         .metric-card.is-blue::before    { background: #2980B9; }
+        .metric-card.is-green::before   { background: #27AE60; }
         /* Columna extra para costo de envío en tabla */
         .o-shipping { font-weight: 700; color: #2980B9; text-align: right; display: block; }
-        .metric-icon  { font-size: 1.9rem; margin-bottom: 0.65rem; display: block; }
-        .metric-label { font-size: 0.76rem; font-weight: 600; color: #999; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 0.3rem; }
-        .metric-value { font-family: var(--font-display); font-size: 1.85rem; font-weight: 800; color: var(--dark-studio); line-height: 1.1; }
-        .metric-value.loading { color: #ddd; font-size: 1.3rem; }
-        .metric-sub { font-size: 0.74rem; color: #bbb; margin-top: 0.35rem; }
-        .metric-hint { font-size: 0.7rem; color: var(--teal-studio); font-weight: 600; margin-top: 0.75rem; opacity: 0.5; transition: opacity 0.2s; letter-spacing: 0.3px; }
+        .metric-icon  { font-size: 2.2rem; margin-bottom: 0.9rem; display: block; line-height: 1; }
+        .metric-label { font-size: 0.73rem; font-weight: 700; color: #a0a8a7; text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 0.3rem; }
+        .metric-value { font-family: var(--font-display); font-size: 1.9rem; font-weight: 800; color: var(--dark-studio); line-height: 1.1; }
+        .metric-value.loading { color: #e0e4e3; font-size: 1.3rem; }
+        .metric-sub { font-size: 0.72rem; color: #c8cecd; margin-top: 0.4rem; }
+        .metric-hint { font-size: 0.68rem; color: var(--teal-studio); font-weight: 600; margin-top: 0.9rem; opacity: 0; transition: opacity 0.2s; letter-spacing: 0.3px; }
         .metric-card:hover .metric-hint { opacity: 1; }
-        .metric-card:focus-visible { outline: none; transform: translateY(-3px) scale(1.02); box-shadow: 0 20px 44px rgba(30,30,36,0.14); border-color: var(--teal-studio); }
+        .metric-card:focus-visible {
+            outline: 2px solid var(--teal-studio); outline-offset: 3px;
+            transform: translateY(-4px);
+            box-shadow: 0 6px 16px rgba(30,30,36,0.09), 0 22px 52px rgba(30,30,36,0.15);
+        }
 
         /* ── KPI delta (comparación período anterior) ─────────────── */
         .metric-delta { font-size: 0.7rem; font-weight: 700; margin-top: 0.55rem; display: inline-flex; align-items: center; gap: 0.28rem; padding: 0.2rem 0.55rem; border-radius: 20px; line-height: 1.2; }
@@ -303,46 +350,69 @@
             <button class="preset-chip" data-key="todo" onclick="setPreset('todo', this)">Histórico</button>
         </div>
 
-        <!-- KPI DE VENTAS -->
-        <p class="section-title">Indicadores de Ventas</p>
-        <div class="metrics-grid">
-            <div class="metric-card" tabindex="0" role="button" onclick="openKpiModal('ingresos')" onkeydown="handleCardKey(event,'ingresos')">
-                <span class="metric-icon">💰</span>
-                <div class="metric-label">Ingresos Totales</div>
-                <div class="metric-value loading" id="metricIngresos">···</div>
-                <div class="metric-sub">Suma de pedidos pagados</div>
-                <div class="metric-delta hidden" id="deltaIngresos"></div>
-                <div class="metric-hint">Ver detalle →</div>
+        <!-- ── SECCIÓN 1: INDICADORES FINANCIEROS ──────────────────── -->
+        <div class="kpi-section">
+            <h3 class="kpi-section-title">Indicadores Financieros</h3>
+            <div class="metrics-grid metrics-grid--fin">
+                <div class="metric-card" tabindex="0" role="button" onclick="openKpiModal('ingresos')" onkeydown="handleCardKey(event,'ingresos')">
+                    <span class="metric-icon">📈</span>
+                    <div class="metric-label">Ingresos Totales</div>
+                    <div class="metric-value loading" id="metricIngresos">···</div>
+                    <div class="metric-sub">Pedidos confirmados en el período</div>
+                    <div class="metric-delta hidden" id="deltaIngresos"></div>
+                    <div class="metric-hint">Ver detalle →</div>
+                </div>
+                <div class="metric-card is-purple" tabindex="0" role="button" onclick="openKpiModal('ticket')" onkeydown="handleCardKey(event,'ticket')">
+                    <span class="metric-icon">🎯</span>
+                    <div class="metric-label">Ticket Promedio</div>
+                    <div class="metric-value loading" id="metricAov">···</div>
+                    <div class="metric-sub">Ingresos ÷ órdenes del período</div>
+                    <div class="metric-delta hidden" id="deltaAov"></div>
+                    <div class="metric-hint">Ver cálculo →</div>
+                </div>
+                <div class="metric-card is-neutral" tabindex="0" role="button" onclick="openKpiModal('ordenes')" onkeydown="handleCardKey(event,'ordenes')">
+                    <span class="metric-icon">🛍️</span>
+                    <div class="metric-label">Órdenes Totales</div>
+                    <div class="metric-value loading" id="metricOrdenes">···</div>
+                    <div class="metric-sub">Todos los pedidos del período</div>
+                    <div class="metric-delta hidden" id="deltaOrdenes"></div>
+                    <div class="metric-hint">Ver detalle →</div>
+                </div>
             </div>
-            <div class="metric-card is-warning" tabindex="0" role="button" onclick="openKpiModal('pendientes')" onkeydown="handleCardKey(event,'pendientes')">
-                <span class="metric-icon">📦</span>
-                <div class="metric-label">Pendientes por Enviar</div>
-                <div class="metric-value loading" id="metricPendientes">···</div>
-                <div class="metric-sub">Estado Pagado (sin despachar)</div>
-                <div class="metric-hint">Ver detalle →</div>
-            </div>
-            <div class="metric-card is-neutral" tabindex="0" role="button" onclick="openKpiModal('ordenes')" onkeydown="handleCardKey(event,'ordenes')">
-                <span class="metric-icon">🛒</span>
-                <div class="metric-label">Órdenes Totales</div>
-                <div class="metric-value loading" id="metricOrdenes">···</div>
-                <div class="metric-sub">Pedidos en el período</div>
-                <div class="metric-delta hidden" id="deltaOrdenes"></div>
-                <div class="metric-hint">Ver detalle →</div>
-            </div>
-            <div class="metric-card is-purple" tabindex="0" role="button" onclick="openKpiModal('ticket')" onkeydown="handleCardKey(event,'ticket')">
-                <span class="metric-icon">🎯</span>
-                <div class="metric-label">Ticket Promedio</div>
-                <div class="metric-value loading" id="metricAov">···</div>
-                <div class="metric-sub">Ingresos ÷ órdenes pagadas</div>
-                <div class="metric-delta hidden" id="deltaAov"></div>
-                <div class="metric-hint">Ver cálculo →</div>
-            </div>
-            <div class="metric-card is-blue" tabindex="0" role="button" onclick="openKpiModal('shipping')" onkeydown="handleCardKey(event,'shipping')">
-                <span class="metric-icon">🚚</span>
-                <div class="metric-label">Inversión en Envíos</div>
-                <div class="metric-value loading" id="metricShipping">···</div>
-                <div class="metric-sub">Costo logístico de pedidos pagados</div>
-                <div class="metric-hint">Ver detalle →</div>
+        </div>
+
+        <!-- ── SECCIÓN 2: LOGÍSTICA Y OPERACIÓN ─────────────────── -->
+        <div class="kpi-section">
+            <h3 class="kpi-section-title">Logística y Operación</h3>
+            <div class="metrics-grid metrics-grid--log">
+                <div class="metric-card is-warning" tabindex="0" role="button" onclick="openKpiModal('pendientes')" onkeydown="handleCardKey(event,'pendientes')">
+                    <span class="metric-icon">⌛</span>
+                    <div class="metric-label">Pendientes por Enviar</div>
+                    <div class="metric-value loading" id="metricPendientes">···</div>
+                    <div class="metric-sub">Pagados sin despachar aún</div>
+                    <div class="metric-hint">Ver detalle →</div>
+                </div>
+                <div class="metric-card is-blue" tabindex="0" role="button" onclick="openKpiModal('shipping')" onkeydown="handleCardKey(event,'shipping')">
+                    <span class="metric-icon">🏷️</span>
+                    <div class="metric-label">Inversión en Envíos</div>
+                    <div class="metric-value loading" id="metricShipping">···</div>
+                    <div class="metric-sub">Costo logístico acumulado</div>
+                    <div class="metric-hint">Ver detalle →</div>
+                </div>
+                <div class="metric-card is-blue" tabindex="0" role="button" onclick="openKpiModal('enviados')" onkeydown="handleCardKey(event,'enviados')">
+                    <span class="metric-icon">✈️</span>
+                    <div class="metric-label">Enviados (En Tránsito)</div>
+                    <div class="metric-value loading" id="metricEnviados">···</div>
+                    <div class="metric-sub">Pedidos actualmente en camino</div>
+                    <div class="metric-hint">Ver detalle →</div>
+                </div>
+                <div class="metric-card is-green" tabindex="0" role="button" onclick="openKpiModal('recibidos')" onkeydown="handleCardKey(event,'recibidos')">
+                    <span class="metric-icon">🏆</span>
+                    <div class="metric-label">Recibidos (Entregados)</div>
+                    <div class="metric-value loading" id="metricRecibidos">···</div>
+                    <div class="metric-sub">Confirmados por el cliente</div>
+                    <div class="metric-hint">Ver detalle →</div>
+                </div>
             </div>
         </div>
 
@@ -455,7 +525,7 @@
     let currentMetricsData  = null;
 
     // IDs a poner en estado "cargando" / actualizar
-    const KPI_IDS = ['metricIngresos', 'metricPendientes', 'metricOrdenes', 'metricAov', 'metricShipping'];
+    const KPI_IDS = ['metricIngresos', 'metricPendientes', 'metricOrdenes', 'metricAov', 'metricShipping', 'metricEnviados', 'metricRecibidos'];
     const INV_IDS = ['metricStockValue', 'metricLowStock', 'metricOutOfStock'];
 
     const STATUS_COLORS = {
@@ -463,6 +533,7 @@
         'Pendiente':  '#F39C12',
         'Enviado':    '#3498DB',
         'Preparando': '#8E44AD',
+        'Recibido':   '#16A085',
         'Entregado':  '#27AE60',
         'Cancelado':  '#E74C3C',
         'Procesando': '#E67E22',
@@ -669,14 +740,35 @@
 
             if (result.success && result.data) {
                 const d = result.data;
+
+                // ── DEBUG: imprime la respuesta completa del backend ──────────
+                console.log('Data del backend:', d);
+                if (d.debug_status_counts_all?.length) {
+                    console.table(d.debug_status_counts_all);
+                } else {
+                    console.warn('[Mathsoluis] debug_status_counts_all vacío — ¿hay pedidos en la BD?');
+                }
+                // ─────────────────────────────────────────────────────────────
+
                 currentMetricsData = { ...d, from, to };
 
+                // Conversión segura a número (evita undefined silencioso en la vista)
+                const ingresos   = Number(d.ingresos)   || 0;
+                const pendientes = Number(d.pendientes) || 0;
+                const ordenes    = Number(d.ordenes)    || 0;
+                const ticket     = Number(d.ticket)     || 0;
+                const shipping   = Number(d.shipping)   || 0;
+                const enviados   = Number(d.enviados)   || 0;
+                const recibidos  = Number(d.recibidos)  || 0;
+
                 // KPIs de ventas
-                document.getElementById('metricIngresos').textContent  = formatCLP(d.total_ingresos);
-                document.getElementById('metricPendientes').textContent = d.pedidos_pendientes ?? 0;
-                document.getElementById('metricOrdenes').textContent    = d.total_ordenes ?? 0;
-                document.getElementById('metricAov').textContent        = d.aov ? formatCLP(d.aov) : '$0';
-                document.getElementById('metricShipping').textContent   = formatCLP(d.total_shipping_cost || 0);
+                document.getElementById('metricIngresos').textContent  = formatCLP(ingresos);
+                document.getElementById('metricPendientes').textContent = pendientes;
+                document.getElementById('metricOrdenes').textContent    = ordenes;
+                document.getElementById('metricAov').textContent        = ticket ? formatCLP(ticket) : '$0';
+                document.getElementById('metricShipping').textContent   = formatCLP(shipping);
+                document.getElementById('metricEnviados').textContent   = enviados;
+                document.getElementById('metricRecibidos').textContent  = recibidos;
 
                 // KPIs de inventario
                 document.getElementById('metricStockValue').textContent = formatCLP(d.total_stock_value);
@@ -688,9 +780,9 @@
                 // Deltas vs período anterior (solo si el backend los calculó)
                 const cmp = d.comparison;
                 if (cmp && cmp.has_comparison) {
-                    renderDelta('deltaIngresos', d.total_ingresos, cmp.prev_ingresos);
-                    renderDelta('deltaOrdenes',  d.total_ordenes,  cmp.prev_ordenes);
-                    renderDelta('deltaAov',      d.aov,            cmp.prev_aov);
+                    renderDelta('deltaIngresos', ingresos, cmp.prev_ingresos);
+                    renderDelta('deltaOrdenes',  ordenes,  cmp.prev_ordenes);
+                    renderDelta('deltaAov',      ticket,   cmp.prev_aov);
                 } else {
                     hideDeltas();
                 }
@@ -918,18 +1010,23 @@
         'Pendiente':  { bg: '#FEF9E7', color: '#B7950B' },
         'Enviado':    { bg: '#EBF5FB', color: '#2874A6' },
         'Preparando': { bg: '#F4ECF7', color: '#7D3C98' },
+        'Recibido':   { bg: '#E8F8F5', color: '#1A7E6C' },
         'Entregado':  { bg: '#EAFAF1', color: '#1E8449' },
         'Cancelado':  { bg: '#FDEDEC', color: '#C0392B' },
         'Procesando': { bg: '#FEF0E6', color: '#CA6F1E' },
     };
 
     // Configuración de cada tipo de modal
+    const INGRESOS_ESTADOS = ['Pagado', 'Preparando', 'Enviado', 'Recibido', 'Entregado'];
+
     const MODAL_CONFIG = {
-        ingresos:  { title: '💰 Ingresos Totales',      filter: o => (o.estado || o.status) === 'Pagado',                           emptyMsg: 'No hay órdenes pagadas en este período.' },
-        pendientes:{ title: '📦 Pendientes por Enviar', filter: o => (o.estado || o.status || '') === 'Pagado',                           emptyMsg: 'No hay pedidos pagados por despachar.' },
-        ordenes:   { title: '🛒 Todas las Órdenes',     filter: null,                                                                 emptyMsg: 'No hay órdenes en este período.' },
-        ticket:    { title: '🎯 Ticket Promedio',        filter: o => (o.estado || o.status) === 'Pagado',                           emptyMsg: 'No hay órdenes pagadas para calcular el ticket.' },
-        shipping:  { title: '🚚 Inversión en Envíos',   filter: o => (o.estado || o.status) === 'Pagado',                           emptyMsg: 'No hay órdenes pagadas con costo de envío en este período.' },
+        ingresos:  { title: '💰 Ingresos Totales',          filter: o => INGRESOS_ESTADOS.includes(o.estado || o.status),              emptyMsg: 'No hay órdenes con ingreso en este período.' },
+        pendientes:{ title: '📦 Pendientes por Enviar',     filter: o => ['Pagado','Preparando'].includes(o.estado || o.status || ''), emptyMsg: 'No hay pedidos pendientes de despacho.' },
+        ordenes:   { title: '🛒 Todas las Órdenes',         filter: null,                                                              emptyMsg: 'No hay órdenes en este período.' },
+        ticket:    { title: '🎯 Ticket Promedio',            filter: o => INGRESOS_ESTADOS.includes(o.estado || o.status),              emptyMsg: 'No hay órdenes para calcular el ticket.' },
+        shipping:  { title: '🚚 Inversión en Envíos',       filter: o => INGRESOS_ESTADOS.includes(o.estado || o.status),              emptyMsg: 'No hay órdenes con costo de envío en este período.' },
+        enviados:  { title: '📬 Enviados (En Tránsito)',    filter: o => (o.estado || o.status) === 'Enviado',                         emptyMsg: 'No hay pedidos en tránsito actualmente.' },
+        recibidos: { title: '✅ Recibidos (Entregados)',    filter: o => ['Recibido','Entregado'].includes(o.estado || o.status),       emptyMsg: 'No hay pedidos entregados en este período.' },
     };
 
     async function openKpiModal(type) {
@@ -952,10 +1049,10 @@
         document.getElementById('kpiModal').classList.add('active');
         document.body.style.overflow = 'hidden';
 
-        // Construir endpoint — "pendientes" no filtra por fecha porque
-        // queremos ver TODOS los pedidos pagados sin despachar, sin importar cuándo se hicieron.
+        // Construir endpoint — estado logístico actual: sin filtro de fecha
+        const sinFiltroFecha = ['pendientes', 'enviados', 'recibidos'];
         let endpoint = '/api/admin/orders';
-        if (type !== 'pendientes') {
+        if (!sinFiltroFecha.includes(type)) {
             const qp = new URLSearchParams();
             if (from) qp.append('from', from);
             if (to)   qp.append('to',   to);
@@ -1346,10 +1443,10 @@
             [],
             ['VENTAS'],
             ['Métrica', 'Valor'],
-            ['Ingresos Totales (CLP)',    d.total_ingresos],
-            ['Órdenes Totales',           d.total_ordenes],
-            ['Pedidos Pendientes',        d.pedidos_pendientes],
-            ['Ticket Promedio / AOV (CLP)', d.aov],
+            ['Ingresos Totales (CLP)',    d.ingresos],
+            ['Órdenes Totales',           d.ordenes],
+            ['Pedidos Pendientes',        d.pendientes],
+            ['Ticket Promedio / AOV (CLP)', d.ticket],
             [],
             ['INVENTARIO (estado actual)'],
             ['Valor del Stock (CLP)',     d.total_stock_value],

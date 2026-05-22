@@ -575,6 +575,65 @@ export default {
             if (tbkData.status === 'AUTHORIZED' && order) {
                 await env.DB.prepare("UPDATE Orders SET estado = 'Pagado' WHERE id = ?").bind(order.id).run();
 
+                // ── DESCUENTO DE INVENTARIO ────────────────────────────────────────────
+                try {
+                    const { results: stockItems } = await env.DB.prepare(
+                        "SELECT product_id, variant_id, variant_details, cantidad FROM OrderItems WHERE order_id = ?"
+                    ).bind(order.id).all();
+
+                    if (stockItems && stockItems.length > 0) {
+                        // 1. Descontar stock global (Products) y stock de variante (ProductVariants) en paralelo
+                        const directUpdates = stockItems.flatMap(item => {
+                            const ops = [];
+                            if (item.product_id) ops.push(
+                                env.DB.prepare("UPDATE Products SET stock = MAX(0, stock - ?) WHERE id = ?")
+                                    .bind(item.cantidad, item.product_id).run()
+                            );
+                            if (item.variant_id) ops.push(
+                                env.DB.prepare("UPDATE ProductVariants SET stock = MAX(0, stock - ?) WHERE id = ?")
+                                    .bind(item.cantidad, item.variant_id).run()
+                            );
+                            return ops;
+                        });
+                        await Promise.all(directUpdates);
+
+                        // 2. Descontar stock de talla específica dentro del JSON tallas de ProductVariants
+                        await Promise.all(stockItems.map(async item => {
+                            if (!item.variant_id || !item.variant_details) return;
+                            const tallaMatch = item.variant_details.match(/^Talla:\s*(.+)$/);
+                            if (!tallaMatch) return; // "Estándar" u otro formato sin talla → omitir
+                            const tallaName = tallaMatch[1].trim();
+                            try {
+                                const variant = await env.DB.prepare(
+                                    "SELECT tallas FROM ProductVariants WHERE id = ?"
+                                ).bind(item.variant_id).first();
+                                if (!variant || !variant.tallas) return;
+                                let tallasArr;
+                                try { tallasArr = JSON.parse(variant.tallas); } catch (_) { return; }
+                                if (!Array.isArray(tallasArr)) return;
+                                let modified = false;
+                                const updated = tallasArr.map(t => {
+                                    // Admite distintas claves de nombre: talla, name, size, label
+                                    const key = t.talla ?? t.name ?? t.size ?? t.label;
+                                    if (key === tallaName) {
+                                        modified = true;
+                                        return { ...t, stock: Math.max(0, (t.stock ?? t.cantidad ?? 0) - item.cantidad) };
+                                    }
+                                    return t;
+                                });
+                                if (!modified) return; // La talla no existe en el JSON → no sobreescribir
+                                await env.DB.prepare("UPDATE ProductVariants SET tallas = ? WHERE id = ?")
+                                    .bind(JSON.stringify(updated), item.variant_id).run();
+                            } catch (e) {
+                                console.error(`[Stock] Error en talla "${tallaName}" variante ${item.variant_id}:`, e);
+                            }
+                        }));
+                    }
+                } catch (stockErr) {
+                    console.error("[Stock] Error al descontar inventario del pedido", order.id, ":", stockErr);
+                }
+                // ── FIN DESCUENTO DE INVENTARIO ────────────────────────────────────────
+
                 // Reconstruir el carrito desde OrderItems para el correo de confirmación.
                 // JOIN con ProductVariants para obtener pv.imagen_1 como fallback cuando
                 // el ítem no tenía imagen propia al momento del checkout (variant.imagen_1 null → './ico.jpg' → filtrado).
@@ -1203,27 +1262,38 @@ export default {
           // 'created_at' nunca es ambigua.
           const f = buildFilter(fechaCol);
 
-          // Ingresos totales + conteo de órdenes pagadas en el rango
+          // Ingresos totales: suma todo lo que ya generó ingreso real (pagado + en proceso).
+          // LOWER() garantiza coincidencia aunque el valor en BD tenga distinta capitalización.
           const ingresosRow = await exec(
             env.DB.prepare(
-              `SELECT COALESCE(SUM(total), 0) AS total, COUNT(*) AS count
-               FROM Orders WHERE ${estadoCol} = 'Pagado' ${f.clause}`
+              `SELECT COALESCE(SUM(total), 0) AS valor, COUNT(*) AS cantidad
+               FROM Orders
+               WHERE LOWER(status) IN ('pagado','preparando','enviado','recibido','entregado') ${f.clause}`
             ), f.params
           ).first();
 
-          // Pendientes (estado actual — sin filtro de fecha, refleja hoy)
+          // Pendientes por enviar: pre-despacho (estado actual, sin filtro de fecha)
           const pendientesRow = await env.DB.prepare(
-            `SELECT COUNT(*) AS c FROM Orders WHERE ${estadoCol} = 'Pagado'`
+            `SELECT COUNT(*) AS cantidad FROM Orders WHERE LOWER(status) IN ('pagado','preparando')`
           ).first();
 
           // Total órdenes en el rango (todos los estados)
           const totalesRow = await exec(
-            env.DB.prepare(`SELECT COUNT(*) AS c FROM Orders WHERE 1=1 ${f.clause}`),
+            env.DB.prepare(`SELECT COUNT(*) AS cantidad FROM Orders WHERE 1=1 ${f.clause}`),
             f.params
           ).first();
 
-          const totalIngresos = ingresosRow?.total || 0;
-          const totalPagados  = ingresosRow?.count || 0;
+          // Métricas logísticas: estado actual, sin filtro de fecha
+          const enviadosRow = await env.DB.prepare(
+            `SELECT COUNT(*) AS cantidad FROM Orders WHERE LOWER(status) = 'enviado'`
+          ).first();
+
+          const recibidosRow = await env.DB.prepare(
+            `SELECT COUNT(*) AS cantidad FROM Orders WHERE LOWER(status) IN ('recibido','entregado')`
+          ).first();
+
+          const totalIngresos = Number(ingresosRow?.valor)    || 0;
+          const totalPagados  = Number(ingresosRow?.cantidad) || 0;
           const aov = totalPagados > 0 ? Math.round(totalIngresos / totalPagados) : 0;
 
           // ── Comparación con el período anterior ─────────────────────────
@@ -1242,7 +1312,8 @@ export default {
 
               const prevIngresos = await env.DB.prepare(
                 `SELECT COALESCE(SUM(total), 0) AS total, COUNT(*) AS count
-                 FROM Orders WHERE ${estadoCol} = 'Pagado'
+                 FROM Orders
+                 WHERE LOWER(status) IN ('pagado','preparando','enviado','recibido','entregado')
                  AND strftime('%Y-%m-%d', ${fechaCol}) >= ?
                  AND strftime('%Y-%m-%d', ${fechaCol}) <= ?`
               ).bind(pf, pt).first();
@@ -1269,7 +1340,7 @@ export default {
           const { results: salesByDay } = await exec(
             env.DB.prepare(
               `SELECT strftime('%Y-%m-%d', ${fechaCol}) AS dia, COALESCE(SUM(total), 0) AS total
-               FROM Orders WHERE ${estadoCol} = 'Pagado' ${f.clause}
+               FROM Orders WHERE LOWER(status) IN ('pagado','preparando','enviado','recibido','entregado') ${f.clause}
                GROUP BY strftime('%Y-%m-%d', ${fechaCol}) ORDER BY dia ASC`
             ), f.params
           ).all();
@@ -1285,7 +1356,7 @@ export default {
                       SUM(oi.cantidad * oi.precio_unitario) AS total_recaudado
                FROM OrderItems oi
                JOIN (SELECT id FROM Orders
-                     WHERE ${estadoCol} = 'Pagado' ${f.clause}) o
+                     WHERE LOWER(status) IN ('pagado','preparando','enviado','recibido','entregado') ${f.clause}) o
                  ON oi.order_id = o.id
                GROUP BY oi.product_id, oi.product_name
                ORDER BY total_unidades DESC LIMIT 5`
@@ -1303,7 +1374,7 @@ export default {
                       SUM(oi.cantidad * oi.precio_unitario) AS total
                FROM OrderItems oi
                JOIN (SELECT id FROM Orders
-                     WHERE ${estadoCol} = 'Pagado' ${f.clause}) o
+                     WHERE LOWER(status) IN ('pagado','preparando','enviado','recibido','entregado') ${f.clause}) o
                  ON oi.order_id = o.id
                LEFT JOIN Products p ON oi.product_id = p.id
                LEFT JOIN Categories c ON p.categoria_id = c.id
@@ -1315,9 +1386,9 @@ export default {
           // Distribución de pedidos por estado (sujeta al filtro de fecha)
           const { results: statusDistribution } = await exec(
             env.DB.prepare(
-              `SELECT ${estadoCol} AS estado, COUNT(*) AS count
+              `SELECT status AS estado, COUNT(*) AS count
                FROM Orders WHERE 1=1 ${f.clause}
-               GROUP BY ${estadoCol} ORDER BY count DESC`
+               GROUP BY status ORDER BY count DESC`
             ), f.params
           ).all();
 
@@ -1326,8 +1397,8 @@ export default {
           // anteriores a la migración, cuenta como 0 sin romper la suma.
           const shippingRow = await exec(
             env.DB.prepare(
-              `SELECT COALESCE(SUM(shipping_cost), 0) AS total_shipping
-               FROM Orders WHERE ${estadoCol} = 'Pagado' ${f.clause}`
+              `SELECT COALESCE(SUM(shipping_cost), 0) AS valor
+               FROM Orders WHERE LOWER(status) IN ('pagado','preparando','enviado','recibido','entregado') ${f.clause}`
             ), f.params
           ).first();
 
@@ -1340,15 +1411,24 @@ export default {
              FROM Products ${inventoryWhere}`
           ).first();
 
+          // Diagnóstico: distribución real de estados SIN ningún filtro.
+          // Permite ver exactamente qué valores existen en la BD → aparece en console.log del frontend.
+          const { results: allStatusDebug } = await env.DB.prepare(
+            `SELECT status AS estado, COUNT(*) AS count FROM Orders GROUP BY status ORDER BY count DESC`
+          ).all();
+
           return Response.json({
             success: true,
             data: {
-              // Incluimos los nombres detectados para que el frontend pueda depurar
               _schema: { estadoCol, fechaCol, precioCol, hasVisible },
-              total_ingresos:        totalIngresos,
-              pedidos_pendientes:    pendientesRow?.c || 0,
-              total_ordenes:         totalesRow?.c    || 0,
-              aov,
+              debug_status_counts_all: allStatusDebug || [],
+              ingresos:   Number(ingresosRow?.valor)       || 0,
+              pendientes: Number(pendientesRow?.cantidad)  || 0,
+              enviados:   Number(enviadosRow?.cantidad)    || 0,
+              recibidos:  Number(recibidosRow?.cantidad)   || 0,
+              ordenes:    Number(totalesRow?.cantidad)     || 0,
+              ticket:     aov,
+              shipping:   Number(shippingRow?.valor)       || 0,
               comparison,
               sales_by_day:          salesByDay          || [],
               top_products:          topProducts          || [],
@@ -1357,7 +1437,6 @@ export default {
               total_stock_value:     inventoryRow?.stock_value  || 0,
               low_stock_items:       inventoryRow?.low_stock    || 0,
               out_of_stock_count:    inventoryRow?.out_of_stock || 0,
-              total_shipping_cost:   shippingRow?.total_shipping || 0,
             }
           }, { headers: corsHeaders });
         } catch (error) {
