@@ -711,6 +711,9 @@
         if (to)   params.append('to',   to);
         if (params.toString()) endpoint += '?' + params.toString();
 
+        // ── Auditoría: confirma qué URL y parámetros viajan al servidor ──────
+        console.log('[Metrics] URL de Fetch:', API_BASE_URL + endpoint);
+
         const rangeLabel = document.getElementById('rangeLabel');
         if (from && to)   rangeLabel.textContent = `${from} → ${to}`;
         else if (from)    rangeLabel.textContent = `Desde ${from}`;
@@ -761,19 +764,41 @@
                 const enviados   = Number(d.enviados)   || 0;
                 const recibidos  = Number(d.recibidos)  || 0;
 
-                // KPIs de ventas
-                document.getElementById('metricIngresos').textContent  = formatCLP(ingresos);
-                document.getElementById('metricPendientes').textContent = pendientes;
-                document.getElementById('metricOrdenes').textContent    = ordenes;
-                document.getElementById('metricAov').textContent        = ticket ? formatCLP(ticket) : '$0';
-                document.getElementById('metricShipping').textContent   = formatCLP(shipping);
-                document.getElementById('metricEnviados').textContent   = enviados;
-                document.getElementById('metricRecibidos').textContent  = recibidos;
+                console.log('[Metrics] Payload procesado →', { ingresos, pendientes, ordenes, ticket, shipping, enviados, recibidos });
 
-                // KPIs de inventario
-                document.getElementById('metricStockValue').textContent = formatCLP(d.total_stock_value);
-                document.getElementById('metricLowStock').textContent   = d.low_stock_items ?? 0;
-                document.getElementById('metricOutOfStock').textContent = d.out_of_stock_count ?? 0;
+                // ── Inyección al DOM ───────────────────────────────────────────
+                // IDs verificados contra el HTML (grep exacto):
+                //   metricIngresos · metricAov · metricOrdenes · metricPendientes
+                //   metricShipping · metricEnviados · metricRecibidos
+                //   metricStockValue · metricLowStock · metricOutOfStock
+                // El try/catch interno atrapa cualquier ID ausente sin romper
+                // el resto del bloque (charts, deltas, etc.).
+                try {
+                    const setKpi = (id, value) => {
+                        const el = document.getElementById(id);
+                        if (!el) { console.error('[Metrics] ID no encontrado en el DOM:', id); return; }
+                        el.innerText = value;
+                        el.classList.remove('loading');
+                    };
+
+                    // Financieros
+                    setKpi('metricIngresos',   formatCLP(ingresos));
+                    setKpi('metricAov',         ticket ? formatCLP(ticket) : '$0');
+                    setKpi('metricOrdenes',     ordenes);
+                    setKpi('metricPendientes',  pendientes);
+
+                    // Logísticos
+                    setKpi('metricShipping',    formatCLP(shipping));
+                    setKpi('metricEnviados',    enviados);
+                    setKpi('metricRecibidos',   recibidos);
+
+                    // Inventario
+                    setKpi('metricStockValue',  formatCLP(d.total_stock_value  ?? 0));
+                    setKpi('metricLowStock',    d.low_stock_items   ?? 0);
+                    setKpi('metricOutOfStock',  d.out_of_stock_count ?? 0);
+                } catch (domErr) {
+                    console.error('[Metrics] Error inyectando datos en el DOM:', domErr);
+                }
 
                 clearLoadingState();
 

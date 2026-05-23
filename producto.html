@@ -1121,6 +1121,12 @@
                 img: variant.imagen_1 || './ico.jpg'
             };
 
+            // Kit: adjuntar mapa estructurado componente→talla para descuento granular en backend.
+            // El backend lo guarda en OrderItems.variant_details como JSON y lo usa en el Paso 3.
+            if (currentProduct.es_kit === 1) {
+                itemObj.kitSizes = { ...selectedSizeStr }; // ej. { bata: "M", sosten: "44" }
+            }
+
             const existingItem = cart.find(item => item.id === itemObj.id);
             if (existingItem) existingItem.quantity += 1;
             else cart.push({ ...itemObj, quantity: 1 });

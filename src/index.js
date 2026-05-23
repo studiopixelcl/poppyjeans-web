@@ -488,9 +488,17 @@ export default {
                     const parts = item.id.split('_');
                     const originalProductId = parts[1] || null;
                     const variantId = parts[2] ? (parseInt(parts[2]) || null) : null;
-                    // Extraer talla del id (parts[3+]); 'u' = sin talla / Estándar
-                    const sizeRaw = parts.slice(3).join('_');
-                    const variantDetail = (sizeRaw && sizeRaw !== 'u') ? `Talla: ${sizeRaw}` : 'Estándar';
+                    // Kit: el frontend adjunta item.kitSizes = { bata:"M", sosten:"44" }.
+                    // Se serializa como JSON y se guarda en variant_details para que el
+                    // Paso 3 del webhook pueda descontar cada componente de forma granular.
+                    // Normal: se extrae la talla del ID y se guarda como "Talla: X" / "Estándar".
+                    let variantDetail;
+                    if (item.kitSizes && typeof item.kitSizes === 'object' && !Array.isArray(item.kitSizes)) {
+                        variantDetail = JSON.stringify(item.kitSizes); // ej. '{"bata":"M","sosten":"44"}'
+                    } else {
+                        const sizeRaw = parts.slice(3).join('_');
+                        variantDetail = (sizeRaw && sizeRaw !== 'u') ? `Talla: ${sizeRaw}` : 'Estándar';
+                    }
                     // Guardar la imagen de la variante directamente; descartar rutas relativas.
                     const imgUrl = (item.img && !item.img.startsWith('./') && !item.img.startsWith('../')) ? item.img : null;
                     return env.DB.prepare(
@@ -576,61 +584,139 @@ export default {
                 await env.DB.prepare("UPDATE Orders SET estado = 'Pagado' WHERE id = ?").bind(order.id).run();
 
                 // ── DESCUENTO DE INVENTARIO ────────────────────────────────────────────
+                // Esquema confirmado (admin/index.html línea 1588):
+                //   Producto normal → tallas = JSON array  [{ size: "3-6M", stock: 5 }, ...]
+                //   Producto kit    → tallas = JSON object { bata:[{size,stock}], ... }
+                // El cart ID usa el valor de `s.size` como segmento de talla (producto.html línea 1067).
+                // Kits codifican todas las tallas con join('-') → "M-44"; no recuperables en backend.
                 try {
                     const { results: stockItems } = await env.DB.prepare(
                         "SELECT product_id, variant_id, variant_details, cantidad FROM OrderItems WHERE order_id = ?"
                     ).bind(order.id).all();
 
-                    if (stockItems && stockItems.length > 0) {
-                        // 1. Descontar stock global (Products) y stock de variante (ProductVariants) en paralelo
-                        const directUpdates = stockItems.flatMap(item => {
-                            const ops = [];
-                            if (item.product_id) ops.push(
-                                env.DB.prepare("UPDATE Products SET stock = MAX(0, stock - ?) WHERE id = ?")
-                                    .bind(item.cantidad, item.product_id).run()
-                            );
-                            if (item.variant_id) ops.push(
-                                env.DB.prepare("UPDATE ProductVariants SET stock = MAX(0, stock - ?) WHERE id = ?")
-                                    .bind(item.cantidad, item.variant_id).run()
-                            );
-                            return ops;
-                        });
-                        await Promise.all(directUpdates);
+                    console.log(`[Stock] Pedido #${order.id} — iniciando descuento para ${(stockItems || []).length} ítem(s)`);
 
-                        // 2. Descontar stock de talla específica dentro del JSON tallas de ProductVariants
+                    if (stockItems && stockItems.length > 0) {
+
+                        // ── PASO 1: Products.stock (global del producto) ─────────────────
+                        await Promise.all(stockItems.map(async item => {
+                            if (!item.product_id) return;
+                            const row    = await env.DB.prepare("SELECT stock FROM Products WHERE id = ?").bind(item.product_id).first();
+                            const antes  = row?.stock ?? 0;
+                            const despues = Math.max(0, antes - item.cantidad);
+                            await env.DB.prepare("UPDATE Products SET stock = MAX(0, stock - ?) WHERE id = ?")
+                                .bind(item.cantidad, item.product_id).run();
+                            console.log(`[Stock] Paso1 | Producto #${item.product_id} | antes=${antes} | -${item.cantidad} | después=${despues}`);
+                        }));
+
+                        // ── PASO 2: ProductVariants.stock (stock del color / variante) ───
+                        await Promise.all(stockItems.map(async item => {
+                            if (!item.variant_id) return;
+                            const row    = await env.DB.prepare("SELECT stock FROM ProductVariants WHERE id = ?").bind(item.variant_id).first();
+                            const antes  = row?.stock ?? 0;
+                            const despues = Math.max(0, antes - item.cantidad);
+                            await env.DB.prepare("UPDATE ProductVariants SET stock = MAX(0, stock - ?) WHERE id = ?")
+                                .bind(item.cantidad, item.variant_id).run();
+                            console.log(`[Stock] Paso2 | Variante #${item.variant_id} | antes=${antes} | -${item.cantidad} | después=${despues}`);
+                        }));
+
+                        // ── PASO 3: ProductVariants.tallas JSON (stock de talla exacta) ──
+                        // Clave confirmada: 't.size' (admin/index.html línea 1588).
+                        // Dos formatos posibles en variant_details:
+                        //   · Normal → "Talla: 3-6M"  (regex /^Talla:\s*(.+)$/)
+                        //   · Kit    → '{"bata":"M","sosten":"44"}'  (JSON guardado en /api/checkout)
+                        // "Estándar" no tiene JSON de tallas → se omite.
                         await Promise.all(stockItems.map(async item => {
                             if (!item.variant_id || !item.variant_details) return;
-                            const tallaMatch = item.variant_details.match(/^Talla:\s*(.+)$/);
-                            if (!tallaMatch) return; // "Estándar" u otro formato sin talla → omitir
-                            const tallaName = tallaMatch[1].trim();
+                            // Detectar formato: JSON de kit (empieza con '{') vs. string normal
+                            const isKitVariant = item.variant_details.startsWith('{');
+                            const tallaMatch   = isKitVariant ? null : item.variant_details.match(/^Talla:\s*(.+)$/);
+                            if (!tallaMatch && !isKitVariant) return; // "Estándar" → sin JSON que actualizar
+                            const tallaName = isKitVariant ? null : tallaMatch[1].trim();
                             try {
                                 const variant = await env.DB.prepare(
                                     "SELECT tallas FROM ProductVariants WHERE id = ?"
                                 ).bind(item.variant_id).first();
                                 if (!variant || !variant.tallas) return;
-                                let tallasArr;
-                                try { tallasArr = JSON.parse(variant.tallas); } catch (_) { return; }
-                                if (!Array.isArray(tallasArr)) return;
+
+                                let tallasData;
+                                try { tallasData = JSON.parse(variant.tallas); } catch (_) {
+                                    console.warn(`[Stock] Paso3 | Variante #${item.variant_id}: tallas JSON malformado — omitido`);
+                                    return;
+                                }
+
+                                // Kit → JSON object { comp: [{size,stock},...] }; no array
+                                if (!Array.isArray(tallasData)) {
+                                    // variant_details debe ser el JSON de kitSizes guardado en /api/checkout
+                                    // ej. '{"bata":"M","sosten":"44"}' → { bata:"M", sosten:"44" }
+                                    let kitSizes = null;
+                                    try { kitSizes = JSON.parse(item.variant_details); } catch (_) {}
+
+                                    if (!kitSizes || typeof kitSizes !== 'object' || Array.isArray(kitSizes)) {
+                                        // variant_details tiene formato legacy "Talla: M-44" (orden antiguo)
+                                        console.warn(`[Stock] Paso3 | Variante #${item.variant_id} (kit legacy): variant_details no es JSON de componentes → "${item.variant_details}". Descuento granular omitido. Pasos 1-2 ya aplicados.`);
+                                        return;
+                                    }
+
+                                    // Clonar el objeto para no mutar la referencia original
+                                    const updatedKit = JSON.parse(JSON.stringify(tallasData));
+                                    let kitModified = false;
+
+                                    for (const [comp, selectedSize] of Object.entries(kitSizes)) {
+                                        if (!updatedKit[comp] || !Array.isArray(updatedKit[comp])) {
+                                            console.warn(`[Stock] Paso3 | Kit variante #${item.variant_id}: componente "${comp}" no existe en tallas JSON — omitido`);
+                                            continue;
+                                        }
+                                        let compModificado = false;
+                                        updatedKit[comp] = updatedKit[comp].map(t => {
+                                            if (t.size === selectedSize) {
+                                                compModificado = true;
+                                                kitModified    = true;
+                                                const antes    = t.stock ?? 0;
+                                                const despues  = Math.max(0, antes - item.cantidad);
+                                                console.log(`[Stock] Paso3 | Kit comp="${comp}" talla="${selectedSize}" variante #${item.variant_id} | antes=${antes} | -${item.cantidad} | después=${despues}`);
+                                                return { ...t, stock: despues };
+                                            }
+                                            return t;
+                                        });
+                                        if (!compModificado) {
+                                            console.warn(`[Stock] Paso3 | Kit comp="${comp}" talla="${selectedSize}" no hallada en variante #${item.variant_id}`);
+                                        }
+                                    }
+
+                                    if (!kitModified) return;
+                                    await env.DB.prepare("UPDATE ProductVariants SET tallas = ? WHERE id = ?")
+                                        .bind(JSON.stringify(updatedKit), item.variant_id).run();
+                                    return; // Kit procesado — no continuar al bloque de array
+                                }
+
+                                // Normal → [{size, stock}, ...]; clave 'size' confirmada
                                 let modified = false;
-                                const updated = tallasArr.map(t => {
-                                    // Admite distintas claves de nombre: talla, name, size, label
-                                    const key = t.talla ?? t.name ?? t.size ?? t.label;
-                                    if (key === tallaName) {
+                                const updated = tallasData.map(t => {
+                                    if (t.size === tallaName) {
                                         modified = true;
-                                        return { ...t, stock: Math.max(0, (t.stock ?? t.cantidad ?? 0) - item.cantidad) };
+                                        const antes  = t.stock ?? 0;
+                                        const despues = Math.max(0, antes - item.cantidad);
+                                        console.log(`[Stock] Paso3 | Talla "${tallaName}" variante #${item.variant_id} | antes=${antes} | -${item.cantidad} | después=${despues}`);
+                                        return { ...t, stock: despues };
                                     }
                                     return t;
                                 });
-                                if (!modified) return; // La talla no existe en el JSON → no sobreescribir
+
+                                if (!modified) {
+                                    console.warn(`[Stock] Paso3 | Talla "${tallaName}" no hallada en variante #${item.variant_id}. Disponibles: [${tallasData.map(t => t.size).join(', ')}]`);
+                                    return;
+                                }
+
                                 await env.DB.prepare("UPDATE ProductVariants SET tallas = ? WHERE id = ?")
                                     .bind(JSON.stringify(updated), item.variant_id).run();
                             } catch (e) {
-                                console.error(`[Stock] Error en talla "${tallaName}" variante ${item.variant_id}:`, e);
+                                console.error(`[Stock] Paso3 | Error en talla "${tallaName}" variante #${item.variant_id}:`, e);
                             }
                         }));
                     }
                 } catch (stockErr) {
-                    console.error("[Stock] Error al descontar inventario del pedido", order.id, ":", stockErr);
+                    console.error("[Stock] Error general al descontar inventario del pedido", order.id, ":", stockErr);
                 }
                 // ── FIN DESCUENTO DE INVENTARIO ────────────────────────────────────────
 
@@ -1220,11 +1306,22 @@ export default {
       }
 
       // ---- MÉTRICAS DEL DASHBOARD ----
-      // Acepta ?from=YYYY-MM-DD&to=YYYY-MM-DD (ambos opcionales — sin params devuelve histórico completo).
+      // Acepta ?from=YYYY-MM-DD&to=YYYY-MM-DD (o startDate/endDate) opcionales.
+      // Sin params devuelve histórico completo.
       if (url.pathname === "/api/admin/metrics" && request.method === "GET") {
         try {
-          const from = url.searchParams.get('from');
-          const to   = url.searchParams.get('to');
+          // ── Normalización de fecha ──────────────────────────────────────────
+          // Acepta tanto ?from/to como ?startDate/endDate (alias legacy).
+          // Convierte DD-MM-YYYY → YYYY-MM-DD si el frontend lo envía invertido.
+          // SQLite strftime() falla silenciosamente con formato no ISO.
+          const normDate = raw => {
+            if (!raw) return null;
+            const m = raw.match(/^(\d{2})-(\d{2})-(\d{4})$/); // DD-MM-YYYY
+            return m ? `${m[3]}-${m[2]}-${m[1]}` : raw;       // → YYYY-MM-DD
+          };
+          const from = normDate(url.searchParams.get('from') || url.searchParams.get('startDate'));
+          const to   = normDate(url.searchParams.get('to')   || url.searchParams.get('endDate'));
+          console.log(`[Metrics] Fechas recibidas → from="${url.searchParams.get('from') || url.searchParams.get('startDate')}" to="${url.searchParams.get('to') || url.searchParams.get('endDate')}" | Normalizadas → from="${from}" to="${to}"`);
 
           // ── Detección automática de nombres de columna de Orders ────────
           // Soporta esquemas en español (estado / fecha_creacion) e inglés
@@ -1247,11 +1344,19 @@ export default {
           // en una query que no tiene placeholders '?'.
           const exec = (stmt, params) => params.length ? stmt.bind(...params) : stmt;
 
+          // ── Timestamps SQL con cobertura de día completo ──────────────────
+          // strftime('%Y-%m-%d', col) <= '2026-05-23' falla para órdenes
+          // con hora, p.ej. '2026-05-23 14:30:00' > '2026-05-23' → excluidas.
+          // Solución: comparación directa sobre el timestamp crudo con
+          // 00:00:00 en el límite inferior y 23:59:59 en el superior.
+          const sqlFrom = from ? from + ' 00:00:00' : null;
+          const sqlTo   = to   ? to   + ' 23:59:59' : null;
+
           // ── Helper: construye cláusula AND para filtro de fechas ─────────
           const buildFilter = (col) => {
             const conds = [], params = [];
-            if (from) { conds.push(`strftime('%Y-%m-%d', ${col}) >= ?`); params.push(from); }
-            if (to)   { conds.push(`strftime('%Y-%m-%d', ${col}) <= ?`); params.push(to); }
+            if (sqlFrom) { conds.push(`${col} >= ?`); params.push(sqlFrom); }
+            if (sqlTo)   { conds.push(`${col} <= ?`); params.push(sqlTo); }
             return { clause: conds.length ? 'AND ' + conds.join(' AND ') : '', params };
           };
 
@@ -1268,13 +1373,13 @@ export default {
             env.DB.prepare(
               `SELECT COALESCE(SUM(total), 0) AS valor, COUNT(*) AS cantidad
                FROM Orders
-               WHERE LOWER(status) IN ('pagado','preparando','enviado','recibido','entregado') ${f.clause}`
+               WHERE LOWER(${estadoCol}) IN ('pagado','preparando','enviado','recibido','entregado') ${f.clause}`
             ), f.params
           ).first();
 
           // Pendientes por enviar: pre-despacho (estado actual, sin filtro de fecha)
           const pendientesRow = await env.DB.prepare(
-            `SELECT COUNT(*) AS cantidad FROM Orders WHERE LOWER(status) IN ('pagado','preparando')`
+            `SELECT COUNT(*) AS cantidad FROM Orders WHERE LOWER(${estadoCol}) IN ('pagado','preparando')`
           ).first();
 
           // Total órdenes en el rango (todos los estados)
@@ -1285,11 +1390,11 @@ export default {
 
           // Métricas logísticas: estado actual, sin filtro de fecha
           const enviadosRow = await env.DB.prepare(
-            `SELECT COUNT(*) AS cantidad FROM Orders WHERE LOWER(status) = 'enviado'`
+            `SELECT COUNT(*) AS cantidad FROM Orders WHERE LOWER(${estadoCol}) = 'enviado'`
           ).first();
 
           const recibidosRow = await env.DB.prepare(
-            `SELECT COUNT(*) AS cantidad FROM Orders WHERE LOWER(status) IN ('recibido','entregado')`
+            `SELECT COUNT(*) AS cantidad FROM Orders WHERE LOWER(${estadoCol}) IN ('recibido','entregado')`
           ).first();
 
           const totalIngresos = Number(ingresosRow?.valor)    || 0;
@@ -1313,16 +1418,16 @@ export default {
               const prevIngresos = await env.DB.prepare(
                 `SELECT COALESCE(SUM(total), 0) AS total, COUNT(*) AS count
                  FROM Orders
-                 WHERE LOWER(status) IN ('pagado','preparando','enviado','recibido','entregado')
-                 AND strftime('%Y-%m-%d', ${fechaCol}) >= ?
-                 AND strftime('%Y-%m-%d', ${fechaCol}) <= ?`
-              ).bind(pf, pt).first();
+                 WHERE LOWER(${estadoCol}) IN ('pagado','preparando','enviado','recibido','entregado')
+                 AND ${fechaCol} >= ?
+                 AND ${fechaCol} <= ?`
+              ).bind(pf + ' 00:00:00', pt + ' 23:59:59').first();
 
               const prevTotales = await env.DB.prepare(
                 `SELECT COUNT(*) AS c FROM Orders
-                 WHERE strftime('%Y-%m-%d', ${fechaCol}) >= ?
-                 AND strftime('%Y-%m-%d', ${fechaCol}) <= ?`
-              ).bind(pf, pt).first();
+                 WHERE ${fechaCol} >= ?
+                 AND ${fechaCol} <= ?`
+              ).bind(pf + ' 00:00:00', pt + ' 23:59:59').first();
 
               const pIng = prevIngresos?.total || 0;
               const pPag = prevIngresos?.count || 0;
@@ -1340,7 +1445,7 @@ export default {
           const { results: salesByDay } = await exec(
             env.DB.prepare(
               `SELECT strftime('%Y-%m-%d', ${fechaCol}) AS dia, COALESCE(SUM(total), 0) AS total
-               FROM Orders WHERE LOWER(status) IN ('pagado','preparando','enviado','recibido','entregado') ${f.clause}
+               FROM Orders WHERE LOWER(${estadoCol}) IN ('pagado','preparando','enviado','recibido','entregado') ${f.clause}
                GROUP BY strftime('%Y-%m-%d', ${fechaCol}) ORDER BY dia ASC`
             ), f.params
           ).all();
@@ -1356,7 +1461,7 @@ export default {
                       SUM(oi.cantidad * oi.precio_unitario) AS total_recaudado
                FROM OrderItems oi
                JOIN (SELECT id FROM Orders
-                     WHERE LOWER(status) IN ('pagado','preparando','enviado','recibido','entregado') ${f.clause}) o
+                     WHERE LOWER(${estadoCol}) IN ('pagado','preparando','enviado','recibido','entregado') ${f.clause}) o
                  ON oi.order_id = o.id
                GROUP BY oi.product_id, oi.product_name
                ORDER BY total_unidades DESC LIMIT 5`
@@ -1374,7 +1479,7 @@ export default {
                       SUM(oi.cantidad * oi.precio_unitario) AS total
                FROM OrderItems oi
                JOIN (SELECT id FROM Orders
-                     WHERE LOWER(status) IN ('pagado','preparando','enviado','recibido','entregado') ${f.clause}) o
+                     WHERE LOWER(${estadoCol}) IN ('pagado','preparando','enviado','recibido','entregado') ${f.clause}) o
                  ON oi.order_id = o.id
                LEFT JOIN Products p ON oi.product_id = p.id
                LEFT JOIN Categories c ON p.categoria_id = c.id
@@ -1386,9 +1491,9 @@ export default {
           // Distribución de pedidos por estado (sujeta al filtro de fecha)
           const { results: statusDistribution } = await exec(
             env.DB.prepare(
-              `SELECT status AS estado, COUNT(*) AS count
+              `SELECT ${estadoCol} AS estado, COUNT(*) AS count
                FROM Orders WHERE 1=1 ${f.clause}
-               GROUP BY status ORDER BY count DESC`
+               GROUP BY ${estadoCol} ORDER BY count DESC`
             ), f.params
           ).all();
 
@@ -1398,7 +1503,7 @@ export default {
           const shippingRow = await exec(
             env.DB.prepare(
               `SELECT COALESCE(SUM(shipping_cost), 0) AS valor
-               FROM Orders WHERE LOWER(status) IN ('pagado','preparando','enviado','recibido','entregado') ${f.clause}`
+               FROM Orders WHERE LOWER(${estadoCol}) IN ('pagado','preparando','enviado','recibido','entregado') ${f.clause}`
             ), f.params
           ).first();
 
@@ -1414,7 +1519,7 @@ export default {
           // Diagnóstico: distribución real de estados SIN ningún filtro.
           // Permite ver exactamente qué valores existen en la BD → aparece en console.log del frontend.
           const { results: allStatusDebug } = await env.DB.prepare(
-            `SELECT status AS estado, COUNT(*) AS count FROM Orders GROUP BY status ORDER BY count DESC`
+            `SELECT ${estadoCol} AS estado, COUNT(*) AS count FROM Orders GROUP BY ${estadoCol} ORDER BY count DESC`
           ).all();
 
           return Response.json({
