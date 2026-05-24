@@ -596,6 +596,22 @@ export default {
 
                     console.log(`[Stock] Pedido #${order.id} — iniciando descuento para ${(stockItems || []).length} ítem(s)`);
 
+                    // Dump explícito de cada fila para diagnosticar problemas en producción.
+                    // Si un ítem llega con product_id=NULL, variant_id=NULL o variant_details="",
+                    // este log mostrará la fila completa en el dashboard de Cloudflare.
+                    (stockItems || []).forEach((item, i) => {
+                        console.log(`[Stock] Pedido #${order.id} · ítem ${i + 1}/${stockItems.length}:`,
+                            JSON.stringify({
+                                product_id:       item.product_id,
+                                variant_id:       item.variant_id,
+                                variant_details:  item.variant_details,
+                                cantidad:         item.cantidad,
+                                is_kit_format:    !!(item.variant_details && item.variant_details.startsWith('{')),
+                                has_talla_prefix: !!(item.variant_details && /^Talla:/.test(item.variant_details)),
+                            })
+                        );
+                    });
+
                     if (stockItems && stockItems.length > 0) {
 
                         // ── PASO 1: Products.stock (global del producto) ─────────────────
@@ -769,26 +785,44 @@ export default {
     // LISTADO LIVIANO: solo imagen_1 por variante. Las imágenes 2-5 se piden por /api/products/:id
     if (url.pathname === "/api/products" && request.method === "GET") {
         try {
-            const query = `SELECT p.*, c.nombre as categoria_nombre FROM Products p LEFT JOIN Categories c ON p.categoria_id = c.id WHERE p.visible = 1 ORDER BY p.en_oferta DESC, p.id DESC`;
-            const { results: products } = await env.DB.prepare(query).all();
+            const page  = Math.max(1, parseInt(url.searchParams.get('page')  || '1',  10) || 1);
+            const limit = Math.min(200, Math.max(1, parseInt(url.searchParams.get('limit') || '20', 10) || 20));
+            const offset = (page - 1) * limit;
+
+            const totalRow = await env.DB.prepare(`SELECT COUNT(*) AS total FROM Products p WHERE p.visible = 1`).first();
+            const total = totalRow?.total || 0;
+
+            const query = `SELECT p.*, c.nombre as categoria_nombre FROM Products p LEFT JOIN Categories c ON p.categoria_id = c.id WHERE p.visible = 1 ORDER BY p.en_oferta DESC, p.id DESC LIMIT ? OFFSET ?`;
+            const { results: products } = await env.DB.prepare(query).bind(limit, offset).all();
+
             let variants = [];
-            try {
-                variants = (await env.DB.prepare(
-                    `SELECT id, product_id, color_name, color_hex, tallas, stock, imagen_1,
-                     ((CASE WHEN imagen_1 IS NOT NULL AND imagen_1 != '' THEN 1 ELSE 0 END) +
-                      (CASE WHEN imagen_2 IS NOT NULL AND imagen_2 != '' THEN 1 ELSE 0 END) +
-                      (CASE WHEN imagen_3 IS NOT NULL AND imagen_3 != '' THEN 1 ELSE 0 END) +
-                      (CASE WHEN imagen_4 IS NOT NULL AND imagen_4 != '' THEN 1 ELSE 0 END) +
-                      (CASE WHEN imagen_5 IS NOT NULL AND imagen_5 != '' THEN 1 ELSE 0 END)) as imagen_count
-                     FROM ProductVariants`
-                ).all()).results;
-            } catch (e) {}
+            if (products.length > 0) {
+                const ids = products.map(p => p.id);
+                const placeholders = ids.map(() => '?').join(',');
+                try {
+                    variants = (await env.DB.prepare(
+                        `SELECT id, product_id, color_name, color_hex, tallas, stock, imagen_1,
+                         ((CASE WHEN imagen_1 IS NOT NULL AND imagen_1 != '' THEN 1 ELSE 0 END) +
+                          (CASE WHEN imagen_2 IS NOT NULL AND imagen_2 != '' THEN 1 ELSE 0 END) +
+                          (CASE WHEN imagen_3 IS NOT NULL AND imagen_3 != '' THEN 1 ELSE 0 END) +
+                          (CASE WHEN imagen_4 IS NOT NULL AND imagen_4 != '' THEN 1 ELSE 0 END) +
+                          (CASE WHEN imagen_5 IS NOT NULL AND imagen_5 != '' THEN 1 ELSE 0 END)) as imagen_count
+                         FROM ProductVariants WHERE product_id IN (${placeholders})`
+                    ).bind(...ids).all()).results;
+                } catch (e) {}
+            }
             products.forEach(p => {
                 p.categorias_ids = parseCategorias(p.categorias_ids);
                 p.variantes = variants.filter(v => v.product_id === p.id);
                 if(p.variantes.length === 0 && p.imagen_url) p.variantes = [{ color_name: 'Único', color_hex: '#cccccc', tallas: p.tallas || '', stock: p.stock || 0, imagen_1: p.imagen_url }];
             });
-            return Response.json({ success: true, data: products }, {
+
+            const totalPages = Math.max(1, Math.ceil(total / limit));
+            return Response.json({
+                success: true,
+                data: products,
+                pagination: { total, page, limit, totalPages }
+            }, {
                 headers: { ...corsHeaders, "Cache-Control": "public, max-age=60, s-maxage=60" }
             });
         } catch (error) { return Response.json({ success: false, error: error.message }, { status: 500, headers: corsHeaders }); }
@@ -1057,16 +1091,36 @@ export default {
 
       if (url.pathname === "/api/admin/products" && request.method === "GET") {
         try {
-          const query = `SELECT p.*, c.nombre as categoria_nombre FROM Products p LEFT JOIN Categories c ON p.categoria_id = c.id ORDER BY p.en_oferta DESC, p.id DESC`;
-          const { results: products } = await env.DB.prepare(query).all();
+          const page  = Math.max(1, parseInt(url.searchParams.get('page')  || '1',  10) || 1);
+          const limit = Math.min(200, Math.max(1, parseInt(url.searchParams.get('limit') || '20', 10) || 20));
+          const offset = (page - 1) * limit;
+
+          const totalRow = await env.DB.prepare(`SELECT COUNT(*) AS total FROM Products`).first();
+          const total = totalRow?.total || 0;
+
+          const query = `SELECT p.*, c.nombre as categoria_nombre FROM Products p LEFT JOIN Categories c ON p.categoria_id = c.id ORDER BY p.en_oferta DESC, p.id DESC LIMIT ? OFFSET ?`;
+          const { results: products } = await env.DB.prepare(query).bind(limit, offset).all();
+
           let variants = [];
-          try { variants = (await env.DB.prepare("SELECT * FROM ProductVariants").all()).results; } catch (e) {}
+          if (products.length > 0) {
+            const ids = products.map(p => p.id);
+            const placeholders = ids.map(() => '?').join(',');
+            try {
+              variants = (await env.DB.prepare(`SELECT * FROM ProductVariants WHERE product_id IN (${placeholders})`).bind(...ids).all()).results;
+            } catch (e) {}
+          }
           products.forEach(p => {
             p.categorias_ids = parseCategorias(p.categorias_ids);
             p.variantes = variants.filter(v => v.product_id === p.id);
             if(p.variantes.length === 0 && p.imagen_url) p.variantes = [{ color_name: 'Único', color_hex: '#cccccc', tallas: p.tallas || '', stock: p.stock || 0, imagen_1: p.imagen_url }];
           });
-          return Response.json({ success: true, data: products }, { headers: corsHeaders });
+
+          const totalPages = Math.max(1, Math.ceil(total / limit));
+          return Response.json({
+            success: true,
+            data: products,
+            pagination: { total, page, limit, totalPages }
+          }, { headers: corsHeaders });
         } catch (error) { return Response.json({ success: false, error: error.message }, { status: 500, headers: corsHeaders }); }
       }
 
@@ -1131,16 +1185,40 @@ export default {
       if (url.pathname === "/api/admin/activities" && request.method === "GET") {
         if (adminRol !== 'superadmin') return Response.json({ success: false, error: "Acceso restringido a superadmin" }, { status: 403, headers: corsHeaders });
         try {
-          const { results } = await env.DB.prepare("SELECT * FROM ActivityLogs ORDER BY id DESC LIMIT 150").all();
-          return Response.json({ success: true, data: results }, { headers: corsHeaders });
+          const page  = Math.max(1, parseInt(url.searchParams.get('page')  || '1',  10) || 1);
+          const limit = Math.min(200, Math.max(1, parseInt(url.searchParams.get('limit') || '20', 10) || 20));
+          const offset = (page - 1) * limit;
+
+          const totalRow = await env.DB.prepare(`SELECT COUNT(*) AS total FROM ActivityLogs`).first();
+          const total = totalRow?.total || 0;
+
+          const { results } = await env.DB.prepare("SELECT * FROM ActivityLogs ORDER BY id DESC LIMIT ? OFFSET ?").bind(limit, offset).all();
+          const totalPages = Math.max(1, Math.ceil(total / limit));
+          return Response.json({
+            success: true,
+            data: results,
+            pagination: { total, page, limit, totalPages }
+          }, { headers: corsHeaders });
         } catch (error) { return Response.json({ success: false, error: error.message }, { status: 500, headers: corsHeaders }); }
       }
 
       // ---- CLIENTES ----
       if (url.pathname === "/api/admin/customers" && request.method === "GET") {
         try {
-          const { results } = await env.DB.prepare("SELECT * FROM Customers ORDER BY fecha_registro DESC").all();
-          return Response.json({ success: true, data: results }, { headers: corsHeaders });
+          const page  = Math.max(1, parseInt(url.searchParams.get('page')  || '1',  10) || 1);
+          const limit = Math.min(200, Math.max(1, parseInt(url.searchParams.get('limit') || '20', 10) || 20));
+          const offset = (page - 1) * limit;
+
+          const totalRow = await env.DB.prepare(`SELECT COUNT(*) AS total FROM Customers`).first();
+          const total = totalRow?.total || 0;
+
+          const { results } = await env.DB.prepare("SELECT * FROM Customers ORDER BY fecha_registro DESC LIMIT ? OFFSET ?").bind(limit, offset).all();
+          const totalPages = Math.max(1, Math.ceil(total / limit));
+          return Response.json({
+            success: true,
+            data: results,
+            pagination: { total, page, limit, totalPages }
+          }, { headers: corsHeaders });
         } catch (error) { return Response.json({ success: false, error: error.message }, { status: 500, headers: corsHeaders }); }
       }
 
@@ -1192,6 +1270,9 @@ export default {
         try {
           const fromQ = url.searchParams.get('from');
           const toQ   = url.searchParams.get('to');
+          const page  = Math.max(1, parseInt(url.searchParams.get('page')  || '1',  10) || 1);
+          const limit = Math.min(200, Math.max(1, parseInt(url.searchParams.get('limit') || '20', 10) || 20));
+          const offset = (page - 1) * limit;
 
           // Detección dinámica del nombre de la columna de fecha en Orders.
           // Igual que en /api/admin/metrics: soporta esquemas en inglés
@@ -1208,12 +1289,18 @@ export default {
           if (toQ)   { conditions.push(`strftime('%Y-%m-%d', ${fechaCol}) <= ?`); bindParams.push(toQ); }
           const innerWhere = conditions.length ? 'WHERE ' + conditions.join(' AND ') : '';
 
+          // COUNT respeta los mismos filtros (from/to) que la query principal.
+          const countQuery = `SELECT COUNT(*) AS total FROM Orders ${innerWhere}`;
+          const countStmt = bindParams.length ? env.DB.prepare(countQuery).bind(...bindParams) : env.DB.prepare(countQuery);
+          const totalRow = await countStmt.first();
+          const total = totalRow?.total || 0;
+
           // El JOIN opera sobre el resultado ya filtrado; sub.<fechaCol> es inequívoco.
           // oi_sum agrega los items por pedido en una tabla derivada (sin subquery correlacionada).
           const query = `
             SELECT sub.*, c.nombre AS cliente_nombre, c.email AS cliente_email,
                    oi_sum.items_summary, oi_sum.items_count
-            FROM   (SELECT * FROM Orders ${innerWhere}) AS sub
+            FROM   (SELECT * FROM Orders ${innerWhere} ORDER BY ${fechaCol} DESC LIMIT ? OFFSET ?) AS sub
             LEFT   JOIN Customers c ON sub.customer_id = c.id
             LEFT   JOIN (
                 SELECT order_id,
@@ -1224,9 +1311,15 @@ export default {
             ) AS oi_sum ON oi_sum.order_id = sub.id
             ORDER  BY sub.${fechaCol} DESC`;
 
-          const stmt = bindParams.length ? env.DB.prepare(query).bind(...bindParams) : env.DB.prepare(query);
+          const stmt = env.DB.prepare(query).bind(...bindParams, limit, offset);
           const { results } = await stmt.all();
-          return Response.json({ success: true, data: results }, { headers: corsHeaders });
+
+          const totalPages = Math.max(1, Math.ceil(total / limit));
+          return Response.json({
+            success: true,
+            data: results,
+            pagination: { total, page, limit, totalPages }
+          }, { headers: corsHeaders });
         } catch (error) { return Response.json({ success: false, error: error.message }, { status: 500, headers: corsHeaders }); }
       }
 
@@ -1305,6 +1398,193 @@ export default {
         }
       }
 
+      // ---- AUDITORÍA DE STOCK POR PEDIDO ----------------------------------
+      // GET /api/admin/stock-audit/:orderId
+      // Devuelve un reporte detallado por ítem mostrando si el descuento del
+      // inventario quedó aplicado correctamente. Compara variant_details (lo
+      // que se vendió) contra el JSON actual de tallas (lo que queda en BD).
+      // No modifica nada — solo lectura, para verificación.
+      const stockAuditMatch = url.pathname.match(/^\/api\/admin\/stock-audit\/(\d+)$/);
+      if (stockAuditMatch && request.method === "GET") {
+        try {
+          const orderId = parseInt(stockAuditMatch[1], 10);
+          if (!orderId) {
+            return Response.json({ success: false, error: "ID de pedido inválido" }, { status: 400, headers: corsHeaders });
+          }
+
+          // 1) Cabecera del pedido
+          const order = await env.DB.prepare(
+            `SELECT id, estado, total, customer_id FROM Orders WHERE id = ?`
+          ).bind(orderId).first();
+          if (!order) {
+            return Response.json({ success: false, error: `Pedido #${orderId} no existe` }, { status: 404, headers: corsHeaders });
+          }
+
+          // 2) Ítems vendidos
+          const { results: items } = await env.DB.prepare(
+            `SELECT product_id, variant_id, product_name, variant_details, cantidad, precio_unitario
+             FROM OrderItems WHERE order_id = ?`
+          ).bind(orderId).all();
+
+          // 3) Para cada ítem: consulta el estado ACTUAL del stock en los 3 niveles
+          const audit = await Promise.all((items || []).map(async (it) => {
+            const diag = [];
+            const report = {
+              product_id:      it.product_id,
+              variant_id:      it.variant_id,
+              product_name:    it.product_name,
+              variant_details: it.variant_details,
+              cantidad_vendida: it.cantidad,
+              level1_product:  null,
+              level2_variant:  null,
+              level3_talla:    null,
+              diagnosis:       diag,
+              status:          'unknown',
+            };
+
+            // ── Nivel 1: Products.stock ──────────────────────────────────────
+            if (!it.product_id) {
+              diag.push('✗ product_id es NULL en OrderItems — Paso 1 omitido');
+            } else {
+              const p = await env.DB.prepare(
+                `SELECT id, nombre, stock FROM Products WHERE id = ?`
+              ).bind(it.product_id).first();
+              if (!p) {
+                diag.push(`✗ Producto #${it.product_id} no existe en BD (posiblemente borrado)`);
+              } else {
+                report.level1_product = { id: p.id, nombre: p.nombre, current_stock: p.stock };
+                diag.push(`✓ Producto #${p.id} "${p.nombre}" — stock global actual: ${p.stock}`);
+              }
+            }
+
+            // ── Nivel 2: ProductVariants.stock ───────────────────────────────
+            if (!it.variant_id) {
+              diag.push('✗ variant_id es NULL en OrderItems — Pasos 2 y 3 omitidos');
+              report.status = 'sin_variante';
+              return report;
+            }
+            const v = await env.DB.prepare(
+              `SELECT id, color_name, stock, tallas FROM ProductVariants WHERE id = ?`
+            ).bind(it.variant_id).first();
+            if (!v) {
+              diag.push(`✗ Variante #${it.variant_id} no existe en BD`);
+              report.status = 'variante_huerfana';
+              return report;
+            }
+            report.level2_variant = { id: v.id, color_name: v.color_name, current_stock: v.stock };
+            diag.push(`✓ Variante #${v.id} (${v.color_name || 'sin color'}) — stock de color actual: ${v.stock}`);
+
+            // ── Nivel 3: ProductVariants.tallas JSON ─────────────────────────
+            if (!v.tallas) {
+              diag.push('⚠ tallas JSON vacío o NULL — producto sin talla (probablemente "Estándar")');
+              report.level3_talla = { kind: 'sin_tallas', parsed_size: null, found: false };
+              report.status = 'sin_tallas_json';
+              return report;
+            }
+
+            let tallasData;
+            try { tallasData = JSON.parse(v.tallas); }
+            catch (e) {
+              diag.push(`✗ tallas JSON malformado: ${e.message}`);
+              report.level3_talla = { kind: 'json_invalido', parsed_size: null, found: false, raw: v.tallas };
+              report.status = 'json_invalido';
+              return report;
+            }
+
+            const isKitVariant = it.variant_details && it.variant_details.startsWith('{');
+            const tallaMatch   = isKitVariant ? null : (it.variant_details || '').match(/^Talla:\s*(.+)$/);
+
+            // Caso A: producto sin talla seleccionada ("Estándar")
+            if (!tallaMatch && !isKitVariant) {
+              diag.push(`⚠ variant_details = "${it.variant_details}" — no aplica descuento de talla`);
+              report.level3_talla = { kind: 'estandar', parsed_size: null, found: false, all_tallas: tallasData };
+              report.status = 'estandar';
+              return report;
+            }
+
+            // Caso B: kit (tallas es objeto)
+            if (isKitVariant) {
+              let kitSizes = null;
+              try { kitSizes = JSON.parse(it.variant_details); } catch (_) {}
+              const kitReport = { kind: 'kit', selected: kitSizes, components: {} };
+
+              if (!kitSizes || typeof kitSizes !== 'object' || Array.isArray(kitSizes)) {
+                diag.push(`✗ Kit: variant_details no es JSON válido — "${it.variant_details}"`);
+                report.level3_talla = kitReport;
+                report.status = 'kit_legacy';
+                return report;
+              }
+              if (Array.isArray(tallasData)) {
+                diag.push('✗ Kit esperaba tallas como objeto pero la variante guarda array');
+                report.level3_talla = kitReport;
+                report.status = 'kit_estructura_invalida';
+                return report;
+              }
+
+              let allFound = true;
+              for (const [comp, selectedSize] of Object.entries(kitSizes)) {
+                const arr = tallasData[comp];
+                if (!Array.isArray(arr)) {
+                  diag.push(`✗ Kit: componente "${comp}" no existe en JSON`);
+                  kitReport.components[comp] = { selected: selectedSize, found: false, current_stock: null };
+                  allFound = false;
+                  continue;
+                }
+                const hit = arr.find(t => t.size === selectedSize);
+                if (hit) {
+                  diag.push(`✓ Kit · ${comp} · talla "${selectedSize}" → stock actual: ${hit.stock}`);
+                  kitReport.components[comp] = { selected: selectedSize, found: true, current_stock: hit.stock, all_sizes: arr };
+                } else {
+                  diag.push(`✗ Kit · ${comp} · talla "${selectedSize}" NO está en JSON. Disponibles: [${arr.map(t => t.size).join(', ')}]`);
+                  kitReport.components[comp] = { selected: selectedSize, found: false, current_stock: null, all_sizes: arr };
+                  allFound = false;
+                }
+              }
+              report.level3_talla = kitReport;
+              report.status = allFound ? 'kit_ok' : 'kit_talla_no_encontrada';
+              return report;
+            }
+
+            // Caso C: producto normal con talla
+            const tallaName = tallaMatch[1].trim();
+            if (!Array.isArray(tallasData)) {
+              diag.push(`✗ Esperaba tallas como array pero recibí objeto (¿es kit mal etiquetado?)`);
+              report.level3_talla = { kind: 'estructura_invalida', parsed_size: tallaName, found: false, raw: tallasData };
+              report.status = 'estructura_invalida';
+              return report;
+            }
+            const hit = tallasData.find(t => t.size === tallaName);
+            if (hit) {
+              diag.push(`✓ Talla "${tallaName}" presente en JSON → stock actual: ${hit.stock}`);
+              report.level3_talla = { kind: 'normal', parsed_size: tallaName, found: true, current_stock: hit.stock, all_tallas: tallasData };
+              report.status = 'ok';
+            } else {
+              diag.push(`✗ Talla "${tallaName}" NO está en el JSON. Disponibles: [${tallasData.map(t => t.size).join(', ')}]`);
+              report.level3_talla = { kind: 'normal', parsed_size: tallaName, found: false, all_tallas: tallasData };
+              report.status = 'talla_no_encontrada';
+            }
+            return report;
+          }));
+
+          return Response.json({
+            success: true,
+            data: {
+              order: { id: order.id, estado: order.estado, total: order.total },
+              items_count: (items || []).length,
+              audit,
+              hints: [
+                "Si la orden está en 'Pagado' y todos los ítems muestran ✓, el descuento se aplicó correctamente.",
+                "Si ves 'talla_no_encontrada', verifica que el valor de variant_details coincida exactamente con t.size del JSON (mayúsculas/minúsculas, espacios).",
+                "Si ves 'kit_legacy', la orden fue creada antes del refactor de kits — Pasos 1 y 2 sí aplicaron, solo se omitió el Paso 3.",
+              ],
+            }
+          }, { headers: corsHeaders });
+        } catch (e) {
+          console.error("[StockAudit] Error:", e);
+          return Response.json({ success: false, error: e.message }, { status: 500, headers: corsHeaders });
+        }
+      }
+
       // ---- MÉTRICAS DEL DASHBOARD ----
       // Acepta ?from=YYYY-MM-DD&to=YYYY-MM-DD (o startDate/endDate) opcionales.
       // Sin params devuelve histórico completo.
@@ -1344,19 +1624,22 @@ export default {
           // en una query que no tiene placeholders '?'.
           const exec = (stmt, params) => params.length ? stmt.bind(...params) : stmt;
 
-          // ── Timestamps SQL con cobertura de día completo ──────────────────
-          // strftime('%Y-%m-%d', col) <= '2026-05-23' falla para órdenes
-          // con hora, p.ej. '2026-05-23 14:30:00' > '2026-05-23' → excluidas.
-          // Solución: comparación directa sobre el timestamp crudo con
-          // 00:00:00 en el límite inferior y 23:59:59 en el superior.
-          const sqlFrom = from ? from + ' 00:00:00' : null;
-          const sqlTo   = to   ? to   + ' 23:59:59' : null;
+          // ── Filtro de fechas usando strftime() ────────────────────────────
+          // Patrón confirmado en producción por el endpoint hermano
+          // /api/admin/orders (línea ~1223). strftime('%Y-%m-%d', col) extrae
+          // SOLO la parte de fecha del timestamp → la comparación es contra
+          // 'YYYY-MM-DD' puro (sin hora). El día final queda incluido
+          // automáticamente porque '2026-05-24' <= '2026-05-24' es TRUE para
+          // toda orden de ese día, sin importar la hora real guardada.
+          // Mantengo los nombres sqlFrom/sqlTo solo para el log de debug.
+          const sqlFrom = from || null;
+          const sqlTo   = to   || null;
 
           // ── Helper: construye cláusula AND para filtro de fechas ─────────
           const buildFilter = (col) => {
             const conds = [], params = [];
-            if (sqlFrom) { conds.push(`${col} >= ?`); params.push(sqlFrom); }
-            if (sqlTo)   { conds.push(`${col} <= ?`); params.push(sqlTo); }
+            if (sqlFrom) { conds.push(`strftime('%Y-%m-%d', ${col}) >= ?`); params.push(sqlFrom); }
+            if (sqlTo)   { conds.push(`strftime('%Y-%m-%d', ${col}) <= ?`); params.push(sqlTo); }
             return { clause: conds.length ? 'AND ' + conds.join(' AND ') : '', params };
           };
 
@@ -1419,15 +1702,15 @@ export default {
                 `SELECT COALESCE(SUM(total), 0) AS total, COUNT(*) AS count
                  FROM Orders
                  WHERE LOWER(${estadoCol}) IN ('pagado','preparando','enviado','recibido','entregado')
-                 AND ${fechaCol} >= ?
-                 AND ${fechaCol} <= ?`
-              ).bind(pf + ' 00:00:00', pt + ' 23:59:59').first();
+                 AND strftime('%Y-%m-%d', ${fechaCol}) >= ?
+                 AND strftime('%Y-%m-%d', ${fechaCol}) <= ?`
+              ).bind(pf, pt).first();
 
               const prevTotales = await env.DB.prepare(
                 `SELECT COUNT(*) AS c FROM Orders
-                 WHERE ${fechaCol} >= ?
-                 AND ${fechaCol} <= ?`
-              ).bind(pf + ' 00:00:00', pt + ' 23:59:59').first();
+                 WHERE strftime('%Y-%m-%d', ${fechaCol}) >= ?
+                 AND strftime('%Y-%m-%d', ${fechaCol}) <= ?`
+              ).bind(pf, pt).first();
 
               const pIng = prevIngresos?.total || 0;
               const pPag = prevIngresos?.count || 0;
@@ -1522,10 +1805,54 @@ export default {
             `SELECT ${estadoCol} AS estado, COUNT(*) AS count FROM Orders GROUP BY ${estadoCol} ORDER BY count DESC`
           ).all();
 
+          // Diagnóstico: rango real de fechas en BD (sin filtro). Si el filtro
+          // del dashboard cae fuera de [min, max], las métricas darán 0 — y
+          // este campo lo hace evidente en la consola del navegador.
+          const dateRangeDebug = await env.DB.prepare(
+            `SELECT
+                MIN(${fechaCol}) AS oldest,
+                MAX(${fechaCol}) AS newest,
+                COUNT(*) AS total_rows,
+                SUM(CASE WHEN ${fechaCol} IS NULL THEN 1 ELSE 0 END) AS null_dates
+             FROM Orders`
+          ).first();
+
+          // Diagnóstico: 3 muestras del valor exacto almacenado en fecha_creacion.
+          // Útil para detectar formato inesperado (ej. ISO con 'T', timezone, etc.)
+          const { results: dateSamples } = await env.DB.prepare(
+            `SELECT id, ${fechaCol} AS fecha_raw, datetime(${fechaCol}) AS fecha_normalizada, ${estadoCol} AS estado, total
+             FROM Orders ORDER BY id DESC LIMIT 3`
+          ).all();
+
+          // Diagnóstico extra: conteo de órdenes dentro del rango usando el MISMO
+          // helper buildFilter — si esto es 0 mientras total_rows > 0, el problema
+          // es 100% el rango de fechas (no la columna ni la query).
+          const inRangeRow = await exec(
+            env.DB.prepare(`SELECT COUNT(*) AS n FROM Orders WHERE 1=1 ${f.clause}`),
+            f.params
+          ).first();
+
+          console.log('[Metrics] Debug fechas →',
+            JSON.stringify({
+              schema:     { estadoCol, fechaCol },
+              params:     { from: sqlFrom, to: sqlTo },
+              bd:         { total_rows: dateRangeDebug?.total_rows, oldest: dateRangeDebug?.oldest, newest: dateRangeDebug?.newest, null_dates: dateRangeDebug?.null_dates },
+              filtered:   inRangeRow?.n,
+              samples:    dateSamples,
+            })
+          );
+
           return Response.json({
             success: true,
             data: {
               _schema: { estadoCol, fechaCol, precioCol, hasVisible },
+              _debug:  {
+                sql_from:        sqlFrom,
+                sql_to:          sqlTo,
+                date_range_bd:   dateRangeDebug,
+                date_samples:    dateSamples || [],
+                rows_in_range:   inRangeRow?.n ?? 0,
+              },
               debug_status_counts_all: allStatusDebug || [],
               ingresos:   Number(ingresosRow?.valor)       || 0,
               pendientes: Number(pendientesRow?.cantidad)  || 0,

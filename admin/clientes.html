@@ -6,6 +6,7 @@
     <title>Mathsoluis | Gestión de Clientes</title>
     
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;600;700;800&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../pagination.css">
     
     <style>
         /* --- STUDIO PIXEL TOKENS --- */
@@ -194,6 +195,8 @@
                     </div>
                 </div>
                 
+                <div id="clientsPaginationTop"></div>
+
                 <div style="overflow-x: auto;">
                     <table>
                         <thead>
@@ -212,6 +215,8 @@
                         </tbody>
                     </table>
                 </div>
+
+                <div id="clientsPaginationBottom"></div>
             </section>
         </main>
     </div>
@@ -293,6 +298,7 @@
     </div>
 
     <!-- LÓGICA JAVASCRIPT -->
+    <script src="../pagination.js"></script>
     <script>
                 // DOM Elements
         const loginView = document.getElementById('loginView');
@@ -369,16 +375,28 @@
         // ==========================================
         // OBTENER CLIENTES (CONECTADO A LA API)
         // ==========================================
-        async function loadClients() {
+        let clientsPage  = 1;
+        let clientsLimit = 20;
+
+        async function loadClients(page = clientsPage, limit = clientsLimit) {
+            clientsPage  = page;
+            clientsLimit = limit;
             try {
-                const response = await adminFetch('/api/admin/customers');
+                const response = await adminFetch(`/api/admin/customers?page=${page}&limit=${limit}`);
                 if (!response) return;
                 const result = await response.json();
-                
+
                 if (result.success) {
-                    allClients = result.data;
+                    allClients = result.data || [];
                     filteredClients = [...allClients];
                     applySort(currentSortColumn, sortAscending);
+                    if (result.pagination && window.renderPaginationMulti) {
+                        renderPaginationMulti(
+                            result.pagination,
+                            ['clientsPaginationTop', 'clientsPaginationBottom'],
+                            ({ page, limit }) => loadClients(page, limit)
+                        );
+                    }
                 } else {
                     clientsTableBody.innerHTML = `<tr><td colspan="7" style="color:#888; text-align:center; padding: 2rem;">No hay clientes registrados aún.</td></tr>`;
                 }

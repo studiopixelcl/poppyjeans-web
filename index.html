@@ -10,6 +10,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;0,700;0,800;1,600;1,700;1,800&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="./pagination.css">
     <meta name="description" content="Descubre en Mathsoluis la mejor selección de ropa premium para bebés, recién nacidos y exclusivas prendas de maternidad. Comodidad y diseño para ti y tu bebé.">
     <meta name="keywords" content="ropa de bebé, ajuar recién nacido, kit maternal, ropa de lactancia, Mathsoluis">
 
@@ -597,12 +598,16 @@
                     <button id="clearFilterBtn" class="clear-filter-btn">✕ Quitar Filtro</button>
                 </div>
 
+                <div id="paginationTop"></div>
+
                 <div class="products-grid animate-on-load delay-3" id="productsGrid">
                     <div style="grid-column: 1 / -1; text-align: center; padding: 3rem;">
                         <div class="spinner"></div>
                         <p style="font-family: var(--font-display); font-size: 1.2rem; color: var(--dark-studio); margin-top: 1rem;">Conectando con la vitrina en tiempo real...</p>
                     </div>
                 </div>
+
+                <div id="paginationBottom"></div>
 
                 <div id="noResults" style="display: none; text-align: center; padding: 3rem; color: var(--gris-oscuro);">
                     Ups... No encontramos ropa con ese término. <br>
@@ -832,6 +837,7 @@
     </div>
 
     <!-- SCRIPTS -->
+    <script src="./pagination.js"></script>
     <script>
         const navbar = document.getElementById('navbar');
         window.addEventListener('scroll', () => {
@@ -960,15 +966,31 @@
             return _imagesLoadingPromises[productId];
         }
 
-        async function fetchCatalog() {
+        // Estado paginación catálogo público
+        let catalogPage  = 1;
+        let catalogLimit = 20;
+
+        async function fetchCatalog(page = catalogPage, limit = catalogLimit) {
+            catalogPage  = page;
+            catalogLimit = limit;
             const grid = document.getElementById('productsGrid');
             try {
-                const response = await fetchWithRetry(API_URL);
+                const response = await fetchWithRetry(`${API_URL}?page=${page}&limit=${limit}`);
                 if (!response.ok) throw new Error(`HTTP ${response.status}`);
                 const result = await response.json();
                 if(result.success) {
-                    storeCatalog = result.data.filter(p => p.visible === 1);
+                    storeCatalog = (result.data || []).filter(p => p.visible === 1);
                     renderCatalog(storeCatalog);
+                    if (result.pagination && window.renderPaginationMulti) {
+                        renderPaginationMulti(
+                            result.pagination,
+                            ['paginationTop', 'paginationBottom'],
+                            ({ page, limit }) => {
+                                fetchCatalog(page, limit);
+                                document.getElementById('catalogo').scrollIntoView({ behavior: 'smooth' });
+                            }
+                        );
+                    }
                 } else {
                     throw new Error(result.error || 'Respuesta inválida');
                 }

@@ -10,7 +10,8 @@
       "Bash(Get-ChildItem -Path \"C:\\\\Users\\\\MAVERICK\\\\Documents\\\\Studio Pixel\\\\Proyectos\\\\MathsoluisWeb\" -Recurse -File)",
       "Bash(Select-Object FullName)",
       "Bash(npx wrangler *)",
-      "Bash(Select-String -Pattern \"OrderItems|INSERT INTO Order\" -Context 0,2)"
+      "Bash(Select-String -Pattern \"OrderItems|INSERT INTO Order\" -Context 0,2)",
+      "Bash(node --check src/index.js)"
     ]
   }
 }

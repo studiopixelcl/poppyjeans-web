@@ -6,6 +6,7 @@
     <title>Mathsoluis | Gestión de Pedidos</title>
 
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;600;700;800&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../pagination.css">
 
     <style>
         /* --- STUDIO PIXEL TOKENS --- */
@@ -222,6 +223,8 @@
                     </div>
                 </div>
 
+                <div id="ordersPaginationTop"></div>
+
                 <div style="overflow-x: auto;">
                     <table>
                         <thead>
@@ -242,6 +245,8 @@
                         </tbody>
                     </table>
                 </div>
+
+                <div id="ordersPaginationBottom"></div>
             </section>
         </main>
     </div>
@@ -385,13 +390,31 @@
 
                 <div class="modal-actions">
                     <button type="button" class="btn-secondary" onclick="closeOrderModal()">Cancelar</button>
+                    <button type="button" class="btn-secondary" onclick="openStockAudit()" title="Verificar si el descuento de inventario se aplicó correctamente">🔍 Auditar Stock</button>
                     <button type="submit" class="btn-primary" style="width: auto;" id="btnSaveOrder">Actualizar Pedido</button>
                 </div>
             </form>
         </div>
     </div>
 
+    <!-- ═══ MODAL DE AUDITORÍA DE STOCK ═══════════════════════════════ -->
+    <div id="stockAuditModal" class="modal-overlay" onclick="if(event.target===this)closeStockAudit()" style="z-index:600;">
+        <div class="modal-box" style="max-width:820px;max-height:88vh;display:flex;flex-direction:column;background:#fff;border-radius:12px;overflow:hidden;">
+            <div style="padding:1.3rem 1.8rem;border-bottom:1px solid #eee;display:flex;justify-content:space-between;align-items:center;">
+                <div>
+                    <h3 style="margin:0;font-family:var(--font-display,sans-serif);font-size:1.05rem;">🔍 Auditoría de Stock</h3>
+                    <p style="margin:0.2rem 0 0;color:#888;font-size:0.78rem;" id="stockAuditSubtitle">Verifica que el descuento de inventario se haya aplicado al pedido.</p>
+                </div>
+                <button type="button" onclick="closeStockAudit()" style="background:#f3f3f3;border:none;width:32px;height:32px;border-radius:50%;font-size:1rem;cursor:pointer;">✕</button>
+            </div>
+            <div style="padding:1.4rem 1.8rem;overflow-y:auto;flex:1;" id="stockAuditBody">
+                <div style="text-align:center;color:#aaa;padding:2rem;">⏳ Cargando auditoría…</div>
+            </div>
+        </div>
+    </div>
+
     <!-- LÓGICA JAVASCRIPT -->
+    <script src="../pagination.js"></script>
     <script>
         const loginView      = document.getElementById('loginView');
         const dashboardView  = document.getElementById('dashboardView');
@@ -486,15 +509,27 @@
         // ==========================================
         // OBTENER PEDIDOS
         // ==========================================
-        async function loadOrders() {
+        let ordersPage  = 1;
+        let ordersLimit = 20;
+
+        async function loadOrders(page = ordersPage, limit = ordersLimit) {
+            ordersPage  = page;
+            ordersLimit = limit;
             try {
-                const response = await adminFetch('/api/admin/orders');
+                const response = await adminFetch(`/api/admin/orders?page=${page}&limit=${limit}`);
                 if (!response) return;
                 const result = await response.json();
                 if (result.success) {
-                    allOrders = result.data;
+                    allOrders = result.data || [];
                     filteredOrders = [...allOrders];
                     applySort(currentSortColumn, sortAscending);
+                    if (result.pagination && window.renderPaginationMulti) {
+                        renderPaginationMulti(
+                            result.pagination,
+                            ['ordersPaginationTop', 'ordersPaginationBottom'],
+                            ({ page, limit }) => loadOrders(page, limit)
+                        );
+                    }
                 } else {
                     ordersTableBody.innerHTML = `<tr><td colspan="8" style="color:#888; text-align:center; padding: 2rem;">Esperando primer pedido.</td></tr>`;
                 }
@@ -795,6 +830,121 @@
         }
 
         function closeOrderModal() { orderModal.classList.remove('active'); }
+
+        /* ─── AUDITORÍA DE STOCK ─────────────────────────────────────────
+         * Llama a GET /api/admin/stock-audit/:orderId y renderiza el
+         * reporte: por cada ítem muestra los 3 niveles de stock y la lista
+         * de mensajes de diagnóstico (✓/⚠/✗). No modifica nada en BD.
+         * ─────────────────────────────────────────────────────────────── */
+        const stockAuditModal = document.getElementById('stockAuditModal');
+
+        function closeStockAudit() { stockAuditModal.classList.remove('active'); }
+
+        async function openStockAudit() {
+            if (!editingOrderId) { alert('Abre un pedido primero.'); return; }
+            const body = document.getElementById('stockAuditBody');
+            const sub  = document.getElementById('stockAuditSubtitle');
+            sub.textContent = `Pedido #${editingOrderId} — consultando estado actual del inventario…`;
+            body.innerHTML = `<div style="text-align:center;color:#aaa;padding:2rem;">⏳ Cargando auditoría…</div>`;
+            stockAuditModal.classList.add('active');
+
+            try {
+                const res = await adminFetch(`/api/admin/stock-audit/${editingOrderId}`);
+                if (!res) return;
+                if (!res.ok) {
+                    const txt = await res.text();
+                    body.innerHTML = `<div style="color:#c0392b;padding:1rem;background:#fdedec;border-radius:8px;">Error ${res.status}: ${txt.slice(0,300)}</div>`;
+                    return;
+                }
+                const result = await res.json();
+                if (!result.success) {
+                    body.innerHTML = `<div style="color:#c0392b;padding:1rem;background:#fdedec;border-radius:8px;">${result.error}</div>`;
+                    return;
+                }
+
+                console.log('[StockAudit] Reporte completo:', result.data);
+                const d = result.data;
+                sub.textContent = `Pedido #${d.order.id} — estado: ${d.order.estado} · ${d.items_count} ítem(s)`;
+
+                // Render por ítem
+                const itemsHtml = (d.audit || []).map((it, idx) => {
+                    const statusColor = {
+                        ok: '#1E8449', kit_ok: '#1E8449',
+                        estandar: '#7f8c8d', sin_tallas_json: '#7f8c8d',
+                        talla_no_encontrada: '#C0392B', kit_talla_no_encontrada: '#C0392B',
+                        sin_variante: '#C0392B', variante_huerfana: '#C0392B',
+                        json_invalido: '#C0392B', estructura_invalida: '#C0392B',
+                        kit_legacy: '#B7950B', kit_estructura_invalida: '#C0392B',
+                    }[it.status] || '#888';
+
+                    const lvl1 = it.level1_product
+                        ? `<b>${it.level1_product.nombre}</b> · stock global: <b>${it.level1_product.current_stock}</b>`
+                        : '<span style="color:#bbb;">— sin producto —</span>';
+                    const lvl2 = it.level2_variant
+                        ? `${it.level2_variant.color_name || 'sin color'} · stock variante: <b>${it.level2_variant.current_stock}</b>`
+                        : '<span style="color:#bbb;">— sin variante —</span>';
+
+                    let lvl3 = '<span style="color:#bbb;">—</span>';
+                    if (it.level3_talla) {
+                        const t = it.level3_talla;
+                        if (t.kind === 'normal') {
+                            lvl3 = t.found
+                                ? `Talla "<b>${t.parsed_size}</b>" · stock actual: <b>${t.current_stock}</b>`
+                                : `Talla "<b>${t.parsed_size}</b>" NO encontrada en JSON`;
+                        } else if (t.kind === 'kit') {
+                            lvl3 = Object.entries(t.components || {}).map(([c, cd]) =>
+                                cd.found
+                                    ? `${c}: "${cd.selected}" → <b>${cd.current_stock}</b>`
+                                    : `<span style="color:#c0392b;">${c}: "${cd.selected}" NO encontrado</span>`
+                            ).join(' · ');
+                        } else if (t.kind === 'estandar') {
+                            lvl3 = '<i>Producto sin talla seleccionable</i>';
+                        } else if (t.kind === 'sin_tallas') {
+                            lvl3 = '<i>Variante sin tallas JSON</i>';
+                        } else if (t.kind === 'json_invalido') {
+                            lvl3 = '<span style="color:#c0392b;">JSON inválido</span>';
+                        }
+                    }
+
+                    const diagHtml = (it.diagnosis || []).map(line => {
+                        let color = '#444';
+                        if (line.startsWith('✓')) color = '#1E8449';
+                        else if (line.startsWith('✗')) color = '#C0392B';
+                        else if (line.startsWith('⚠')) color = '#B7950B';
+                        return `<div style="font-family:monospace;font-size:0.8rem;color:${color};padding:0.15rem 0;">${line}</div>`;
+                    }).join('');
+
+                    return `
+                        <div style="border:1px solid #eee;border-radius:10px;padding:1rem 1.2rem;margin-bottom:0.9rem;background:#fafafa;">
+                            <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:0.6rem;">
+                                <div style="font-weight:700;color:#333;font-size:0.95rem;">${idx + 1}. ${it.product_name || '(sin nombre)'}</div>
+                                <span style="background:${statusColor};color:#fff;padding:0.2rem 0.6rem;border-radius:12px;font-size:0.7rem;font-weight:700;text-transform:uppercase;letter-spacing:0.4px;">${it.status}</span>
+                            </div>
+                            <div style="font-size:0.82rem;color:#666;margin-bottom:0.3rem;">Cantidad vendida: <b>${it.cantidad_vendida}</b> · variant_details: <code style="background:#eee;padding:1px 5px;border-radius:4px;font-size:0.78rem;">${it.variant_details || '(vacío)'}</code></div>
+                            <div style="font-size:0.82rem;color:#555;margin:0.35rem 0;"><b>Nivel 1:</b> ${lvl1}</div>
+                            <div style="font-size:0.82rem;color:#555;margin:0.35rem 0;"><b>Nivel 2:</b> ${lvl2}</div>
+                            <div style="font-size:0.82rem;color:#555;margin:0.35rem 0;"><b>Nivel 3:</b> ${lvl3}</div>
+                            <details style="margin-top:0.55rem;">
+                                <summary style="cursor:pointer;font-size:0.76rem;color:#888;font-weight:600;">Diagnóstico paso a paso (${(it.diagnosis||[]).length})</summary>
+                                <div style="margin-top:0.4rem;padding:0.5rem 0.7rem;background:#fff;border-radius:6px;border:1px solid #eee;">${diagHtml}</div>
+                            </details>
+                        </div>`;
+                }).join('');
+
+                const hintsHtml = (d.hints || []).map(h => `<li style="font-size:0.78rem;color:#666;margin:0.3rem 0;">${h}</li>`).join('');
+
+                body.innerHTML = `
+                    ${itemsHtml || '<div style="color:#888;padding:1rem;">El pedido no tiene ítems.</div>'}
+                    <div style="margin-top:1.2rem;padding:0.9rem 1.1rem;background:#f4f6f8;border-radius:8px;border-left:3px solid #3498db;">
+                        <div style="font-size:0.74rem;font-weight:700;color:#2980b9;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:0.4rem;">Cómo leer este reporte</div>
+                        <ul style="margin:0;padding-left:1.2rem;">${hintsHtml}</ul>
+                    </div>
+                `;
+            } catch (e) {
+                console.error('[StockAudit] error:', e);
+                body.innerHTML = `<div style="color:#c0392b;padding:1rem;background:#fdedec;border-radius:8px;">Error de red: ${e.message}</div>`;
+            }
+        }
 
         function toggleCourierOther(val) {
             document.getElementById('courierOtherGroup').style.display = val === 'Otro' ? 'block' : 'none';

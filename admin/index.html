@@ -6,6 +6,7 @@
     <title>Mathsoluis | Panel de Administración</title>
     
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;600;700;800&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../pagination.css">
     
     <style>
         /* --- STUDIO PIXEL TOKENS --- */
@@ -372,6 +373,8 @@
                     <button class="btn-primary" id="btnOpenBulkModal" style="padding: 6px 15px; font-size: 0.85rem;">Editar Seleccionados</button>
                 </div>
 
+                <div id="productsPaginationTop"></div>
+
                 <div style="overflow-x: auto;">
                     <table>
                         <thead>
@@ -392,6 +395,8 @@
                         </tbody>
                     </table>
                 </div>
+
+                <div id="productsPaginationBottom"></div>
             </section>
         </main>
     </div>
@@ -585,6 +590,7 @@
     </div>
 
     <!-- LÓGICA JAVASCRIPT -->
+    <script src="../pagination.js"></script>
     <script>
                 const loginView = document.getElementById('loginView');
         const dashboardView = document.getElementById('dashboardView');
@@ -697,28 +703,41 @@
         // logout() definido en auth-helper al final del body
 
         // --- SISTEMA BLINDADO DE CARGA DE PRODUCTOS ---
-        async function loadProducts() {
+        // Estado paginación productos admin
+        let productsPage  = 1;
+        let productsLimit = 20;
+
+        async function loadProducts(page = productsPage, limit = productsLimit) {
+            productsPage  = page;
+            productsLimit = limit;
             productsTableBody.innerHTML = `<tr><td colspan="9" style="text-align: center; padding: 2rem;">Cargando inventario...</td></tr>`;
             try {
-                const response = await adminFetch('/api/admin/products');
+                const response = await adminFetch(`/api/admin/products?page=${page}&limit=${limit}`);
                 if (!response) return;
-                const text = await response.text(); 
-                
+                const text = await response.text();
+
                 try {
                     const result = JSON.parse(text);
                     if (result.success) {
                         // En el panel de admin cargamos TODOS los productos, incluso los ocultos
-                        allProducts = result.data; 
-                        runFilters(); 
-                        extractAllTags(); 
-                    } else { 
-                        productsTableBody.innerHTML = `<tr><td colspan="9" style="color:var(--danger-color); text-align:center; padding:2rem;"><b>Error del Backend:</b> ${result.error}</td></tr>`; 
+                        allProducts = result.data || [];
+                        runFilters();
+                        extractAllTags();
+                        if (result.pagination && window.renderPaginationMulti) {
+                            renderPaginationMulti(
+                                result.pagination,
+                                ['productsPaginationTop', 'productsPaginationBottom'],
+                                ({ page, limit }) => loadProducts(page, limit)
+                            );
+                        }
+                    } else {
+                        productsTableBody.innerHTML = `<tr><td colspan="9" style="color:var(--danger-color); text-align:center; padding:2rem;"><b>Error del Backend:</b> ${result.error}</td></tr>`;
                     }
                 } catch (parseError) {
                     productsTableBody.innerHTML = `<tr><td colspan="9" style="color:var(--danger-color); text-align:center; padding:2rem; line-height: 1.5;"><b>Error Interno (500)</b><br>El servidor está caído o desincronizado.</td></tr>`;
                 }
-            } catch (error) { 
-                productsTableBody.innerHTML = `<tr><td colspan="9" style="color:var(--danger-color); text-align:center; padding:2rem;"><b>Error de Red / CORS:</b> ${error.message}</td></tr>`; 
+            } catch (error) {
+                productsTableBody.innerHTML = `<tr><td colspan="9" style="color:var(--danger-color); text-align:center; padding:2rem;"><b>Error de Red / CORS:</b> ${error.message}</td></tr>`;
             }
         }
 

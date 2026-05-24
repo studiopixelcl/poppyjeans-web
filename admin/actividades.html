@@ -6,6 +6,7 @@
     <title>Mathsoluis | Registro de Actividades</title>
     
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;600;700;800&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../pagination.css">
     
     <style>
         /* --- STUDIO PIXEL TOKENS --- */
@@ -134,6 +135,8 @@
                     <input type="text" id="searchInput" class="search-input" placeholder="🔍 Buscar por nombre de agente o producto...">
                 </div>
                 
+                <div id="logsPaginationTop"></div>
+
                 <div style="overflow-x: auto;">
                     <table>
                         <thead>
@@ -150,13 +153,16 @@
                         </tbody>
                     </table>
                 </div>
+
+                <div id="logsPaginationBottom"></div>
             </section>
         </main>
     </div>
 
     <!-- LÓGICA JAVASCRIPT -->
+    <script src="../pagination.js"></script>
     <script>
-                let allLogs = []; 
+                let allLogs = [];
 
         window.onload = () => {
             const token = localStorage.getItem('admin_token');
@@ -189,15 +195,27 @@
         // ==========================================
         // OBTENER REGISTROS DE CAJA NEGRA
         // ==========================================
-        async function loadActivities() {
+        let logsPage  = 1;
+        let logsLimit = 20;
+
+        async function loadActivities(page = logsPage, limit = logsLimit) {
+            logsPage  = page;
+            logsLimit = limit;
             try {
-                const response = await adminFetch('/api/admin/activities');
+                const response = await adminFetch(`/api/admin/activities?page=${page}&limit=${limit}`);
                 if (!response) return;
                 const result = await response.json();
-                
+
                 if (result.success) {
-                    allLogs = result.data;
+                    allLogs = result.data || [];
                     renderLogs(allLogs);
+                    if (result.pagination && window.renderPaginationMulti) {
+                        renderPaginationMulti(
+                            result.pagination,
+                            ['logsPaginationTop', 'logsPaginationBottom'],
+                            ({ page, limit }) => loadActivities(page, limit)
+                        );
+                    }
                 } else {
                     document.getElementById('logsTableBody').innerHTML = `<tr><td colspan="5" style="color:#888; text-align:center; padding: 2rem;">Aún no hay movimientos registrados.</td></tr>`;
                 }

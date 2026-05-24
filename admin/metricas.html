@@ -741,6 +741,28 @@
                 console.log('[Mathsoluis Metrics] Esquema detectado:', result.data._schema);
             }
 
+            // ── DIAGNÓSTICO DE FILTRO DE FECHAS ────────────────────────────
+            // Si el backend reporta 0 filas dentro del rango pero hay registros
+            // en BD, dejamos un mensaje muy explícito para el operador.
+            if (result?.data?._debug) {
+                const dbg = result.data._debug;
+                console.log('[Mathsoluis Metrics] _debug fechas:', dbg);
+                const total = dbg?.date_range_bd?.total_rows ?? 0;
+                const dentro = dbg?.rows_in_range ?? 0;
+                if (total > 0 && dentro === 0 && (dbg.sql_from || dbg.sql_to)) {
+                    console.warn(
+                        `[Mathsoluis Metrics] ⚠ El filtro de fechas excluye TODAS las órdenes.\n` +
+                        `   • Rango pedido: ${dbg.sql_from || '—'} → ${dbg.sql_to || '—'}\n` +
+                        `   • Rango real en BD: ${dbg.date_range_bd?.oldest || '—'} → ${dbg.date_range_bd?.newest || '—'}\n` +
+                        `   • Total de órdenes en BD: ${total}\n` +
+                        `   → Prueba con el preset "Histórico" para confirmar que los datos existen.`
+                    );
+                }
+                if (dbg.date_samples?.length) {
+                    console.table(dbg.date_samples);
+                }
+            }
+
             if (result.success && result.data) {
                 const d = result.data;
 
