@@ -788,12 +788,25 @@ export default {
             const page  = Math.max(1, parseInt(url.searchParams.get('page')  || '1',  10) || 1);
             const limit = Math.min(200, Math.max(1, parseInt(url.searchParams.get('limit') || '20', 10) || 20));
             const offset = (page - 1) * limit;
+            const search = (url.searchParams.get('search') || url.searchParams.get('q') || '').trim();
+            const searchTerm = search ? `%${search}%` : null;
 
-            const totalRow = await env.DB.prepare(`SELECT COUNT(*) AS total FROM Products p WHERE p.visible = 1`).first();
+            // WHERE dinámico: siempre visible=1; LIKE en nombre y etiquetas cuando hay búsqueda
+            const whereConditions = ['p.visible = 1'];
+            const queryParams = [];
+            if (searchTerm) {
+                whereConditions.push('(p.nombre LIKE ? OR p.etiquetas LIKE ?)');
+                queryParams.push(searchTerm, searchTerm);
+            }
+            const whereClause = whereConditions.join(' AND ');
+
+            const totalRow = await env.DB.prepare(
+                `SELECT COUNT(*) AS total FROM Products p WHERE ${whereClause}`
+            ).bind(...queryParams).first();
             const total = totalRow?.total || 0;
 
-            const query = `SELECT p.*, c.nombre as categoria_nombre FROM Products p LEFT JOIN Categories c ON p.categoria_id = c.id WHERE p.visible = 1 ORDER BY p.en_oferta DESC, p.id DESC LIMIT ? OFFSET ?`;
-            const { results: products } = await env.DB.prepare(query).bind(limit, offset).all();
+            const query = `SELECT p.*, c.nombre as categoria_nombre FROM Products p LEFT JOIN Categories c ON p.categoria_id = c.id WHERE ${whereClause} ORDER BY p.en_oferta DESC, p.id DESC LIMIT ? OFFSET ?`;
+            const { results: products } = await env.DB.prepare(query).bind(...queryParams, limit, offset).all();
 
             let variants = [];
             if (products.length > 0) {
@@ -818,12 +831,16 @@ export default {
             });
 
             const totalPages = Math.max(1, Math.ceil(total / limit));
+            // Sin caché cuando hay búsqueda activa para no contaminar la caché de la vitrina general
+            const cacheHeader = search
+                ? "no-store"
+                : "public, max-age=60, s-maxage=60";
             return Response.json({
                 success: true,
                 data: products,
                 pagination: { total, page, limit, totalPages }
             }, {
-                headers: { ...corsHeaders, "Cache-Control": "public, max-age=60, s-maxage=60" }
+                headers: { ...corsHeaders, "Cache-Control": cacheHeader }
             });
         } catch (error) { return Response.json({ success: false, error: error.message }, { status: 500, headers: corsHeaders }); }
     }
@@ -1094,12 +1111,29 @@ export default {
           const page  = Math.max(1, parseInt(url.searchParams.get('page')  || '1',  10) || 1);
           const limit = Math.min(200, Math.max(1, parseInt(url.searchParams.get('limit') || '20', 10) || 20));
           const offset = (page - 1) * limit;
+          const search = (url.searchParams.get('search') || url.searchParams.get('q') || '').trim();
+          const searchTerm = search ? `%${search}%` : null;
+          const kitFilter    = url.searchParams.get('kit');
+          const ofertaFilter = url.searchParams.get('oferta');
 
-          const totalRow = await env.DB.prepare(`SELECT COUNT(*) AS total FROM Products`).first();
+          // WHERE dinámico: búsqueda en nombre, SKU y etiquetas; filtros rápidos de panel
+          const whereConditions = [];
+          const queryParams = [];
+          if (searchTerm) {
+            whereConditions.push('(p.nombre LIKE ? OR p.sku LIKE ? OR p.etiquetas LIKE ?)');
+            queryParams.push(searchTerm, searchTerm, searchTerm);
+          }
+          if (kitFilter === '1')    { whereConditions.push('p.es_kit = 1'); }
+          if (ofertaFilter === '1') { whereConditions.push('p.en_oferta = 1'); }
+          const whereClause = whereConditions.length ? `WHERE ${whereConditions.join(' AND ')}` : '';
+
+          const totalRow = await env.DB.prepare(
+            `SELECT COUNT(*) AS total FROM Products p ${whereClause}`
+          ).bind(...queryParams).first();
           const total = totalRow?.total || 0;
 
-          const query = `SELECT p.*, c.nombre as categoria_nombre FROM Products p LEFT JOIN Categories c ON p.categoria_id = c.id ORDER BY p.en_oferta DESC, p.id DESC LIMIT ? OFFSET ?`;
-          const { results: products } = await env.DB.prepare(query).bind(limit, offset).all();
+          const query = `SELECT p.*, c.nombre as categoria_nombre FROM Products p LEFT JOIN Categories c ON p.categoria_id = c.id ${whereClause} ORDER BY p.en_oferta DESC, p.id DESC LIMIT ? OFFSET ?`;
+          const { results: products } = await env.DB.prepare(query).bind(...queryParams, limit, offset).all();
 
           let variants = [];
           if (products.length > 0) {
@@ -1188,11 +1222,25 @@ export default {
           const page  = Math.max(1, parseInt(url.searchParams.get('page')  || '1',  10) || 1);
           const limit = Math.min(200, Math.max(1, parseInt(url.searchParams.get('limit') || '20', 10) || 20));
           const offset = (page - 1) * limit;
+          const search = (url.searchParams.get('search') || url.searchParams.get('q') || '').trim();
+          const searchTerm = search ? `%${search}%` : null;
 
-          const totalRow = await env.DB.prepare(`SELECT COUNT(*) AS total FROM ActivityLogs`).first();
+          const whereConditions = [];
+          const queryParams = [];
+          if (searchTerm) {
+            whereConditions.push('(admin_name LIKE ? OR details LIKE ? OR action LIKE ?)');
+            queryParams.push(searchTerm, searchTerm, searchTerm);
+          }
+          const whereClause = whereConditions.length ? `WHERE ${whereConditions.join(' AND ')}` : '';
+
+          const totalRow = await env.DB.prepare(
+            `SELECT COUNT(*) AS total FROM ActivityLogs ${whereClause}`
+          ).bind(...queryParams).first();
           const total = totalRow?.total || 0;
 
-          const { results } = await env.DB.prepare("SELECT * FROM ActivityLogs ORDER BY id DESC LIMIT ? OFFSET ?").bind(limit, offset).all();
+          const { results } = await env.DB.prepare(
+            `SELECT * FROM ActivityLogs ${whereClause} ORDER BY id DESC LIMIT ? OFFSET ?`
+          ).bind(...queryParams, limit, offset).all();
           const totalPages = Math.max(1, Math.ceil(total / limit));
           return Response.json({
             success: true,
@@ -1208,11 +1256,25 @@ export default {
           const page  = Math.max(1, parseInt(url.searchParams.get('page')  || '1',  10) || 1);
           const limit = Math.min(200, Math.max(1, parseInt(url.searchParams.get('limit') || '20', 10) || 20));
           const offset = (page - 1) * limit;
+          const search = (url.searchParams.get('search') || url.searchParams.get('q') || '').trim();
+          const searchTerm = search ? `%${search}%` : null;
 
-          const totalRow = await env.DB.prepare(`SELECT COUNT(*) AS total FROM Customers`).first();
+          const whereConditions = [];
+          const queryParams = [];
+          if (searchTerm) {
+            whereConditions.push('(nombre LIKE ? OR email LIKE ?)');
+            queryParams.push(searchTerm, searchTerm);
+          }
+          const whereClause = whereConditions.length ? `WHERE ${whereConditions.join(' AND ')}` : '';
+
+          const totalRow = await env.DB.prepare(
+            `SELECT COUNT(*) AS total FROM Customers ${whereClause}`
+          ).bind(...queryParams).first();
           const total = totalRow?.total || 0;
 
-          const { results } = await env.DB.prepare("SELECT * FROM Customers ORDER BY fecha_registro DESC LIMIT ? OFFSET ?").bind(limit, offset).all();
+          const { results } = await env.DB.prepare(
+            `SELECT * FROM Customers ${whereClause} ORDER BY fecha_registro DESC LIMIT ? OFFSET ?`
+          ).bind(...queryParams, limit, offset).all();
           const totalPages = Math.max(1, Math.ceil(total / limit));
           return Response.json({
             success: true,
@@ -1263,57 +1325,64 @@ export default {
       }
 
       // ---- PEDIDOS ----
-      // Acepta ?from=YYYY-MM-DD&to=YYYY-MM-DD para filtrar por rango de fecha de creación.
-      // El filtro se aplica en una subquery sobre Orders ANTES del LEFT JOIN con Customers,
-      // evitando "ambiguous column name: created_at" cuando ambas tablas tienen esa columna.
+      // Acepta ?from=YYYY-MM-DD&to=YYYY-MM-DD para filtrar por rango de fecha.
+      // Acepta ?search= para buscar por ID de pedido, nombre o email del cliente.
+      // Usa alias explícitos (o.${fechaCol}) en lugar de subquery para evitar
+      // "ambiguous column name" y poder añadir WHERE post-JOIN para la búsqueda.
       if (url.pathname === "/api/admin/orders" && request.method === "GET") {
         try {
-          const fromQ = url.searchParams.get('from');
-          const toQ   = url.searchParams.get('to');
-          const page  = Math.max(1, parseInt(url.searchParams.get('page')  || '1',  10) || 1);
-          const limit = Math.min(200, Math.max(1, parseInt(url.searchParams.get('limit') || '20', 10) || 20));
+          const fromQ  = url.searchParams.get('from');
+          const toQ    = url.searchParams.get('to');
+          const page   = Math.max(1, parseInt(url.searchParams.get('page')  || '1',  10) || 1);
+          const limit  = Math.min(200, Math.max(1, parseInt(url.searchParams.get('limit') || '20', 10) || 20));
           const offset = (page - 1) * limit;
+          const search = (url.searchParams.get('search') || url.searchParams.get('q') || '').trim();
+          const searchTerm = search ? `%${search}%` : null;
 
-          // Detección dinámica del nombre de la columna de fecha en Orders.
-          // Igual que en /api/admin/metrics: soporta esquemas en inglés
-          // (created_at) y en español (fecha_creacion).
+          // Detección dinámica de la columna de fecha (created_at vs fecha_creacion).
           const { results: ordersSchema } = await env.DB.prepare("PRAGMA table_info(Orders)").all();
           const colNames = (ordersSchema || []).map(c => c.name);
           const fechaCol = colNames.includes('created_at') ? 'created_at' : 'fecha_creacion';
 
-          // Condiciones dentro de la subquery: sólo Orders → la columna de
-          // fecha no es ambigua porque no hay JOIN en ese scope.
+          // Construir condiciones WHERE combinadas (from/to + search).
+          // Los aliases explícitos o.${fechaCol} y c.nombre evitan ambigüedad.
           const conditions = [];
           const bindParams = [];
-          if (fromQ) { conditions.push(`strftime('%Y-%m-%d', ${fechaCol}) >= ?`); bindParams.push(fromQ); }
-          if (toQ)   { conditions.push(`strftime('%Y-%m-%d', ${fechaCol}) <= ?`); bindParams.push(toQ); }
-          const innerWhere = conditions.length ? 'WHERE ' + conditions.join(' AND ') : '';
+          if (fromQ) { conditions.push(`strftime('%Y-%m-%d', o.${fechaCol}) >= ?`); bindParams.push(fromQ); }
+          if (toQ)   { conditions.push(`strftime('%Y-%m-%d', o.${fechaCol}) <= ?`); bindParams.push(toQ); }
+          if (searchTerm) {
+            conditions.push(`(CAST(o.id AS TEXT) LIKE ? OR c.nombre LIKE ? OR c.email LIKE ?)`);
+            bindParams.push(searchTerm, searchTerm, searchTerm);
+          }
+          const whereClause = conditions.length ? 'WHERE ' + conditions.join(' AND ') : '';
 
-          // COUNT respeta los mismos filtros (from/to) que la query principal.
-          const countQuery = `SELECT COUNT(*) AS total FROM Orders ${innerWhere}`;
-          const countStmt = bindParams.length ? env.DB.prepare(countQuery).bind(...bindParams) : env.DB.prepare(countQuery);
-          const totalRow = await countStmt.first();
+          // COUNT necesita el JOIN con Customers para poder filtrar por nombre/email del cliente.
+          const countQuery = `
+            SELECT COUNT(*) AS total
+            FROM   Orders o
+            LEFT   JOIN Customers c ON o.customer_id = c.id
+            ${whereClause}`;
+          const totalRow = await env.DB.prepare(countQuery).bind(...bindParams).first();
           const total = totalRow?.total || 0;
 
-          // El JOIN opera sobre el resultado ya filtrado; sub.<fechaCol> es inequívoco.
-          // oi_sum agrega los items por pedido en una tabla derivada (sin subquery correlacionada).
+          // Query principal con JOIN explícito + LIMIT/OFFSET en el nivel externo.
           const query = `
-            SELECT sub.*, c.nombre AS cliente_nombre, c.email AS cliente_email,
+            SELECT o.*, c.nombre AS cliente_nombre, c.email AS cliente_email,
                    oi_sum.items_summary, oi_sum.items_count
-            FROM   (SELECT * FROM Orders ${innerWhere} ORDER BY ${fechaCol} DESC LIMIT ? OFFSET ?) AS sub
-            LEFT   JOIN Customers c ON sub.customer_id = c.id
+            FROM   Orders o
+            LEFT   JOIN Customers c ON o.customer_id = c.id
             LEFT   JOIN (
                 SELECT order_id,
                        GROUP_CONCAT(product_name || ' ×' || cantidad, ' | ') AS items_summary,
                        COUNT(*) AS items_count
                 FROM   OrderItems
                 GROUP  BY order_id
-            ) AS oi_sum ON oi_sum.order_id = sub.id
-            ORDER  BY sub.${fechaCol} DESC`;
+            ) AS oi_sum ON oi_sum.order_id = o.id
+            ${whereClause}
+            ORDER  BY o.${fechaCol} DESC
+            LIMIT  ? OFFSET ?`;
 
-          const stmt = env.DB.prepare(query).bind(...bindParams, limit, offset);
-          const { results } = await stmt.all();
-
+          const { results } = await env.DB.prepare(query).bind(...bindParams, limit, offset).all();
           const totalPages = Math.max(1, Math.ceil(total / limit));
           return Response.json({
             success: true,

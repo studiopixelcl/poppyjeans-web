@@ -163,6 +163,12 @@
     <script src="../pagination.js"></script>
     <script>
                 let allLogs = [];
+        let logsSearch = '';
+
+        function makeDebounce(fn, ms) {
+            let timer;
+            return function(...args) { clearTimeout(timer); timer = setTimeout(() => fn.apply(this, args), ms); };
+        }
 
         window.onload = () => {
             const token = localStorage.getItem('admin_token');
@@ -198,11 +204,14 @@
         let logsPage  = 1;
         let logsLimit = 20;
 
-        async function loadActivities(page = logsPage, limit = logsLimit) {
-            logsPage  = page;
-            logsLimit = limit;
+        async function loadActivities(page = logsPage, limit = logsLimit, search = logsSearch) {
+            logsPage   = page;
+            logsLimit  = limit;
+            logsSearch = search;
             try {
-                const response = await adminFetch(`/api/admin/activities?page=${page}&limit=${limit}`);
+                const params = new URLSearchParams({ page, limit });
+                if (search) params.set('search', search);
+                const response = await adminFetch(`/api/admin/activities?${params}`);
                 if (!response) return;
                 const result = await response.json();
 
@@ -213,7 +222,7 @@
                         renderPaginationMulti(
                             result.pagination,
                             ['logsPaginationTop', 'logsPaginationBottom'],
-                            ({ page, limit }) => loadActivities(page, limit)
+                            ({ page, limit }) => loadActivities(page, limit, logsSearch)
                         );
                     }
                 } else {
@@ -251,15 +260,14 @@
             });
         }
 
-        // Búsqueda rápida
+        // Búsqueda debounced 400 ms → server-side (admin_name, details, action)
+        const _debouncedLogsSearch = makeDebounce((term) => {
+            logsSearch = term;
+            loadActivities(1, logsLimit, term);
+        }, 400);
+
         document.getElementById('searchInput').addEventListener('input', function(e) {
-            const term = e.target.value.toLowerCase().trim();
-            const filtered = allLogs.filter(l => 
-                l.admin_name?.toLowerCase().includes(term) || 
-                l.details?.toLowerCase().includes(term) ||
-                l.action?.toLowerCase().includes(term)
-            );
-            renderLogs(filtered);
+            _debouncedLogsSearch(e.target.value.trim());
         });
 
     </script>

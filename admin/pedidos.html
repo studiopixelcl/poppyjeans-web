@@ -426,6 +426,12 @@
         let currentSortColumn = 'id';
         let sortAscending    = false;
         let editingOrderId   = null;
+        let ordersSearch     = '';
+
+        function makeDebounce(fn, ms) {
+            let timer;
+            return function(...args) { clearTimeout(timer); timer = setTimeout(() => fn.apply(this, args), ms); };
+        }
 
         const formatCurrency = (amount) => '$' + Number(amount || 0).toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, ".");
 
@@ -512,22 +518,25 @@
         let ordersPage  = 1;
         let ordersLimit = 20;
 
-        async function loadOrders(page = ordersPage, limit = ordersLimit) {
-            ordersPage  = page;
-            ordersLimit = limit;
+        async function loadOrders(page = ordersPage, limit = ordersLimit, search = ordersSearch) {
+            ordersPage   = page;
+            ordersLimit  = limit;
+            ordersSearch = search;
             try {
-                const response = await adminFetch(`/api/admin/orders?page=${page}&limit=${limit}`);
+                const params = new URLSearchParams({ page, limit });
+                if (search) params.set('search', search);
+                const response = await adminFetch(`/api/admin/orders?${params}`);
                 if (!response) return;
                 const result = await response.json();
                 if (result.success) {
-                    allOrders = result.data || [];
+                    allOrders      = result.data || [];
                     filteredOrders = [...allOrders];
                     applySort(currentSortColumn, sortAscending);
                     if (result.pagination && window.renderPaginationMulti) {
                         renderPaginationMulti(
                             result.pagination,
                             ['ordersPaginationTop', 'ordersPaginationBottom'],
-                            ({ page, limit }) => loadOrders(page, limit)
+                            ({ page, limit }) => loadOrders(page, limit, ordersSearch)
                         );
                     }
                 } else {
@@ -622,14 +631,14 @@
         // ==========================================
         // BÚSQUEDA Y ORDENAMIENTO
         // ==========================================
+        // Búsqueda debounced 400 ms → server-side (cubre ID, nombre y email del cliente)
+        const _debouncedOrdersSearch = makeDebounce((term) => {
+            ordersSearch = term;
+            loadOrders(1, ordersLimit, term);
+        }, 400);
+
         document.getElementById('searchInput').addEventListener('input', function(e) {
-            const term = e.target.value.toLowerCase().trim();
-            filteredOrders = allOrders.filter(o =>
-                o.id.toString().includes(term) ||
-                (o.cliente_nombre || '').toLowerCase().includes(term) ||
-                (o.tracking_code || '').toLowerCase().includes(term)
-            );
-            applySort(currentSortColumn, sortAscending);
+            _debouncedOrdersSearch(e.target.value.trim());
         });
 
         function sortData(column) {

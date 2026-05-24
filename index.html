@@ -966,16 +966,26 @@
             return _imagesLoadingPromises[productId];
         }
 
-        // Estado paginación catálogo público
-        let catalogPage  = 1;
-        let catalogLimit = 20;
+        // Estado paginación + búsqueda catálogo público
+        let catalogPage   = 1;
+        let catalogLimit  = 20;
+        let catalogSearch = '';
 
-        async function fetchCatalog(page = catalogPage, limit = catalogLimit) {
-            catalogPage  = page;
-            catalogLimit = limit;
+        // Utilitario debounce — evita saturar el servidor letra a letra
+        function makeDebounce(fn, ms) {
+            let timer;
+            return function(...args) { clearTimeout(timer); timer = setTimeout(() => fn.apply(this, args), ms); };
+        }
+
+        async function fetchCatalog(page = catalogPage, limit = catalogLimit, search = catalogSearch) {
+            catalogPage   = page;
+            catalogLimit  = limit;
+            catalogSearch = search;
             const grid = document.getElementById('productsGrid');
             try {
-                const response = await fetchWithRetry(`${API_URL}?page=${page}&limit=${limit}`);
+                const params = new URLSearchParams({ page, limit });
+                if (search) params.set('search', search);
+                const response = await fetchWithRetry(`${API_URL}?${params}`);
                 if (!response.ok) throw new Error(`HTTP ${response.status}`);
                 const result = await response.json();
                 if(result.success) {
@@ -986,7 +996,7 @@
                             result.pagination,
                             ['paginationTop', 'paginationBottom'],
                             ({ page, limit }) => {
-                                fetchCatalog(page, limit);
+                                fetchCatalog(page, limit, catalogSearch);
                                 document.getElementById('catalogo').scrollIntoView({ behavior: 'smooth' });
                             }
                         );
@@ -1400,44 +1410,38 @@
         // BÚSQUEDA Y FILTRO RÁPIDO DESDE BANNERS
         // =========================================================
         window.searchByTag = (tag) => {
-            const searchInput = document.getElementById('searchInput');
-            searchInput.value = tag;
-            
-            searchInput.dispatchEvent(new Event('input'));
+            document.getElementById('searchInput').value = tag;
+            catalogSearch = tag;
+            fetchCatalog(1, catalogLimit, tag);
             document.getElementById('catalogo').scrollIntoView({ behavior: 'smooth' });
-            
             document.getElementById('activeFilterName').textContent = tag.toUpperCase();
             document.getElementById('activeFilterContainer').style.display = 'flex';
         };
 
-        // Escuchador del buscador principal
-        document.getElementById('searchInput').addEventListener('input', (e) => {
-            const searchTerm = e.target.value.toLowerCase().trim();
-            let hasVisibleProducts = false;
-            
-            document.querySelectorAll('.product-card').forEach(card => {
-                const catData = card.dataset.category || '';
-                const isTextMatch = card.innerText.toLowerCase().includes(searchTerm);
-                const isCatMatch = catData.includes(searchTerm);
-                const isUnisexBonus = (searchTerm === 'niña' || searchTerm === 'niño' || searchTerm === 'ninas' || searchTerm === 'ninos') && catData.includes('unisex');
-                if (isTextMatch || isCatMatch || isUnisexBonus) {
-                    card.style.display = 'flex'; hasVisibleProducts = true;
-                } else {
-                    card.style.display = 'none';
-                }
-            });
-            
-            if(searchTerm === '') {
-                document.getElementById('activeFilterContainer').style.display = 'none';
+        // Escuchador principal — debounce 400ms → búsqueda server-side
+        const _debouncedCatalogSearch = makeDebounce((term) => {
+            fetchCatalog(1, catalogLimit, term);
+            const filterBox = document.getElementById('activeFilterContainer');
+            if (term) {
+                document.getElementById('activeFilterName').textContent = term.toUpperCase();
+                filterBox.style.display = 'flex';
+            } else {
+                filterBox.style.display = 'none';
             }
+        }, 400);
 
-            document.getElementById('noResults').style.display = hasVisibleProducts ? 'none' : 'block';
+        document.getElementById('searchInput').addEventListener('input', (e) => {
+            const term = e.target.value.trim();
+            catalogSearch = term;
+            document.getElementById('noResults').style.display = 'none';
+            _debouncedCatalogSearch(term);
         });
 
         document.getElementById('clearFilterBtn').addEventListener('click', () => {
             document.getElementById('searchInput').value = '';
-            document.querySelectorAll('.product-card').forEach(pCard => pCard.style.display = 'flex');
+            catalogSearch = '';
             document.getElementById('activeFilterContainer').style.display = 'none';
+            fetchCatalog(1, catalogLimit, '');
         });
 
         // --- BÚSQUEDA MÓVIL ---
@@ -1451,6 +1455,7 @@
             mobileSearchBar.classList.remove('open');
             mobileSearchInput.value = '';
             mainInput.value = '';
+            catalogSearch = '';
             mainInput.dispatchEvent(new Event('input'));
         }
         window.closeMobileSearch = closeMobileSearch;

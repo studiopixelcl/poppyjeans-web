@@ -306,11 +306,17 @@
         const loginForm = document.getElementById('loginForm');
         const clientsTableBody = document.getElementById('clientsTableBody');
         
-        let allClients = []; 
-        let filteredClients = []; 
-        let currentSortColumn = 'id'; 
-        let sortAscending = false; 
-        let editingClientId = null; 
+        let allClients = [];
+        let filteredClients = [];
+        let currentSortColumn = 'id';
+        let sortAscending = false;
+        let editingClientId = null;
+        let clientsSearch = '';
+
+        function makeDebounce(fn, ms) {
+            let timer;
+            return function(...args) { clearTimeout(timer); timer = setTimeout(() => fn.apply(this, args), ms); };
+        }
 
         window.onload = () => {
             const token = localStorage.getItem('admin_token');
@@ -378,23 +384,26 @@
         let clientsPage  = 1;
         let clientsLimit = 20;
 
-        async function loadClients(page = clientsPage, limit = clientsLimit) {
-            clientsPage  = page;
-            clientsLimit = limit;
+        async function loadClients(page = clientsPage, limit = clientsLimit, search = clientsSearch) {
+            clientsPage   = page;
+            clientsLimit  = limit;
+            clientsSearch = search;
             try {
-                const response = await adminFetch(`/api/admin/customers?page=${page}&limit=${limit}`);
+                const params = new URLSearchParams({ page, limit });
+                if (search) params.set('search', search);
+                const response = await adminFetch(`/api/admin/customers?${params}`);
                 if (!response) return;
                 const result = await response.json();
 
                 if (result.success) {
-                    allClients = result.data || [];
+                    allClients      = result.data || [];
                     filteredClients = [...allClients];
                     applySort(currentSortColumn, sortAscending);
                     if (result.pagination && window.renderPaginationMulti) {
                         renderPaginationMulti(
                             result.pagination,
                             ['clientsPaginationTop', 'clientsPaginationBottom'],
-                            ({ page, limit }) => loadClients(page, limit)
+                            ({ page, limit }) => loadClients(page, limit, clientsSearch)
                         );
                     }
                 } else {
@@ -459,15 +468,14 @@
         // ==========================================
         // BÚSQUEDA Y ORDENAMIENTO
         // ==========================================
+        // Búsqueda debounced 400 ms → server-side (nombre y email)
+        const _debouncedClientsSearch = makeDebounce((term) => {
+            clientsSearch = term;
+            loadClients(1, clientsLimit, term);
+        }, 400);
+
         document.getElementById('searchInput').addEventListener('input', function(e) {
-            const term = e.target.value.toLowerCase().trim();
-            filteredClients = allClients.filter(c => {
-                return (c.nombre?.toLowerCase().includes(term) || 
-                        c.email?.toLowerCase().includes(term) || 
-                        c.telefono?.toLowerCase().includes(term) ||
-                        c.comuna?.toLowerCase().includes(term));
-            });
-            applySort(currentSortColumn, sortAscending);
+            _debouncedClientsSearch(e.target.value.trim());
         });
 
         function sortData(column) {

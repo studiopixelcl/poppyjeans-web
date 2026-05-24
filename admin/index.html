@@ -599,10 +599,16 @@
         const globalStockInput = document.getElementById('prodStock');
         
         let allProducts = []; let filteredProducts = []; let CATEGORIAS_MAP = {}; let CATEGORIAS_LIST = [];
-        let currentSortColumn = ''; let sortAscending = true; let editingProductId = null; 
+        let currentSortColumn = ''; let sortAscending = true; let editingProductId = null;
         let currentTags = []; let allExistingTags = new Set();
-        let productVariants = []; let variantIdCounter = 0; 
+        let productVariants = []; let variantIdCounter = 0;
         let currentQuickFilter = 'all';
+        let productsSearch = '';
+
+        function makeDebounce(fn, ms) {
+            let timer;
+            return function(...args) { clearTimeout(timer); timer = setTimeout(() => fn.apply(this, args), ms); };
+        }
 
         // Matrices maestras de tallas 
         const tallasNormal = {
@@ -703,31 +709,37 @@
         // logout() definido en auth-helper al final del body
 
         // --- SISTEMA BLINDADO DE CARGA DE PRODUCTOS ---
-        // Estado paginación productos admin
+        // Estado paginación + búsqueda productos admin
         let productsPage  = 1;
         let productsLimit = 20;
 
-        async function loadProducts(page = productsPage, limit = productsLimit) {
-            productsPage  = page;
-            productsLimit = limit;
+        async function loadProducts(page = productsPage, limit = productsLimit, search = productsSearch) {
+            productsPage   = page;
+            productsLimit  = limit;
+            productsSearch = search;
             productsTableBody.innerHTML = `<tr><td colspan="9" style="text-align: center; padding: 2rem;">Cargando inventario...</td></tr>`;
             try {
-                const response = await adminFetch(`/api/admin/products?page=${page}&limit=${limit}`);
+                const params = new URLSearchParams({ page, limit });
+                if (search)                          params.set('search', search);
+                if (currentQuickFilter === 'kits')   params.set('kit', '1');
+                if (currentQuickFilter === 'ofertas') params.set('oferta', '1');
+
+                const response = await adminFetch(`/api/admin/products?${params}`);
                 if (!response) return;
                 const text = await response.text();
 
                 try {
                     const result = JSON.parse(text);
                     if (result.success) {
-                        // En el panel de admin cargamos TODOS los productos, incluso los ocultos
-                        allProducts = result.data || [];
-                        runFilters();
+                        allProducts    = result.data || [];
+                        filteredProducts = [...allProducts];
                         extractAllTags();
+                        applySort(currentSortColumn || 'id', sortAscending);
                         if (result.pagination && window.renderPaginationMulti) {
                             renderPaginationMulti(
                                 result.pagination,
                                 ['productsPaginationTop', 'productsPaginationBottom'],
-                                ({ page, limit }) => loadProducts(page, limit)
+                                ({ page, limit }) => loadProducts(page, limit, productsSearch)
                             );
                         }
                     } else {
@@ -756,28 +768,30 @@
             }
         }
 
-        // --- SISTEMA DE FILTROS RÁPIDOS Y BÚSQUEDA ---
+        // --- FILTROS RÁPIDOS (kits / ofertas) — ahora van como params al backend ---
         window.setQuickFilter = (filterType) => {
             currentQuickFilter = filterType;
             document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
-            if(filterType === 'all') document.getElementById('btnFilterAll').classList.add('active');
-            if(filterType === 'kits') document.getElementById('btnFilterKits').classList.add('active');
+            if(filterType === 'all')    document.getElementById('btnFilterAll').classList.add('active');
+            if(filterType === 'kits')   document.getElementById('btnFilterKits').classList.add('active');
             if(filterType === 'ofertas') document.getElementById('btnFilterOfertas').classList.add('active');
-            runFilters();
+            // Recargar desde página 1 con el nuevo filtro (el search actual se preserva)
+            loadProducts(1, productsLimit, productsSearch);
         };
 
-        document.getElementById('searchInput').addEventListener('input', runFilters);
+        // Búsqueda debounced 400 ms → server-side
+        const _debouncedProductsSearch = makeDebounce((term) => {
+            productsSearch = term;
+            loadProducts(1, productsLimit, term);
+        }, 400);
 
+        document.getElementById('searchInput').addEventListener('input', (e) => {
+            _debouncedProductsSearch(e.target.value.trim());
+        });
+
+        // runFilters sólo ordena el array ya filtrado por el backend (no hace .filter en memoria)
         function runFilters() {
-            const term = document.getElementById('searchInput').value.toLowerCase().trim();
-            
-            filteredProducts = allProducts.filter(p => {
-                const matchText = (p.nombre?.toLowerCase().includes(term) || p.sku?.toLowerCase().includes(term) || p.etiquetas?.toLowerCase().includes(term));
-                let matchQuick = true;
-                if (currentQuickFilter === 'kits') matchQuick = p.es_kit === 1;
-                if (currentQuickFilter === 'ofertas') matchQuick = p.isOffer == 1 || p.en_oferta === 1;
-                return matchText && matchQuick;
-            });
+            filteredProducts = [...allProducts];
             applySort(currentSortColumn || 'id', sortAscending);
         }
 
