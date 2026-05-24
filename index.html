@@ -532,13 +532,13 @@
         <section class="collections-wrapper">
             <div class="collections-grid animate-on-load">
                 
-                <!-- BANNER MODIFICADO: MES DE LAS MAMÁS -->
-                <a href="#catalogo" onclick="searchByTag('oferta')" class="collection-banner large">
-                    <img src="./dia-mama.jpg" alt="Mes de las Mamás">
+                <!-- BANNER B2B: PACKS MAYORISTAS -->
+                <a href="#catalogo" onclick="event.preventDefault(); viewPacks();" class="collection-banner large">
+                    <img src="./dia-mama.jpg" alt="Kits y Packs Mayoristas">
                     <div class="collection-content">
-                        <h2 class="banner-title-script" style="font-size: 2.5rem;">¡Feliz Mes de las mamás!</h2>
-                        <p class="banner-subtitle" style="text-transform: none; font-size: 1.1rem; letter-spacing: 0;">Disfruta de descuentos exclusivos para ti.</p>
-                        <span class="banner-btn">Ver Ofertas</span>
+                        <h2 class="banner-title-script" style="font-size: 2.5rem;">Kits y Packs Mayoristas</h2>
+                        <p class="banner-subtitle" style="text-transform: none; font-size: 1.1rem; letter-spacing: 0;">Surtidos exclusivos para revendedores y boutiques.</p>
+                        <span class="banner-btn">VER PACKS</span>
                     </div>
                 </a>
 
@@ -596,6 +596,11 @@
                 <div id="activeFilterContainer" class="active-filter-container" style="display: none;">
                     <span class="active-filter-text">Viendo la colección de: <strong id="activeFilterName" style="color: var(--dark-studio);">Categoría</strong></span>
                     <button id="clearFilterBtn" class="clear-filter-btn">✕ Quitar Filtro</button>
+                </div>
+
+                <div id="packFilterContainer" style="display: none; margin: 1.5rem 0; padding: 1rem 1.5rem; background: linear-gradient(135deg, #8A7360 0%, #6d5a4a 100%); color: #FFF8F0; border-radius: 12px; display: none; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap;">
+                    <span style="font-family: var(--font-display, 'Playfair Display', serif); font-size: 1.15rem; font-weight: 600;">📦 Mostrando: Packs Mayoristas</span>
+                    <button id="clearPackFilterBtn" type="button" style="background: rgba(255,255,255,0.18); color: #FFF8F0; border: 1px solid rgba(255,255,255,0.5); padding: 8px 18px; border-radius: 50px; font-weight: 600; cursor: pointer; font-family: 'Poppins', sans-serif;">✖ Quitar Filtro</button>
                 </div>
 
                 <div id="paginationTop"></div>
@@ -970,6 +975,8 @@
         let catalogPage   = 1;
         let catalogLimit  = 20;
         let catalogSearch = '';
+        // Filtro B2B Packs Mayoristas (0 = catálogo retail por defecto, 1 = solo packs)
+        let currentIsPack = 0;
 
         // Utilitario debounce — evita saturar el servidor letra a letra
         function makeDebounce(fn, ms) {
@@ -985,6 +992,7 @@
             try {
                 const params = new URLSearchParams({ page, limit });
                 if (search) params.set('search', search);
+                params.set('is_pack', currentIsPack);
                 const response = await fetchWithRetry(`${API_URL}?${params}`);
                 if (!response.ok) throw new Error(`HTTP ${response.status}`);
                 const result = await response.json();
@@ -1417,6 +1425,32 @@
             document.getElementById('activeFilterName').textContent = tag.toUpperCase();
             document.getElementById('activeFilterContainer').style.display = 'flex';
         };
+
+        // =========================================================
+        // FILTRO B2B — PACKS MAYORISTAS
+        // =========================================================
+        window.viewPacks = () => {
+            currentIsPack = 1;
+            catalogPage = 1;
+            catalogSearch = '';
+            const sInput = document.getElementById('searchInput');
+            if (sInput) sInput.value = '';
+            const mInput = document.getElementById('mobileSearchInput');
+            if (mInput) mInput.value = '';
+            document.getElementById('activeFilterContainer').style.display = 'none';
+            const packBox = document.getElementById('packFilterContainer');
+            packBox.style.display = 'flex';
+            fetchCatalog(1, catalogLimit, '');
+            document.getElementById('catalogo').scrollIntoView({ behavior: 'smooth' });
+        };
+
+        window.clearPackFilter = () => {
+            currentIsPack = 0;
+            document.getElementById('packFilterContainer').style.display = 'none';
+            fetchCatalog(1, catalogLimit, catalogSearch);
+        };
+
+        document.getElementById('clearPackFilterBtn').addEventListener('click', window.clearPackFilter);
 
         // Escuchador principal — debounce 400ms → búsqueda server-side
         const _debouncedCatalogSearch = makeDebounce((term) => {

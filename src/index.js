@@ -790,6 +790,7 @@ export default {
             const offset = (page - 1) * limit;
             const search = (url.searchParams.get('search') || url.searchParams.get('q') || '').trim();
             const searchTerm = search ? `%${search}%` : null;
+            const isPackParam = url.searchParams.get('is_pack');
 
             // WHERE dinámico: siempre visible=1; LIKE en nombre y etiquetas cuando hay búsqueda
             const whereConditions = ['p.visible = 1'];
@@ -797,6 +798,12 @@ export default {
             if (searchTerm) {
                 whereConditions.push('(p.nombre LIKE ? OR p.etiquetas LIKE ?)');
                 queryParams.push(searchTerm, searchTerm);
+            }
+            // Filtro B2B: si is_pack=1 sólo packs; en su defecto sólo retail (excluir packs)
+            if (isPackParam === '1') {
+                whereConditions.push('p.is_pack = 1');
+            } else {
+                whereConditions.push('(p.is_pack = 0 OR p.is_pack IS NULL)');
             }
             const whereClause = whereConditions.join(' AND ');
 
@@ -1167,8 +1174,9 @@ export default {
           const _tagsP  = body.tags         || body.etiquetas   || null;
           const _isoP   = body.isOffer      || body.en_oferta   || 0;
           const _ofpP   = body.offerPrice   || body.precio_oferta || null;
-          const info = await env.DB.prepare(`INSERT INTO Products (sku, nombre, descripcion, precio_normal, precio_oferta, en_oferta, oferta_limitada, fecha_fin_oferta, stock, categoria_id, etiquetas, weight) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`)
-            .bind(body.sku || null, body.nombre, _descP, body.precio_normal, _ofpP, _isoP, body.oferta_limitada || 0, body.fecha_fin_oferta || null, body.stock || 0, categoriaIdPrimary, _tagsP, body.weight || 0).run();
+          const _isPackP = body.is_pack === 1 || body.is_pack === '1' ? 1 : 0;
+          const info = await env.DB.prepare(`INSERT INTO Products (sku, nombre, descripcion, precio_normal, precio_oferta, en_oferta, oferta_limitada, fecha_fin_oferta, stock, categoria_id, etiquetas, weight, is_pack) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`)
+            .bind(body.sku || null, body.nombre, _descP, body.precio_normal, _ofpP, _isoP, body.oferta_limitada || 0, body.fecha_fin_oferta || null, body.stock || 0, categoriaIdPrimary, _tagsP, body.weight || 0, _isPackP).run();
 
           const newProductId = info.meta.last_row_id;
           if (body.variantes && body.variantes.length > 0) {
@@ -1201,8 +1209,9 @@ export default {
             const _tagsU  = body.tags         || body.etiquetas   || null;
             const _isoU   = body.isOffer      || body.en_oferta   || 0;
             const _ofpU   = body.offerPrice   || body.precio_oferta || null;
-            await env.DB.prepare(`UPDATE Products SET sku = ?, nombre = ?, descripcion = ?, precio_normal = ?, precio_oferta = ?, en_oferta = ?, oferta_limitada = ?, fecha_fin_oferta = ?, stock = ?, categoria_id = ?, visible = ?, etiquetas = ?, weight = ? WHERE id = ?`)
-              .bind(body.sku || null, body.nombre, _descU, body.precio_normal, _ofpU, _isoU, body.oferta_limitada || 0, body.fecha_fin_oferta || null, body.stock || 0, categoriaIdPrimary, body.visible !== undefined ? body.visible : 1, _tagsU, body.weight || 0, pId).run();
+            const _isPackU = body.is_pack === 1 || body.is_pack === '1' ? 1 : 0;
+            await env.DB.prepare(`UPDATE Products SET sku = ?, nombre = ?, descripcion = ?, precio_normal = ?, precio_oferta = ?, en_oferta = ?, oferta_limitada = ?, fecha_fin_oferta = ?, stock = ?, categoria_id = ?, visible = ?, etiquetas = ?, weight = ?, is_pack = ? WHERE id = ?`)
+              .bind(body.sku || null, body.nombre, _descU, body.precio_normal, _ofpU, _isoU, body.oferta_limitada || 0, body.fecha_fin_oferta || null, body.stock || 0, categoriaIdPrimary, body.visible !== undefined ? body.visible : 1, _tagsU, body.weight || 0, _isPackU, pId).run();
             await env.DB.prepare("DELETE FROM ProductVariants WHERE product_id = ?").bind(pId).run();
             if (body.variantes && body.variantes.length > 0) {
                 const variantStmts = body.variantes.map(v => env.DB.prepare(`INSERT INTO ProductVariants (product_id, color_name, color_hex, tallas, stock, imagen_1, imagen_2, imagen_3, imagen_4, imagen_5) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`)
