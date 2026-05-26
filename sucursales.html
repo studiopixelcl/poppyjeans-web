@@ -41,9 +41,10 @@
         .header { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); padding: 1.2rem 5%; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--rosa-palo); position: sticky; top: 0; z-index: 100; box-shadow: var(--shadow-subtle);}
         .header-container { display: flex; justify-content: space-between; align-items: center; width: 100%; max-width: 1200px; margin: 0 auto; }
         
-        .logo { font-family: var(--font-display); font-size: 1.8rem; font-weight: 700; font-style: italic; color: var(--rosa-intenso); text-decoration: none; display: flex; align-items: center; gap: 10px; transition: var(--transition-smooth); }
-        .logo img { width: 35px; height: 35px; object-fit: contain; mix-blend-mode: multiply; }
+        .logo { font-family: var(--font-display); font-size: 1.8rem; font-weight: 700; font-style: italic; color: var(--rosa-intenso); text-decoration: none; display: flex; align-items: center; gap: 10px; transition: var(--transition-smooth); white-space: nowrap; }
+        .logo img { width: 35px; height: 35px; object-fit: contain; mix-blend-mode: multiply; flex-shrink: 0; }
         .logo:hover { opacity: 0.8; }
+        @media (max-width: 599px) { .logo { font-size: 1.2rem; gap: 6px; } .logo img { width: 28px; height: 28px; } }
         
         .header-nav { display: none; gap: 2rem; align-items: center; }
         @media (min-width: 768px) { .header-nav { display: flex; } }
@@ -55,7 +56,7 @@
         .mobile-only { display: block; } .desktop-only { display: none; }
         @media (min-width: 768px) { .mobile-only { display: none; } .desktop-only { display: flex; } }
 
-        .header-icons { display: flex; gap: 1rem; align-items: center; }
+        .header-icons { display: flex; gap: 1rem; align-items: center; flex-shrink: 0; }
         .icon-btn { display: flex; align-items: center; justify-content: center; color: var(--gris-oscuro); transition: var(--transition-smooth); width: 35px; height: 35px; border-radius: 50%; border: 1px solid var(--gris-claro); background: var(--fondo-claro); position: relative;}
         .icon-btn svg { width: 18px; height: 18px; }
         .icon-btn:hover { color: var(--blanco-puro); background: var(--rosa-intenso); border-color: var(--rosa-intenso); transform: translateY(-2px); }
