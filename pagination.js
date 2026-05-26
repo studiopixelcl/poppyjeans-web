@@ -68,19 +68,21 @@
 
     container.innerHTML = `
       <div class="ms-pagination" role="navigation" aria-label="Paginación">
-        <div class="ms-pagination__summary">
-          Mostrando <strong>${start}</strong> a <strong>${end}</strong> de <strong>${total}</strong> resultados
-        </div>
         <div class="ms-pagination__nav">
           <button type="button" class="ms-pagination__btn ms-pagination__btn--arrow" data-action="prev" aria-label="Página anterior" ${page <= 1 ? 'disabled' : ''}>‹</button>
           <div class="ms-pagination__pages">${pageItems}</div>
           <button type="button" class="ms-pagination__btn ms-pagination__btn--arrow" data-action="next" aria-label="Página siguiente" ${page >= totalPages ? 'disabled' : ''}>›</button>
         </div>
-        <label class="ms-pagination__limit">
-          Mostrar
-          <select aria-label="Resultados por página">${limitOpts}</select>
-          por página
-        </label>
+        <div class="ms-pagination__meta">
+          <div class="ms-pagination__summary">
+            Mostrando <strong>${start}</strong> a <strong>${end}</strong> de <strong>${total}</strong> resultados
+          </div>
+          <label class="ms-pagination__limit">
+            Mostrar
+            <select aria-label="Resultados por página">${limitOpts}</select>
+            por página
+          </label>
+        </div>
       </div>
     `;
 

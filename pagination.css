@@ -1,55 +1,77 @@
 /* ==========================================================================
-   Mathsoluis · Pagination component
+   Mathsoluis · Pagination component — Diseño circular premium v2
    Paleta: #acc8db primary · #e1c0c6 accent · #FFF8F0 bg · #8A7360 taupe
    ========================================================================== */
+
+/* Wrapper principal — sin borde rígido, respira sobre el fondo */
 .ms-pagination {
   display: flex;
-  flex-wrap: wrap;
+  flex-direction: column;
   align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  padding: 14px 18px;
-  margin: 14px 0;
-  background: #ffffff;
-  border: 1px solid #f0e6db;
-  border-radius: 14px;
-  box-shadow: 0 2px 10px rgba(138, 115, 96, 0.06);
+  gap: 14px;
+  padding: 20px 8px;
+  margin: 16px 0;
   font-family: 'Poppins', system-ui, -apple-system, sans-serif;
   font-size: 14px;
   color: #1E1E24;
 }
 
-.ms-pagination__summary {
-  color: #8A7360;
-  font-size: 13px;
-  white-space: nowrap;
-  flex: 1 1 auto;
+@media (min-width: 640px) {
+  .ms-pagination {
+    flex-direction: row;
+    justify-content: space-between;
+    padding: 20px 4px;
+    gap: 16px;
+  }
 }
-.ms-pagination__summary strong { color: #1E1E24; font-weight: 600; }
 
+/* Texto de resultados — ligero, no compite con la navegación */
+.ms-pagination__summary {
+  color: #A09389;
+  font-size: 12.5px;
+  font-weight: 400;
+  white-space: nowrap;
+}
+.ms-pagination__summary strong {
+  color: #8A7360;
+  font-weight: 600;
+}
+
+/* Meta wrapper (summary + limit) — se agrupan en la misma fila */
+.ms-pagination__meta {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+/* Selector de cantidad — pastilla redondeada */
 .ms-pagination__limit {
   display: flex;
   align-items: center;
-  gap: 8px;
-  color: #8A7360;
-  font-size: 13px;
+  gap: 7px;
+  color: #A09389;
+  font-size: 12.5px;
+  font-weight: 400;
 }
 .ms-pagination__limit select {
   appearance: none;
   -webkit-appearance: none;
-  background: #FFF8F0 url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath fill='%238A7360' d='M0 0l5 6 5-6z'/%3E%3C/svg%3E") no-repeat right 10px center;
-  border: 1px solid #e8d9c8;
-  border-radius: 8px;
-  padding: 6px 28px 6px 12px;
-  font-size: 13px;
+  background: #FFF8F0 url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath fill='%238A7360' d='M0 0l5 6 5-6z'/%3E%3C/svg%3E") no-repeat right 12px center;
+  border: 1.5px solid #e8d9c8;
+  border-radius: 999px;
+  padding: 6px 32px 6px 16px;
+  font-size: 12.5px;
   color: #1E1E24;
   font-family: inherit;
   cursor: pointer;
-  transition: border-color .15s, box-shadow .15s;
+  transition: border-color .2s ease, box-shadow .2s ease;
 }
-.ms-pagination__limit select:hover  { border-color: #acc8db; }
-.ms-pagination__limit select:focus  { outline: none; border-color: #acc8db; box-shadow: 0 0 0 3px rgba(172, 200, 219, .25); }
+.ms-pagination__limit select:hover { border-color: #acc8db; }
+.ms-pagination__limit select:focus { outline: none; border-color: #acc8db; box-shadow: 0 0 0 3px rgba(172, 200, 219, .25); }
 
+/* Contenedor de flechas + páginas */
 .ms-pagination__nav {
   display: flex;
   align-items: center;
@@ -57,68 +79,95 @@
   max-width: 100%;
 }
 
+/* Franja de números con scroll horizontal en móvil */
 .ms-pagination__pages {
   display: flex;
   align-items: center;
   gap: 4px;
   overflow-x: auto;
   scroll-behavior: smooth;
-  scrollbar-width: thin;
-  scrollbar-color: #d8c5b3 transparent;
+  scrollbar-width: none;
+  flex: 1;
+  min-width: 0;
   max-width: 360px;
-  padding: 2px;
+  padding: 6px 2px;
 }
-.ms-pagination__pages::-webkit-scrollbar          { height: 4px; }
-.ms-pagination__pages::-webkit-scrollbar-track    { background: transparent; }
-.ms-pagination__pages::-webkit-scrollbar-thumb    { background: #d8c5b3; border-radius: 4px; }
+.ms-pagination__pages::-webkit-scrollbar { display: none; }
 
+/* Botón base — círculo perfecto */
 .ms-pagination__btn {
-  min-width: 34px;
-  height: 34px;
-  padding: 0 10px;
+  width: 40px;
+  height: 40px;
+  padding: 0;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  background: #FFF8F0;
-  color: #1E1E24;
-  border: 1px solid #e8d9c8;
-  border-radius: 8px;
+  background: transparent;
+  color: #8A7360;
+  border: 1.5px solid transparent;
+  border-radius: 50%;
   font-family: inherit;
   font-size: 13px;
   font-weight: 500;
   cursor: pointer;
-  transition: background .15s, color .15s, border-color .15s, transform .1s;
+  transition: all 0.3s ease-in-out;
   user-select: none;
   flex-shrink: 0;
 }
 .ms-pagination__btn:hover:not(:disabled):not(.is-active) {
-  background: #f5e8da;
-  border-color: #d8c5b3;
+  background: rgba(172, 200, 219, 0.18);
+  border-color: rgba(172, 200, 219, 0.55);
+  color: #4e85a2;
+  transform: scale(1.1);
 }
-.ms-pagination__btn:active:not(:disabled) { transform: scale(.96); }
+.ms-pagination__btn:active:not(:disabled) {
+  transform: scale(0.93);
+  transition-duration: .08s;
+}
 .ms-pagination__btn:disabled {
-  opacity: .4;
+  opacity: 0.3;
   cursor: not-allowed;
 }
+
+/* Página activa — círculo sólido con sombra */
 .ms-pagination__btn.is-active {
   background: #acc8db;
   color: #ffffff;
   border-color: #acc8db;
-  box-shadow: 0 2px 6px rgba(172, 200, 219, .45);
+  box-shadow: 0 4px 14px rgba(172, 200, 219, 0.55);
+  transform: scale(1.08);
   cursor: default;
+  font-weight: 700;
 }
-.ms-pagination__btn--arrow { font-weight: 700; }
+
+/* Flechas — círculo con fondo suave */
+.ms-pagination__btn--arrow {
+  font-size: 20px;
+  font-weight: 400;
+  color: #8A7360;
+  border-color: #e8d9c8;
+  background: #FFF8F0;
+}
+.ms-pagination__btn--arrow:hover:not(:disabled) {
+  background: #acc8db;
+  border-color: #acc8db;
+  color: #ffffff;
+  transform: scale(1.1);
+}
+
+/* Puntos suspensivos — no interactivos */
 .ms-pagination__btn--ellipsis {
   cursor: default;
   background: transparent;
   border-color: transparent;
-  color: #8A7360;
+  color: #C4AFA6;
+  width: 32px;
+  font-size: 15px;
+  letter-spacing: 1px;
 }
-.ms-pagination__btn--ellipsis:hover { background: transparent; border-color: transparent; }
-
-@media (max-width: 640px) {
-  .ms-pagination { padding: 12px; gap: 10px; }
-  .ms-pagination__summary { flex-basis: 100%; text-align: center; order: 3; }
-  .ms-pagination__pages { max-width: 200px; }
-  .ms-pagination__limit { font-size: 12px; }
+.ms-pagination__btn--ellipsis:hover {
+  background: transparent;
+  border-color: transparent;
+  transform: none;
+  color: #C4AFA6;
 }
