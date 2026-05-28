@@ -1122,6 +1122,7 @@ export default {
           const searchTerm = search ? `%${search}%` : null;
           const kitFilter    = url.searchParams.get('kit');
           const ofertaFilter = url.searchParams.get('oferta');
+          const isPackFilter = url.searchParams.get('is_pack');
 
           // WHERE dinámico: búsqueda en nombre, SKU y etiquetas; filtros rápidos de panel
           const whereConditions = [];
@@ -1132,6 +1133,7 @@ export default {
           }
           if (kitFilter === '1')    { whereConditions.push('p.es_kit = 1'); }
           if (ofertaFilter === '1') { whereConditions.push('p.en_oferta = 1'); }
+          if (isPackFilter === '1') { whereConditions.push('p.is_pack = 1'); }
           const whereClause = whereConditions.length ? `WHERE ${whereConditions.join(' AND ')}` : '';
 
           const totalRow = await env.DB.prepare(

@@ -366,6 +366,7 @@
                     <button class="filter-btn active" id="btnFilterAll" onclick="setQuickFilter('all')">Todos</button>
                     <button class="filter-btn" id="btnFilterKits" onclick="setQuickFilter('kits')">Kits</button>
                     <button class="filter-btn" id="btnFilterOfertas" onclick="setQuickFilter('ofertas')">En Oferta 🔥</button>
+                    <button class="filter-btn" id="btnFilterPacks" onclick="setQuickFilter('packs')">📦 Packs</button>
                 </div>
                 
                 <div id="bulkActions" style="display: none; align-items: center; gap: 10px; margin-bottom: 15px; padding: 12px 20px; background: var(--fondo-claro); border: 1px solid var(--teal-studio); border-radius: var(--radius-md);">
@@ -733,6 +734,7 @@
                 if (search)                          params.set('search', search);
                 if (currentQuickFilter === 'kits')   params.set('kit', '1');
                 if (currentQuickFilter === 'ofertas') params.set('oferta', '1');
+                if (currentQuickFilter === 'packs')  params.set('is_pack', '1');
 
                 const response = await adminFetch(`/api/admin/products?${params}`);
                 if (!response) return;
@@ -785,6 +787,7 @@
             if(filterType === 'all')    document.getElementById('btnFilterAll').classList.add('active');
             if(filterType === 'kits')   document.getElementById('btnFilterKits').classList.add('active');
             if(filterType === 'ofertas') document.getElementById('btnFilterOfertas').classList.add('active');
+            if(filterType === 'packs')  document.getElementById('btnFilterPacks').classList.add('active');
             // Recargar desde página 1 con el nuevo filtro (el search actual se preserva)
             loadProducts(1, productsLimit, productsSearch);
         };
