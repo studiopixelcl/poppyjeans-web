@@ -1020,6 +1020,7 @@
                     throw new Error(result.error || 'Respuesta inválida');
                 }
             } catch (error) {
+                console.error('[Error de Catálogo]:', error);
                 grid.innerHTML = `
                     <div style="grid-column: 1/-1; text-align:center; padding: 40px 20px;">
                         <p style="color: var(--dark-studio); font-family: 'Playfair Display', serif; font-size: 1.3rem; margin-bottom: 8px;">No pudimos cargar la vitrina</p>
@@ -1210,101 +1211,102 @@
             }
 
             products.forEach((product) => {
-                let catSlugs = [];
-                const cats = product.categorias_ids || [product.categoria_id];
-                if (cats.includes(1)) catSlugs.push('mamas');
-                if (cats.includes(2)) catSlugs.push('bebes');
-                if (cats.includes(3)) catSlugs.push('ninos');
-                if (cats.includes(4)) catSlugs.push('ninas');
-                if (cats.includes(5)) catSlugs.push('unisex');
+                try {
+                    // ── Categorías (null-safe) ──────────────────────────────
+                    let catSlugs = [];
+                    const cats = Array.isArray(product.categorias_ids) && product.categorias_ids.length > 0
+                        ? product.categorias_ids
+                        : (product.categoria_id ? [product.categoria_id] : []);
+                    if (cats.includes(1)) catSlugs.push('mamas');
+                    if (cats.includes(2)) catSlugs.push('bebes');
+                    if (cats.includes(3)) catSlugs.push('ninos');
+                    if (cats.includes(4)) catSlugs.push('ninas');
+                    if (cats.includes(5)) catSlugs.push('unisex');
 
-                let priceHTML = `<span class="card-price">${formatCurrency(product.precio_normal)}</span>`;
-                let offerBadgeHTML = '';
-                let countdownHTML = '';
+                    // ── Precios (null-safe) ─────────────────────────────────
+                    const precioNormal = product.precio_normal || 0;
+                    const precioOferta = product.precio_oferta || 0;
 
-                if (product.en_oferta === 1) {
-                    // Nuevo badge reubicado
-                    offerBadgeHTML = `<div class="inline-oferta-badge">OFERTA ESPECIAL</div>`;
-                    priceHTML = `
-                        <span style="text-decoration: line-through; color: #A09389; font-size: 0.95rem;">${formatCurrency(product.precio_normal)}</span>
-                        <span class="card-price" style="margin-left: 8px; color: var(--danger-color);">${formatCurrency(product.precio_oferta)}</span>
-                    `;
+                    let priceHTML = `<span class="card-price">${formatCurrency(precioNormal)}</span>`;
+                    let offerBadgeHTML = '';
+                    let countdownHTML = '';
 
-                    if (product.oferta_limitada === 1 && product.fecha_fin_oferta) {
-                        countdownHTML = `<div class="countdown-timer" data-end="${product.fecha_fin_oferta}">⏳ Calculando...</div>`;
-                    }
-                }
-
-                const article = document.createElement('article');
-                article.className = 'product-card';
-                article.id = `product-card-${product.id}`;
-                article.dataset.category = catSlugs.join(' ');
-                
-                // Extraer datos de la primera variante por defecto
-                const firstVariant = (product.variantes && product.variantes.length > 0) ? product.variantes[0] : null;
-                const galleryHTML = firstVariant ? getVariantGalleryHTML(firstVariant) : '<img src="./ico.jpg">';
-                const sizesHTML = firstVariant ? getVariantSizesHTML(firstVariant) : '<span class="card-size-pill">Estándar</span>';
-                
-                // Mostrar flechas si hay más de 1 imagen declarada en la variante 0 (imagen_count viene del backend)
-                // o si hay más de 1 variante de color
-                const initialImgCount = firstVariant
-                    ? (firstVariant.imagen_count != null
-                        ? firstVariant.imagen_count
-                        : [firstVariant.imagen_1, firstVariant.imagen_2, firstVariant.imagen_3, firstVariant.imagen_4, firstVariant.imagen_5].filter(Boolean).length)
-                    : 0;
-                const navArrowsStyle = initialImgCount > 1 || product.variantes.length > 1 ? 'flex' : 'none';
-
-                let colorDotsHTML = '';
-                if(product.variantes && product.variantes.length > 0) {
-                    colorDotsHTML = '<div class="color-dots-container">';
-                    product.variantes.forEach((v, idx) => {
-                        if(v.color_hex) {
-                            let activeClass = idx === 0 ? 'active' : '';
-                            // Inyectamos el mosaico mediante renderColorDot y le atamos la función updateCardVariant
-                            const rawDot = renderColorDot(v.color_hex, v.color_name);
-                            // Insertar onClick y la clase active al dot crudo generado
-                            const dotWithAction = rawDot.replace('class="color-dot"', `class="color-dot ${activeClass}" onclick="event.stopPropagation(); updateCardVariant(${product.id}, ${idx}, this)"`);
-                            colorDotsHTML += dotWithAction;
+                    if (product.en_oferta === 1) {
+                        offerBadgeHTML = `<div class="inline-oferta-badge">OFERTA ESPECIAL</div>`;
+                        priceHTML = `
+                            <span style="text-decoration: line-through; color: #A09389; font-size: 0.95rem;">${formatCurrency(precioNormal)}</span>
+                            <span class="card-price" style="margin-left: 8px; color: var(--danger-color);">${formatCurrency(precioOferta)}</span>
+                        `;
+                        if (product.oferta_limitada === 1 && product.fecha_fin_oferta) {
+                            countdownHTML = `<div class="countdown-timer" data-end="${product.fecha_fin_oferta}">⏳ Calculando...</div>`;
                         }
-                    });
-                    colorDotsHTML += '</div>';
+                    }
+
+                    // ── Variantes (null-safe) ───────────────────────────────
+                    const variantes = Array.isArray(product.variantes) ? product.variantes : [];
+
+                    const article = document.createElement('article');
+                    article.className = 'product-card';
+                    article.id = `product-card-${product.id}`;
+                    article.dataset.category = catSlugs.join(' ');
+
+                    const firstVariant = variantes.length > 0 ? variantes[0] : null;
+                    const galleryHTML = firstVariant ? getVariantGalleryHTML(firstVariant) : '<img src="./ico.jpg" alt="Producto">';
+                    const sizesHTML   = firstVariant ? getVariantSizesHTML(firstVariant)   : '<span class="card-size-pill">Estándar</span>';
+
+                    // ── Flechas del carrusel (null-safe) ────────────────────
+                    const initialImgCount = firstVariant
+                        ? (firstVariant.imagen_count != null
+                            ? firstVariant.imagen_count
+                            : [firstVariant.imagen_1, firstVariant.imagen_2, firstVariant.imagen_3,
+                               firstVariant.imagen_4, firstVariant.imagen_5].filter(Boolean).length)
+                        : 0;
+                    const navArrowsStyle = initialImgCount > 1 || variantes.length > 1 ? 'flex' : 'none';
+
+                    // ── Puntos de color (null-safe) ─────────────────────────
+                    let colorDotsHTML = '';
+                    if (variantes.length > 0) {
+                        colorDotsHTML = '<div class="color-dots-container">';
+                        variantes.forEach((v, idx) => {
+                            if (v?.color_hex) {
+                                const activeClass = idx === 0 ? 'active' : '';
+                                const rawDot = renderColorDot(v.color_hex, v.color_name || '');
+                                colorDotsHTML += rawDot.replace(
+                                    'class="color-dot"',
+                                    `class="color-dot ${activeClass}" onclick="event.stopPropagation(); updateCardVariant(${product.id}, ${idx}, this)"`
+                                );
+                            }
+                        });
+                        colorDotsHTML += '</div>';
+                    }
+
+                    const isFav = favList.includes(product.id);
+                    const favBtnClass = isFav ? 'active' : '';
+
+                    article.innerHTML = `
+                        <div class="product-img" onclick="window.location.href='producto.html?id=${product.id}'">
+                            <button class="btn-favorite-card ${favBtnClass}" onclick="event.stopPropagation(); toggleFavorite(${product.id})" title="Añadir a favoritos">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
+                            </button>
+                            <div class="card-gallery">${galleryHTML}</div>
+                            <button class="card-nav card-nav-prev" style="display:${navArrowsStyle};" onclick="event.stopPropagation(); scrollCardGallery(${product.id}, -1)">❮</button>
+                            <button class="card-nav card-nav-next" style="display:${navArrowsStyle};" onclick="event.stopPropagation(); scrollCardGallery(${product.id}, 1)">❯</button>
+                            <div class="card-sizes-overlay">${sizesHTML}</div>
+                        </div>
+                        <div class="product-info">
+                            ${colorDotsHTML}
+                            <h3 class="card-name" onclick="window.location.href='producto.html?id=${product.id}'">${product.nombre || 'Sin nombre'}</h3>
+                            ${offerBadgeHTML}
+                            <div style="margin-bottom: 0.5rem;">${priceHTML}</div>
+                            ${countdownHTML}
+                            <a href="producto.html?id=${product.id}" class="btn-view">Ver Detalles</a>
+                        </div>
+                    `;
+                    grid.appendChild(article);
+
+                } catch (cardErr) {
+                    console.error('[renderCatalog] Error en producto id=' + product?.id, cardErr);
                 }
-
-                const isFav = favList.includes(product.id);
-                const favBtnClass = isFav ? 'active' : '';
-
-                article.innerHTML = `
-                    <div class="product-img" onclick="window.location.href='producto.html?id=${product.id}'">
-                        
-                        <button class="btn-favorite-card ${favBtnClass}" onclick="event.stopPropagation(); toggleFavorite(${product.id})" title="Añadir a favoritos">
-                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
-                        </button>
-                        
-                        <!-- Mini-Carrusel -->
-                        <div class="card-gallery">
-                            ${galleryHTML}
-                        </div>
-                        
-                        <!-- Controles de Deslizamiento (Arrows) -->
-                        <button class="card-nav card-nav-prev" style="display:${navArrowsStyle};" onclick="event.stopPropagation(); scrollCardGallery(${product.id}, -1)">❮</button>
-                        <button class="card-nav card-nav-next" style="display:${navArrowsStyle};" onclick="event.stopPropagation(); scrollCardGallery(${product.id}, 1)">❯</button>
-
-                        <!-- Tallas al Hover -->
-                        <div class="card-sizes-overlay">
-                            ${sizesHTML}
-                        </div>
-                    </div>
-                    
-                    <div class="product-info">
-                        ${colorDotsHTML}
-                        <h3 class="card-name" onclick="window.location.href='producto.html?id=${product.id}'">${product.nombre}</h3>
-                        ${offerBadgeHTML}
-                        <div style="margin-bottom: 0.5rem;">${priceHTML}</div>
-                        ${countdownHTML}
-                        <a href="producto.html?id=${product.id}" class="btn-view">Ver Detalles</a>
-                    </div>
-                `;
-                grid.appendChild(article);
             });
 
             startCountdowns();
