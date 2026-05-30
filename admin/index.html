@@ -1652,10 +1652,17 @@
                 });
             });
 
-            btnSave.textContent = 'Guardando...'; btnSave.disabled = true;
-
             const _offerOn        = document.getElementById('prodOffer').checked;
             const _offerPriceVal  = parseInt(document.getElementById('prodOfferPrice').value) || 0;
+
+            // ── Validación: precio de oferta obligatorio si "En Oferta" está activo ──
+            if (_offerOn && _offerPriceVal <= 0) {
+                alert('⚠️ El campo de Precio Oferta es obligatorio cuando el producto está marcado "En Oferta".');
+                document.getElementById('prodOfferPrice').focus();
+                return;
+            }
+
+            btnSave.textContent = 'Guardando...'; btnSave.disabled = true;
             const _descVal        = document.getElementById('prodDesc').value || null;
             const _tagsVal        = currentTags.length > 0 ? currentTags.join(',') : null;
 
