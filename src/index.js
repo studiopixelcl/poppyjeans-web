@@ -790,7 +790,9 @@ export default {
             const offset = (page - 1) * limit;
             const search = (url.searchParams.get('search') || url.searchParams.get('q') || '').trim();
             const searchTerm = search ? `%${search}%` : null;
-            const isPackParam = url.searchParams.get('is_pack');
+            const isPackParam    = url.searchParams.get('is_pack');
+            const isSaleParam    = url.searchParams.get('is_sale');
+            const categoryParam  = url.searchParams.get('category');
 
             // WHERE dinámico: siempre visible=1; LIKE en nombre y etiquetas cuando hay búsqueda
             const whereConditions = ['p.visible = 1'];
@@ -805,10 +807,20 @@ export default {
             } else {
                 whereConditions.push('(p.is_pack = 0 OR p.is_pack IS NULL)');
             }
+            // Filtro Cyber Day: solo productos marcados como en oferta
+            if (isSaleParam === '1') {
+                whereConditions.push('p.en_oferta = 1');
+            }
+            // Filtro de categoría: slug sin tildes, busca en categoría, etiquetas y nombre del producto
+            if (categoryParam) {
+                const catSlug = `%${categoryParam.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase()}%`;
+                whereConditions.push('(LOWER(c.nombre) LIKE ? OR LOWER(p.etiquetas) LIKE ? OR LOWER(p.nombre) LIKE ?)');
+                queryParams.push(catSlug, catSlug, catSlug);
+            }
             const whereClause = whereConditions.join(' AND ');
 
             const totalRow = await env.DB.prepare(
-                `SELECT COUNT(*) AS total FROM Products p WHERE ${whereClause}`
+                `SELECT COUNT(*) AS total FROM Products p LEFT JOIN Categories c ON p.categoria_id = c.id WHERE ${whereClause}`
             ).bind(...queryParams).first();
             const total = totalRow?.total || 0;
 

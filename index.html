@@ -535,6 +535,14 @@
             </div>
         </section>
 
+        <!-- BANNER CYBER DAY -->
+        <div style="width: 100%; background-image: url('pattern-bg_2.jpg'); background-repeat: repeat; background-size: 350px; padding: 3rem 1.5rem;">
+            <div onclick="activarFiltroCyber()" style="max-width: 1280px; margin: 0 auto; cursor: pointer; transition: opacity 0.2s ease;">
+                <img src="bannercyber.jpg" alt="Cyber Day Ofertas" style="width: 100%; height: auto; border-radius: 16px; box-shadow: 0 8px 32px rgba(0,0,0,0.18); display: block;"
+                     onmouseover="this.parentElement.style.opacity='0.95'" onmouseout="this.parentElement.style.opacity='1'">
+            </div>
+        </div>
+
         <!-- COLECCIONES DESTACADAS (REUBICADO BAJO EL HERO) -->
         <section class="collections-wrapper">
             <div class="collections-grid animate-on-load">
@@ -575,19 +583,19 @@
             <div class="pattern-content">
                 <h2 class="section-title animate-on-load delay-1">¿Qué buscas hoy?</h2>
                 <div class="categories-scroll animate-on-load delay-2">
-                    <div class="category-card" onclick="searchByTag('mamas')">
+                    <div class="category-card" onclick="filtrarCategoria('Mamás')">
                         <div class="category-img-wrapper"><img src="./cat-mamas.jpg" alt="Mamás"></div>
                         <span class="category-title">Mamás</span>
                     </div>
-                    <div class="category-card" onclick="searchByTag('bebes')">
+                    <div class="category-card" onclick="filtrarCategoria('Bebés')">
                         <div class="category-img-wrapper"><img src="./cat-bebes.jpg" alt="Bebés"></div>
                         <span class="category-title">Bebés</span>
                     </div>
-                    <div class="category-card" onclick="searchByTag('ninas')">
+                    <div class="category-card" onclick="filtrarCategoria('Niñas')">
                         <div class="category-img-wrapper"><img src="./cat-ninas.jpg" alt="Niñas"></div>
                         <span class="category-title">Niñas</span>
                     </div>
-                    <div class="category-card" onclick="searchByTag('ninos')">
+                    <div class="category-card" onclick="filtrarCategoria('Niños')">
                         <div class="category-img-wrapper"><img src="./cat-ninos.jpg" alt="Niños"></div>
                         <span class="category-title">Niños</span>
                     </div>
@@ -608,6 +616,11 @@
                 <div id="packFilterContainer" style="display: none; margin: 1.5rem 0; padding: 1rem 1.5rem; background: linear-gradient(135deg, #8A7360 0%, #6d5a4a 100%); color: #FFF8F0; border-radius: 12px; display: none; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap;">
                     <span style="font-family: var(--font-display, 'Playfair Display', serif); font-size: 1.15rem; font-weight: 600;">📦 Mostrando: Packs Mayoristas</span>
                     <button id="clearPackFilterBtn" type="button" style="background: rgba(255,255,255,0.18); color: #FFF8F0; border: 1px solid rgba(255,255,255,0.5); padding: 8px 18px; border-radius: 50px; font-weight: 600; cursor: pointer; font-family: 'Poppins', sans-serif;">✖ Quitar Filtro</button>
+                </div>
+
+                <div id="cyberFilterContainer" style="display: none; margin: 1.5rem 0; padding: 1rem 1.5rem; background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); color: #00d4ff; border-radius: 12px; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap;">
+                    <span style="font-family: var(--font-display, 'Playfair Display', serif); font-size: 1.15rem; font-weight: 600;">⚡ Mostrando: Ofertas Cyber Day</span>
+                    <button id="clearCyberFilterBtn" type="button" style="background: rgba(0,212,255,0.15); color: #00d4ff; border: 1px solid rgba(0,212,255,0.5); padding: 8px 18px; border-radius: 50px; font-weight: 600; cursor: pointer; font-family: 'Poppins', sans-serif;">✖ Quitar Filtro</button>
                 </div>
 
                 <div id="paginationTop"></div>
@@ -984,6 +997,10 @@
         let catalogSearch = '';
         // Filtro B2B Packs Mayoristas (0 = catálogo retail por defecto, 1 = solo packs)
         let currentIsPack = 0;
+        // Filtro Cyber Day (0 = todos, 1 = solo en_oferta)
+        let currentIsSale = 0;
+        // Filtro por categoría ('' = sin filtro, 'Mamás' / 'Bebés' / etc.)
+        let currentCategory = '';
 
         // Utilitario debounce — evita saturar el servidor letra a letra
         function makeDebounce(fn, ms) {
@@ -1000,6 +1017,8 @@
                 const params = new URLSearchParams({ page, limit });
                 if (search) params.set('search', search);
                 params.set('is_pack', currentIsPack);
+                if (currentIsSale === 1) params.set('is_sale', '1');
+                if (currentCategory) params.set('category', currentCategory);
                 const response = await fetchWithRetry(`${API_URL}?${params}`);
                 if (!response.ok) throw new Error(`HTTP ${response.status}`);
                 const result = await response.json();
@@ -1461,6 +1480,54 @@
 
         document.getElementById('clearPackFilterBtn').addEventListener('click', window.clearPackFilter);
 
+        // =========================================================
+        // FILTRO CYBER DAY — OFERTAS
+        // =========================================================
+        window.activarFiltroCyber = () => {
+            currentIsSale = 1;
+            currentIsPack = 0;
+            catalogPage = 1;
+            catalogSearch = '';
+            const sInput = document.getElementById('searchInput');
+            if (sInput) sInput.value = '';
+            const mInput = document.getElementById('mobileSearchInput');
+            if (mInput) mInput.value = '';
+            document.getElementById('activeFilterContainer').style.display = 'none';
+            document.getElementById('packFilterContainer').style.display = 'none';
+            document.getElementById('cyberFilterContainer').style.display = 'flex';
+            fetchCatalog(1, catalogLimit, '');
+            document.getElementById('catalogo').scrollIntoView({ behavior: 'smooth' });
+        };
+
+        window.clearCyberFilter = () => {
+            currentIsSale = 0;
+            document.getElementById('cyberFilterContainer').style.display = 'none';
+            fetchCatalog(1, catalogLimit, catalogSearch);
+        };
+
+        document.getElementById('clearCyberFilterBtn').addEventListener('click', window.clearCyberFilter);
+
+        // =========================================================
+        // FILTRO POR CATEGORÍA — TARJETAS CIRCULARES
+        // =========================================================
+        window.filtrarCategoria = (cat) => {
+            currentCategory = cat;
+            currentIsPack   = 0;
+            currentIsSale   = 0;
+            catalogPage     = 1;
+            catalogSearch   = '';
+            const sInput = document.getElementById('searchInput');
+            if (sInput) sInput.value = '';
+            const mInput = document.getElementById('mobileSearchInput');
+            if (mInput) mInput.value = '';
+            document.getElementById('packFilterContainer').style.display  = 'none';
+            document.getElementById('cyberFilterContainer').style.display = 'none';
+            document.getElementById('activeFilterName').textContent = cat.toUpperCase();
+            document.getElementById('activeFilterContainer').style.display = 'flex';
+            fetchCatalog(1, catalogLimit, '');
+            document.getElementById('catalogo').scrollIntoView({ behavior: 'smooth' });
+        };
+
         // Escuchador principal — debounce 400ms → búsqueda server-side
         const _debouncedCatalogSearch = makeDebounce((term) => {
             fetchCatalog(1, catalogLimit, term);
@@ -1475,14 +1542,16 @@
 
         document.getElementById('searchInput').addEventListener('input', (e) => {
             const term = e.target.value.trim();
-            catalogSearch = term;
+            catalogSearch   = term;
+            currentCategory = '';
             document.getElementById('noResults').style.display = 'none';
             _debouncedCatalogSearch(term);
         });
 
         document.getElementById('clearFilterBtn').addEventListener('click', () => {
             document.getElementById('searchInput').value = '';
-            catalogSearch = '';
+            catalogSearch    = '';
+            currentCategory  = '';
             document.getElementById('activeFilterContainer').style.display = 'none';
             fetchCatalog(1, catalogLimit, '');
         });
