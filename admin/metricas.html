@@ -1064,16 +1064,18 @@
     };
 
     // Configuración de cada tipo de modal
-    const INGRESOS_ESTADOS = ['Pagado', 'Preparando', 'Enviado', 'Recibido', 'Entregado'];
+    // Set en minúsculas — la comparación siempre hace .toLowerCase() para ser insensible a mayúsculas
+    const INGRESOS_ESTADOS = new Set(['pagado', 'preparando', 'en camino', 'enviado', 'recibido', 'entregado']);
+    const statusKey = o => (o.estado || o.status || '').toLowerCase().trim();
 
     const MODAL_CONFIG = {
-        ingresos:  { title: '💰 Ingresos Totales',          filter: o => INGRESOS_ESTADOS.includes(o.estado || o.status),              emptyMsg: 'No hay órdenes con ingreso en este período.' },
-        pendientes:{ title: '📦 Pendientes por Enviar',     filter: o => ['Pagado','Preparando'].includes(o.estado || o.status || ''), emptyMsg: 'No hay pedidos pendientes de despacho.' },
-        ordenes:   { title: '🛒 Todas las Órdenes',         filter: null,                                                              emptyMsg: 'No hay órdenes en este período.' },
-        ticket:    { title: '🎯 Ticket Promedio',            filter: o => INGRESOS_ESTADOS.includes(o.estado || o.status),              emptyMsg: 'No hay órdenes para calcular el ticket.' },
-        shipping:  { title: '🚚 Inversión en Envíos',       filter: o => INGRESOS_ESTADOS.includes(o.estado || o.status),              emptyMsg: 'No hay órdenes con costo de envío en este período.' },
-        enviados:  { title: '📬 Enviados (En Tránsito)',    filter: o => (o.estado || o.status) === 'Enviado',                         emptyMsg: 'No hay pedidos en tránsito actualmente.' },
-        recibidos: { title: '✅ Recibidos (Entregados)',    filter: o => ['Recibido','Entregado'].includes(o.estado || o.status),       emptyMsg: 'No hay pedidos entregados en este período.' },
+        ingresos:  { title: '💰 Ingresos Totales',          filter: o => INGRESOS_ESTADOS.has(statusKey(o)),                                           emptyMsg: 'No hay órdenes con ingreso en este período.' },
+        pendientes:{ title: '📦 Pendientes por Enviar',     filter: o => ['pagado','preparando'].includes(statusKey(o)),                               emptyMsg: 'No hay pedidos pendientes de despacho.' },
+        ordenes:   { title: '🛒 Todas las Órdenes',         filter: null,                                                                              emptyMsg: 'No hay órdenes en este período.' },
+        ticket:    { title: '🎯 Ticket Promedio',            filter: o => INGRESOS_ESTADOS.has(statusKey(o)),                                           emptyMsg: 'No hay órdenes para calcular el ticket.' },
+        shipping:  { title: '🚚 Inversión en Envíos',       filter: o => INGRESOS_ESTADOS.has(statusKey(o)),                                           emptyMsg: 'No hay órdenes con costo de envío en este período.' },
+        enviados:  { title: '📬 Enviados (En Tránsito)',    filter: o => ['en camino','enviado'].includes(statusKey(o)),                               emptyMsg: 'No hay pedidos en tránsito actualmente.' },
+        recibidos: { title: '✅ Recibidos (Entregados)',    filter: o => ['recibido','entregado'].includes(statusKey(o)),                               emptyMsg: 'No hay pedidos entregados en este período.' },
     };
 
     async function openKpiModal(type) {
@@ -1096,15 +1098,14 @@
         document.getElementById('kpiModal').classList.add('active');
         document.body.style.overflow = 'hidden';
 
-        // Construir endpoint — estado logístico actual: sin filtro de fecha
+        // Construir endpoint — limit=10000 para obtener dataset completo sin truncar
         const sinFiltroFecha = ['pendientes', 'enviados', 'recibidos'];
-        let endpoint = '/api/admin/orders';
+        const qp = new URLSearchParams({ limit: '10000' });
         if (!sinFiltroFecha.includes(type)) {
-            const qp = new URLSearchParams();
             if (from) qp.append('from', from);
             if (to)   qp.append('to',   to);
-            if (qp.toString()) endpoint += '?' + qp.toString();
         }
+        const endpoint = '/api/admin/orders?' + qp.toString();
 
         try {
             const response = await adminFetch(endpoint);

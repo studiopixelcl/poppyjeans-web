@@ -1357,7 +1357,7 @@ export default {
           const fromQ  = url.searchParams.get('from');
           const toQ    = url.searchParams.get('to');
           const page   = Math.max(1, parseInt(url.searchParams.get('page')  || '1',  10) || 1);
-          const limit  = Math.min(200, Math.max(1, parseInt(url.searchParams.get('limit') || '20', 10) || 20));
+          const limit  = Math.min(10000, Math.max(1, parseInt(url.searchParams.get('limit') || '20', 10) || 20));
           const offset = (page - 1) * limit;
           const search = (url.searchParams.get('search') || url.searchParams.get('q') || '').trim();
           const searchTerm = search ? `%${search}%` : null;
