@@ -1010,7 +1010,7 @@
                 const missing = requiredKitComponents.find(comp => !selectedKeys.includes(comp));
                 if (missing) {
                     btn.disabled = true; btn.className = 'btn-cart-smart waiting';
-                    const names = {bata: 'Bata', bata_camisa: 'Bata + Camisa', sosten: 'Sostén', calzon: 'Calzón', camisa: 'Camisa', pantuflas: 'Pantuflas', bebe: 'Ropa Bebé'};
+                    const names = {bata: 'Bata', bata_camisa: 'Bata + Camisa', sosten: 'Sostén Maternal', sosten_deportivo: 'Sostén Deportivo', calzon: 'Calzón', camisa: 'Camisa', pantuflas: 'Pantuflas', bebe: 'Ropa Bebé'};
                     btn.textContent = `Falta seleccionar ${names[missing] || missing}`;
                 } else {
                     btn.disabled = false; btn.className = 'btn-cart-smart ready'; btn.textContent = 'Agregar al Carrito';
@@ -1066,7 +1066,7 @@
 
             let sizesHTML = '';
             if (isKit && typeof tallasData === 'object' && !Array.isArray(tallasData)) {
-                const labels = { bata: 'Talla Bata', bata_camisa: 'Talla Bata + Camisa', sosten: 'Talla Sostén Maternal', calzon: 'Talla Calzón', calzon_elasticado: 'Talla Calzón Elasticado', calzon_embarazo: 'Talla Calzón Embarazo', camisa: 'Talla Camisa', pantuflas: 'Nº Pantuflas', bebe: 'Talla Bebé' };
+                const labels = { bata: 'Talla Bata', bata_camisa: 'Talla Bata + Camisa', sosten: 'Talla Sostén Maternal', sosten_deportivo: 'Talla Sostén Deportivo', calzon: 'Talla Calzón', calzon_elasticado: 'Talla Calzón Elasticado', calzon_embarazo: 'Talla Calzón Embarazo', camisa: 'Talla Camisa', pantuflas: 'Nº Pantuflas', bebe: 'Talla Bebé' };
                 for (const [comp, sizes] of Object.entries(tallasData)) {
                     if (sizes && sizes.length > 0) {
                         requiredKitComponents.push(comp);
@@ -1542,11 +1542,11 @@
 
                 <!-- PANEL SOSTÉN MATERNAL -->
                 <div class="size-panel" id="panel-sosten">
-                    <div class="size-tip">💡 Las tallas de sostén maternal corresponden al contorno bajo el busto (banda). Durante el embarazo y lactancia el busto puede aumentar 1-2 copas — considera esto al elegir.</div>
+                    <div class="size-tip">💡 Los sostenes maternales están disponibles en tallas numéricas (banda en cm) y alfanuméricas (S–XXL). Elige según el modelo: los de banda numerada ajustan por medida exacta; los S–XXL siguen la talla de ropa habitual. Durante el embarazo y lactancia el busto puede aumentar 1–2 copas — considera esto al elegir.</div>
                     <table class="size-table">
                         <thead>
                             <tr>
-                                <th>Talla (banda)</th>
+                                <th>Talla numérica (banda)</th>
                                 <th>Contorno bajo busto (cm)</th>
                                 <th>Contorno busto (cm)</th>
                                 <th>Equivalencia copa aprox.</th>
@@ -1558,13 +1558,31 @@
                             <tr><td class="talla-col">46</td><td>82 — 87</td><td>98 — 106</td><td>Copa C / D</td></tr>
                             <tr><td class="talla-col">48</td><td>87 — 92</td><td>104 — 112</td><td>Copa D / E</td></tr>
                             <tr><td class="talla-col">50</td><td>92 — 97</td><td>110 — 118</td><td>Copa D / E</td></tr>
-                            <tr><td class="talla-col">52</td><td>97 — 102</td><td>116 — 124</td><td>Copa E / F</td></tr>
+                        </tbody>
+                    </table>
+                    <table class="size-table" style="margin-top: 1rem;">
+                        <thead>
+                            <tr>
+                                <th>Talla alfanumérica</th>
+                                <th>Contorno bajo busto (cm)</th>
+                                <th>Talla ropa equiv.</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr><td class="talla-col">S</td><td>70 — 80</td><td>38 / 40</td></tr>
+                            <tr><td class="talla-col">M</td><td>80 — 88</td><td>42 / 44</td></tr>
+                            <tr><td class="talla-col">L</td><td>88 — 96</td><td>46 / 48</td></tr>
+                            <tr><td class="talla-col">XL</td><td>96 — 104</td><td>50 / 52</td></tr>
+                            <tr><td class="talla-col">XXL</td><td>104 — 114</td><td>54 / 56</td></tr>
+                            <tr><td class="talla-col">S/M</td><td>70 — 88</td><td>38 — 44</td></tr>
+                            <tr><td class="talla-col">L/XL</td><td>88 — 104</td><td>46 — 52</td></tr>
                         </tbody>
                     </table>
                     <div class="how-to-measure">
                         <h4>Cómo medir correctamente</h4>
                         <ul>
                             <li><strong>Banda (talla número):</strong> Mide justo bajo el busto, ajustado pero sin apretar. Ese número es tu talla.</li>
+                            <li><strong>Talla alfanumérica:</strong> Si no tienes cinta métrica, usa tu talla de ropa habitual como referencia.</li>
                             <li><strong>Copa:</strong> Mide alrededor de la parte más prominente del busto. La diferencia con la medida de banda determina la copa.</li>
                             <li>Nuestros sostenes tienen cierre ampliable de 3 posiciones para adaptarse a los cambios del embarazo y posparto.</li>
                         </ul>
