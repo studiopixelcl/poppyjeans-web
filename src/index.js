@@ -464,7 +464,7 @@ export default {
 
     if (url.pathname === "/api/checkout" && request.method === "POST") {
         try {
-            const { customer, cart, total, shipping_cost } = await request.json();
+            const { customer, cart, total, shipping_cost, resume_order_id } = await request.json();
 
             let cust = await env.DB.prepare("SELECT id FROM Customers WHERE email = ?").bind(customer.email).first();
             let customerId;
@@ -476,41 +476,65 @@ export default {
                 await env.DB.prepare("UPDATE Customers SET nombre = ?, telefono = ?, direccion = ?, comuna = ?, region = ? WHERE id = ?").bind(customer.nombre, customer.telefono || null, customer.direccion || null, customer.comuna || null, customer.region || null, customerId).run();
             }
 
-            // La orden nace 'Pendiente'. Solo pasa a 'Pagado' tras la confirmación AUTHORIZED en /api/checkout/confirm.
             // shipping_cost: costo de envío calculado por /api/shipping/quote y enviado desde el frontend de checkout.
             const shippingCostSafe = (typeof shipping_cost === 'number' && shipping_cost >= 0) ? shipping_cost : 0;
-            const orderInfo = await env.DB.prepare("INSERT INTO Orders (customer_id, total, shipping_cost, estado) VALUES (?, ?, ?, 'Pendiente')").bind(customerId, total, shippingCostSafe).run();
-            const orderId = orderInfo.meta.last_row_id;
 
-            if (cart && cart.length > 0) {
-                const itemStmts = cart.map(item => {
-                    // ID formato: "cart_{productId}_{variantId}_{...size}"
-                    const parts = item.id.split('_');
-                    const originalProductId = parts[1] || null;
-                    const variantId = parts[2] ? (parseInt(parts[2]) || null) : null;
-                    // Kit: el frontend adjunta item.kitSizes = { bata:"M", sosten:"44" }.
-                    // Se serializa como JSON y se guarda en variant_details para que el
-                    // Paso 3 del webhook pueda descontar cada componente de forma granular.
-                    // Normal: se extrae la talla del ID y se guarda como "Talla: X" / "Estándar".
-                    let variantDetail;
-                    if (item.kitSizes && typeof item.kitSizes === 'object' && !Array.isArray(item.kitSizes)) {
-                        variantDetail = JSON.stringify(item.kitSizes); // ej. '{"bata":"M","sosten":"44"}'
-                    } else {
-                        const sizeRaw = parts.slice(3).join('_');
-                        variantDetail = (sizeRaw && sizeRaw !== 'u') ? `Talla: ${sizeRaw}` : 'Estándar';
+            let orderId;
+            if (resume_order_id) {
+                // ── REANUDAR PAGO DE UNA ORDEN EXISTENTE ───────────────────────────
+                // El cliente vuelve a pagar una orden que quedó 'Pendiente'. Sus
+                // OrderItems YA existen, por lo que NO se insertan de nuevo (evita
+                // duplicar la orden). Solo se refresca total/envío y se reabre Webpay
+                // reutilizando el mismo buy_order. /api/checkout/confirm la marcará
+                // 'Pagado' y descontará stock una sola vez.
+                const existing = await env.DB.prepare(
+                    "SELECT id, estado FROM Orders WHERE id = ? AND customer_id = ?"
+                ).bind(resume_order_id, customerId).first();
+                if (!existing) {
+                    return Response.json({ success: false, error: 'La orden a reanudar no existe o no pertenece a este cliente' }, { status: 404, headers: corsHeaders });
+                }
+                const estResume = (existing.estado || '').toLowerCase();
+                if (!estResume.includes('pendiente') && !estResume.includes('sin pagar')) {
+                    return Response.json({ success: false, error: `La orden #${resume_order_id} ya no está pendiente de pago (estado actual: ${existing.estado}).` }, { status: 409, headers: corsHeaders });
+                }
+                await env.DB.prepare("UPDATE Orders SET total = ?, shipping_cost = ? WHERE id = ?")
+                    .bind(total, shippingCostSafe, resume_order_id).run();
+                orderId = resume_order_id;
+            } else {
+                // La orden nace 'Pendiente'. Solo pasa a 'Pagado' tras la confirmación AUTHORIZED en /api/checkout/confirm.
+                const orderInfo = await env.DB.prepare("INSERT INTO Orders (customer_id, total, shipping_cost, estado) VALUES (?, ?, ?, 'Pendiente')").bind(customerId, total, shippingCostSafe).run();
+                orderId = orderInfo.meta.last_row_id;
+
+                if (cart && cart.length > 0) {
+                    const itemStmts = cart.map(item => {
+                        // ID formato: "cart_{productId}_{variantId}_{...size}"
+                        const parts = item.id.split('_');
+                        const originalProductId = parts[1] || null;
+                        const variantId = parts[2] ? (parseInt(parts[2]) || null) : null;
+                        // Kit: el frontend adjunta item.kitSizes = { bata:"M", sosten:"44" }.
+                        // Se serializa como JSON y se guarda en variant_details para que el
+                        // Paso 3 del webhook pueda descontar cada componente de forma granular.
+                        // Normal: se extrae la talla del ID y se guarda como "Talla: X" / "Estándar".
+                        let variantDetail;
+                        if (item.kitSizes && typeof item.kitSizes === 'object' && !Array.isArray(item.kitSizes)) {
+                            variantDetail = JSON.stringify(item.kitSizes); // ej. '{"bata":"M","sosten":"44"}'
+                        } else {
+                            const sizeRaw = parts.slice(3).join('_');
+                            variantDetail = (sizeRaw && sizeRaw !== 'u') ? `Talla: ${sizeRaw}` : 'Estándar';
+                        }
+                        // Guardar la imagen de la variante directamente; descartar rutas relativas.
+                        const imgUrl = (item.img && !item.img.startsWith('./') && !item.img.startsWith('../')) ? item.img : null;
+                        return env.DB.prepare(
+                            "INSERT INTO OrderItems (order_id, product_id, variant_id, product_name, variant_details, cantidad, precio_unitario, imagen_url) VALUES (?, ?, ?, ?, ?, ?, ?, ?)"
+                        ).bind(orderId, originalProductId, variantId, item.name, variantDetail, item.quantity, item.price, imgUrl);
+                    });
+                    try {
+                        await env.DB.batch(itemStmts);
+                    } catch (batchErr) {
+                        // Si falla el batch de items, cancelar la orden para no dejarla huérfana
+                        await env.DB.prepare("UPDATE Orders SET estado = 'Cancelado' WHERE id = ?").bind(orderId).run();
+                        return Response.json({ success: false, error: `Error al guardar productos del pedido: ${batchErr.message}` }, { status: 500, headers: corsHeaders });
                     }
-                    // Guardar la imagen de la variante directamente; descartar rutas relativas.
-                    const imgUrl = (item.img && !item.img.startsWith('./') && !item.img.startsWith('../')) ? item.img : null;
-                    return env.DB.prepare(
-                        "INSERT INTO OrderItems (order_id, product_id, variant_id, product_name, variant_details, cantidad, precio_unitario, imagen_url) VALUES (?, ?, ?, ?, ?, ?, ?, ?)"
-                    ).bind(orderId, originalProductId, variantId, item.name, variantDetail, item.quantity, item.price, imgUrl);
-                });
-                try {
-                    await env.DB.batch(itemStmts);
-                } catch (batchErr) {
-                    // Si falla el batch de items, cancelar la orden para no dejarla huérfana
-                    await env.DB.prepare("UPDATE Orders SET estado = 'Cancelado' WHERE id = ?").bind(orderId).run();
-                    return Response.json({ success: false, error: `Error al guardar productos del pedido: ${batchErr.message}` }, { status: 500, headers: corsHeaders });
                 }
             }
 
@@ -906,6 +930,156 @@ export default {
             const { results } = await env.DB.prepare(query).bind(emailDecoded).all();
             return Response.json({ success: true, data: results }, { headers: corsHeaders });
         } catch(e) { console.error("[Orders Customer] D1 error:", e.message); return Response.json({ success: false, error: e.message }, { status: 500, headers: corsHeaders }); }
+    }
+
+    // ── GET /api/orders/:id ────────────────────────────────────────────────────
+    // Detalle de una orden para el CLIENTE (validado por ?email=). Devuelve cada
+    // ítem enriquecido con su stock ACTUAL para que el frontend pueda decidir si
+    // es posible reanudar el pago o si hay quiebre de stock. Es de solo lectura:
+    // no muta inventario. Replica (en modo lectura) la lógica de descuento del
+    // webhook de pago (Paso 3) para calcular la disponibilidad real por talla.
+    const orderDetailMatch = url.pathname.match(/^\/api\/orders\/(\d+)$/);
+    if (orderDetailMatch && request.method === "GET") {
+        try {
+            const orderId = parseInt(orderDetailMatch[1], 10);
+            const email = (url.searchParams.get('email') || '').toLowerCase().trim();
+            if (!orderId) return Response.json({ success: false, error: 'ID de pedido inválido' }, { status: 400, headers: corsHeaders });
+
+            const order = await env.DB.prepare(
+                `SELECT o.*, c.nombre AS cliente_nombre, c.email AS cliente_email
+                 FROM Orders o JOIN Customers c ON o.customer_id = c.id
+                 WHERE o.id = ?`
+            ).bind(orderId).first();
+            if (!order) return Response.json({ success: false, error: 'Pedido no encontrado' }, { status: 404, headers: corsHeaders });
+
+            // Validación de propiedad: el email debe coincidir con el dueño de la orden.
+            if (email && (order.cliente_email || '').toLowerCase() !== email) {
+                return Response.json({ success: false, error: 'No autorizado para ver este pedido' }, { status: 403, headers: corsHeaders });
+            }
+
+            const { results: rawItems } = await env.DB.prepare(
+                `SELECT oi.product_id, oi.variant_id, oi.product_name, oi.variant_details,
+                        oi.cantidad, oi.precio_unitario,
+                        oi.imagen_url AS oi_imagen_url,
+                        pv.imagen_1   AS pv_imagen_1,
+                        pv.tallas     AS variant_tallas,
+                        pv.stock      AS variant_stock,
+                        p.stock       AS product_stock,
+                        p.weight      AS product_weight
+                 FROM OrderItems oi
+                 LEFT JOIN ProductVariants pv ON oi.variant_id = pv.id
+                 LEFT JOIN Products p ON oi.product_id = p.id
+                 WHERE oi.order_id = ?`
+            ).bind(orderId).all();
+
+            // Calcula el stock disponible ACTUAL de un ítem según su formato:
+            //   · Kit    → variant_details '{"bata":"M",...}' → mínimo entre componentes
+            //   · Normal → "Talla: X" → stock de esa talla en el JSON de la variante
+            //   · Estándar → stock de la variante o, en su defecto, del producto
+            const computeStock = (it) => {
+                const vd = it.variant_details || '';
+                let tallas = null;
+                if (it.variant_tallas) { try { tallas = JSON.parse(it.variant_tallas); } catch (_) {} }
+
+                if (vd.startsWith('{')) {
+                    let kitSizes = null;
+                    try { kitSizes = JSON.parse(vd); } catch (_) {}
+                    if (!kitSizes || !tallas || Array.isArray(tallas)) return it.variant_stock ?? it.product_stock ?? 0;
+                    let min = Infinity;
+                    for (const [comp, size] of Object.entries(kitSizes)) {
+                        const arr = tallas[comp];
+                        if (!Array.isArray(arr)) { min = 0; continue; }
+                        const found = arr.find(t => t.size === size);
+                        min = Math.min(min, found ? (found.stock ?? 0) : 0);
+                    }
+                    return min === Infinity ? 0 : min;
+                }
+
+                const m = vd.match(/^Talla:\s*(.+)$/);
+                if (m && Array.isArray(tallas)) {
+                    const found = tallas.find(t => t.size === m[1].trim());
+                    return found ? (found.stock ?? 0) : 0;
+                }
+
+                return it.variant_stock ?? it.product_stock ?? 0;
+            };
+
+            const items = (rawItems || []).map(it => {
+                const stockDisponible = computeStock(it);
+                return {
+                    product_id:       it.product_id,
+                    variant_id:       it.variant_id,
+                    product_name:     it.product_name,
+                    variant_details:  it.variant_details,
+                    cantidad:         it.cantidad,
+                    precio_unitario:  it.precio_unitario,
+                    imagen_url:       it.oi_imagen_url || it.pv_imagen_1 || null,
+                    weight:           it.product_weight || 0,
+                    stock_disponible: stockDisponible,
+                    disponible:       stockDisponible >= it.cantidad
+                };
+            });
+
+            return Response.json({
+                success: true,
+                data: {
+                    id:             order.id,
+                    estado:         order.estado,
+                    total:          order.total,
+                    shipping_cost:  order.shipping_cost,
+                    cliente_nombre: order.cliente_nombre,
+                    cliente_email:  order.cliente_email,
+                    items
+                }
+            }, { headers: corsHeaders });
+        } catch (e) {
+            console.error('[OrderDetail]', e.message);
+            return Response.json({ success: false, error: e.message }, { status: 500, headers: corsHeaders });
+        }
+    }
+
+    // ── PUT /api/orders/:id/cancel ─────────────────────────────────────────────
+    // Permite al cliente cancelar una orden cuyo pago aún está pendiente.
+    // NOTA DE STOCK: el inventario solo se descuenta cuando Webpay confirma
+    // AUTHORIZED (ver /api/checkout/confirm). Las órdenes 'Pendiente' nunca
+    // tuvieron stock descontado, por lo que no es necesario revertirlo.
+    const cancelOrderMatch = url.pathname.match(/^\/api\/orders\/(\d+)\/cancel$/);
+    if (cancelOrderMatch && request.method === "PUT") {
+        try {
+            const orderId = parseInt(cancelOrderMatch[1], 10);
+            if (!orderId) return Response.json({ success: false, error: 'ID de pedido inválido' }, { status: 400, headers: corsHeaders });
+
+            let body;
+            try { body = await request.json(); } catch (_) { body = {}; }
+            const email = (body.email || '').toLowerCase().trim();
+            if (!email) return Response.json({ success: false, error: 'Email del cliente requerido' }, { status: 400, headers: corsHeaders });
+
+            // Verificar que la orden existe y pertenece al cliente que solicita
+            const order = await env.DB.prepare(
+                `SELECT o.id, o.estado FROM Orders o
+                 JOIN Customers c ON o.customer_id = c.id
+                 WHERE o.id = ? AND LOWER(c.email) = ?`
+            ).bind(orderId, email).first();
+
+            if (!order) return Response.json({ success: false, error: 'Pedido no encontrado o no pertenece a esta cuenta' }, { status: 404, headers: corsHeaders });
+
+            const estadoActual = (order.estado || '').toLowerCase();
+            // Solo se pueden cancelar órdenes pendientes de pago
+            if (!estadoActual.includes('pendiente') && !estadoActual.includes('sin pagar')) {
+                return Response.json({
+                    success: false,
+                    error: `No se puede cancelar una orden con estado "${order.estado}". Solo se permiten cancelar órdenes pendientes de pago.`
+                }, { status: 409, headers: corsHeaders });
+            }
+
+            await env.DB.prepare("UPDATE Orders SET estado = 'Cancelado' WHERE id = ?").bind(orderId).run();
+            console.log(`[CancelOrder] Orden #${orderId} cancelada por cliente ${email}`);
+
+            return Response.json({ success: true, message: 'Pedido cancelado correctamente' }, { headers: corsHeaders });
+        } catch (e) {
+            console.error('[CancelOrder]', e.message);
+            return Response.json({ success: false, error: e.message }, { status: 500, headers: corsHeaders });
+        }
     }
 
     // ========================================================================

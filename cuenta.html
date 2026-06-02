@@ -81,6 +81,7 @@
         
         .status-badge { padding: 0.5rem 1.5rem; border-radius: 50px; font-size: 0.85rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;}
         .status-pendiente { background: #FEF9E7; color: #D4AC0D; border: 1px solid #F9E79F; }
+        .status-sin-pagar { background: #FEF5E7; color: #E67E22; border: 1px solid #FAD7A0; }
         .status-pagado { background: #EBF5FB; color: #2874A6; border: 1px solid #D4E6F1; }
         .status-preparando { background: #F4ECF7; color: #8E44AD; border: 1px solid #E8DAEF; }
         .status-enviado { background: #E8F8F5; color: #1ABC9C; border: 1px solid #A3E4D7; }
@@ -99,6 +100,16 @@
         
         .tracking-step.current .step-icon { border-color: var(--rosa-intenso); color: var(--rosa-intenso); box-shadow: 0 0 0 6px var(--rosa-palo); }
         .tracking-step.current .step-text { color: var(--rosa-intenso); font-weight: 700;}
+        .tracking-step.pending .step-icon { border-color: #F39C12; color: #F39C12; }
+        .tracking-step.pending .step-text { color: #E67E22; font-weight: 600; }
+
+        /* ACCIONES ORDEN PENDIENTE */
+        .pending-actions { display: flex; gap: 1rem; margin-top: 1.5rem; flex-wrap: wrap; align-items: center; border-top: 2px dashed #FAD7A0; padding-top: 1.5rem; }
+        .btn-pay-now { background: var(--rosa-intenso); color: var(--blanco-puro); padding: 0.85rem 2rem; border-radius: 10px; border: none; font-weight: 700; cursor: pointer; font-size: 0.95rem; transition: var(--transition-smooth); display: inline-flex; align-items: center; gap: 8px; }
+        .btn-pay-now:hover { background: #a87675; transform: translateY(-2px); box-shadow: 0 6px 16px rgba(194,139,138,0.3); }
+        .btn-cancel-order { background: transparent; color: #c0392b; padding: 0.85rem 1.5rem; border-radius: 10px; border: 1px solid #e74c3c; font-weight: 600; cursor: pointer; font-size: 0.9rem; transition: var(--transition-smooth); }
+        .btn-cancel-order:hover { background: #fdf2f2; border-color: #c0392b; }
+        .btn-cancel-order:disabled { opacity: 0.5; cursor: not-allowed; }
 
         .tracking-box { background: var(--beige-calido); padding: 1.5rem; border-radius: 12px; border: 1px dashed var(--rosa-intenso); font-size: 0.95rem; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem; margin-bottom: 1.5rem;}
         .tracking-code { font-family: monospace; font-size: 1.2rem; font-weight: 700; color: var(--rosa-intenso); background: var(--blanco-puro); padding: 0.5rem 1.2rem; border-radius: 8px; border: 1px solid var(--rosa-intenso); letter-spacing: 1px;}
@@ -405,9 +416,21 @@
                         let step1 = 'completed', step2 = '', step3 = '', step4 = '';
                         let statusColor = 'status-pendiente';
                         let trackingMsg = 'Estamos revisando tu pago.';
-                        
+                        let isPendingPayment = false;
+                        let badgeText = order.estado || 'Pendiente';
+                        let step1Icon = '✔';
+                        let step1Label = 'Confirmado';
+
                         const estado = (order.estado || '').toLowerCase();
-                        if (estado.includes('pagado')) {
+                        if (estado === 'pendiente' || estado.includes('sin pagar') || estado === '') {
+                            isPendingPayment = true;
+                            statusColor = 'status-sin-pagar';
+                            badgeText = 'Pago Pendiente';
+                            step1 = 'pending';
+                            step1Icon = '⏳';
+                            step1Label = 'Esperando Pago';
+                            trackingMsg = 'Tu orden fue creada. Solo falta completar el pago para que comencemos a prepararla.';
+                        } else if (estado.includes('pagado')) {
                             statusColor = 'status-pagado';
                             step2 = 'current';
                             trackingMsg = 'Tu pago ha sido confirmado. Pronto comenzaremos a armarlo.';
@@ -434,13 +457,13 @@
                                         <span class="order-id">Orden #${order.id}</span>
                                         <span class="order-date">Registrada el ${dateStr}</span>
                                     </div>
-                                    <div class="status-badge ${statusColor}" style="margin-top: 5px;">${order.estado || 'Pendiente'}</div>
+                                    <div class="status-badge ${statusColor}" style="margin-top: 5px;">${badgeText}</div>
                                 </div>
                                 
                                 <div class="tracking-timeline">
                                     <div class="tracking-step ${step1}">
-                                        <div class="step-icon">✔</div>
-                                        <span class="step-text">Confirmado</span>
+                                        <div class="step-icon">${step1Icon}</div>
+                                        <span class="step-text">${step1Label}</span>
                                     </div>
                                     <div class="tracking-step ${step2}">
                                         <div class="step-icon">2</div>
@@ -474,6 +497,11 @@
                                     <span style="color: #888; font-size: 0.95rem; font-weight: 500;">Destinatario: ${order.cliente_nombre || currentCustomer.name}</span>
                                     <span>Total: <span style="color: var(--rosa-intenso);">${formatCurrency(order.total)}</span></span>
                                 </div>
+                                ${isPendingPayment ? `
+                                <div class="pending-actions">
+                                    <button class="btn-pay-now" onclick="reanudarPago(${order.id})">💳 Pagar Ahora</button>
+                                    <button class="btn-cancel-order" onclick="cancelOrder(${order.id}, this)">Cancelar Pedido</button>
+                                </div>` : ''}
                             </div>
                         `;
                     });
@@ -488,6 +516,145 @@
                 container.innerHTML = `<p style="color:red; padding: 1rem; text-align:center;">No se pudieron cargar tus pedidos.<br><small style="color:#aaa;">${error.message}</small></p>`;
             }
         }
+
+        // ========================================================================
+        // ACCIONES SOBRE ÓRDENES PENDIENTES
+        // ========================================================================
+
+        // ────────────────────────────────────────────────────────────────────
+        // REANUDAR PAGO DE UNA ORDEN PENDIENTE
+        // 1) Trae la orden + stock ACTUAL desde el backend.
+        // 2) Valida disponibilidad ítem por ítem.
+        // 3) Camino feliz (todo en stock) → rehidrata el carrito y va a checkout
+        //    en modo "actualizar orden existente" (?orderId=), sin duplicar.
+        // 4) Camino con quiebre → informa qué falta y ofrece rearmar el carrito
+        //    solo con lo disponible y cancelar la orden vieja.
+        // NOTA: la clave real del carrito en esta tienda es 'mathsoluis_cart'
+        //       (no 'cart'); usarla es lo que permite que checkout la lea.
+        // ────────────────────────────────────────────────────────────────────
+        window.reanudarPago = async (orderId) => {
+            showToast('Verificando disponibilidad de tu pedido…');
+
+            // Paso 1: obtener la orden con el stock actual de cada ítem
+            let order;
+            try {
+                const res = await fetch(`${API_BASE_URL}/api/orders/${orderId}?email=${encodeURIComponent(currentCustomer.email)}`);
+                const json = await res.json();
+                if (!json.success) throw new Error(json.error || 'No se pudo cargar el pedido.');
+                order = json.data;
+            } catch (e) {
+                showToast('❌ ' + e.message);
+                return;
+            }
+
+            const items = order.items || [];
+            if (items.length === 0) {
+                showToast('❌ Este pedido no tiene productos para pagar.');
+                return;
+            }
+
+            // Reconstruye un ítem con la MISMA estructura que genera la tienda
+            // (producto.html), para que checkout y el backend lo interpreten igual.
+            const toCartItem = (it) => {
+                const base = `cart_${it.product_id}_${it.variant_id}`;
+                let cartId, kitSizes = null;
+                const vd = it.variant_details || '';
+                if (vd.startsWith('{')) {
+                    try { kitSizes = JSON.parse(vd); } catch (_) { kitSizes = null; }
+                    const sizePart = kitSizes ? Object.values(kitSizes).join('-') : 'u';
+                    cartId = `${base}_${sizePart}`;
+                } else {
+                    const m = vd.match(/^Talla:\s*(.+)$/);
+                    cartId = `${base}_${m ? m[1].trim() : 'u'}`;
+                }
+                const item = {
+                    id: cartId,
+                    name: it.product_name,
+                    price: it.precio_unitario,
+                    weight: it.weight || 0,
+                    img: it.imagen_url || './ico.jpg',
+                    quantity: it.cantidad
+                };
+                if (kitSizes) item.kitSizes = kitSizes;
+                return item;
+            };
+
+            // Paso 2: separar disponibles vs. agotados según el stock real
+            const disponibles = items.filter(it => it.disponible);
+            const agotados    = items.filter(it => !it.disponible);
+
+            // Paso 3 — CAMINO FELIZ: todo disponible → rehidratar y pagar
+            if (agotados.length === 0) {
+                localStorage.setItem('mathsoluis_cart', JSON.stringify(items.map(toCartItem)));
+                window.location.href = `checkout.html?orderId=${orderId}`;
+                return;
+            }
+
+            // Paso 4 — CAMINO CON QUIEBRE: informar exactamente qué falta
+            const listaFaltante = agotados.map(it =>
+                `• ${it.product_name}${it.stock_disponible > 0
+                    ? ` (solo ${it.stock_disponible} disp., pediste ${it.cantidad})`
+                    : ' (sin stock)'}`
+            ).join('\n');
+
+            const mensaje =
+                `Algunos productos de tu pedido #${orderId} ya no están disponibles:\n\n${listaFaltante}\n\n` +
+                (disponibles.length > 0
+                    ? '¿Deseas crear un nuevo carrito con los productos disponibles y cancelar este pedido?'
+                    : 'No queda stock de ningún producto. ¿Deseas cancelar este pedido?');
+
+            if (!confirm(mensaje)) return;
+
+            // Paso 5: cancelar la orden vieja en el backend
+            try {
+                const cancelRes = await fetch(`${API_BASE_URL}/api/orders/${orderId}/cancel`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email: currentCustomer.email })
+                });
+                const cancelJson = await cancelRes.json();
+                if (!cancelJson.success) throw new Error(cancelJson.error || 'No se pudo cancelar el pedido.');
+            } catch (e) {
+                showToast('❌ Error al cancelar: ' + e.message);
+                return;
+            }
+
+            // Rearmar carrito solo con lo disponible y mandar a la tienda
+            if (disponibles.length > 0) {
+                localStorage.setItem('mathsoluis_cart', JSON.stringify(disponibles.map(toCartItem)));
+                showToast('🛒 Carrito actualizado con los productos disponibles.');
+                setTimeout(() => { window.location.href = 'index.html#catalogo'; }, 1300);
+            } else {
+                showToast('✅ Pedido cancelado. No había stock disponible.');
+                await fetchCustomerOrders();
+            }
+        };
+
+        // Cancela una orden pendiente de pago y refresca el historial
+        window.cancelOrder = async (orderId, btn) => {
+            if (!confirm('¿Seguro que deseas cancelar este pedido?\nEsta acción no se puede deshacer.')) return;
+            const originalText = btn.textContent;
+            btn.disabled = true;
+            btn.textContent = 'Cancelando…';
+            try {
+                const res = await fetch(`${API_BASE_URL}/api/orders/${orderId}/cancel`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email: currentCustomer.email })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    showToast('✅ Pedido cancelado correctamente.');
+                    await fetchCustomerOrders();
+                } else {
+                    throw new Error(data.error || 'No se pudo cancelar el pedido.');
+                }
+            } catch (e) {
+                btn.disabled = false;
+                btn.textContent = originalText;
+                showToast('❌ Error: ' + e.message);
+            }
+        };
 
         // ========================================================================
         // SISTEMA DE FAVORITOS (Lee API Real y LocalStorage)

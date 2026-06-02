@@ -357,6 +357,9 @@
         // 1. CARGAR MEMORIA (CARRITO Y CLIENTE LOGUEADO)
         const cart = JSON.parse(localStorage.getItem('mathsoluis_cart')) || [];
         const currentCustomer = JSON.parse(localStorage.getItem('mathsoluis_customer')) || null;
+        // Si venimos desde "Reanudar pago" (cuenta.html), checkout actualiza la
+        // orden existente en vez de crear una nueva (?orderId=XXX).
+        const resumeOrderId = new URLSearchParams(window.location.search).get('orderId') || null;
         let cartTotal = 0;
         let shippingCost = 0;
 
@@ -396,6 +399,11 @@
             }
 
             renderSummary();
+
+            // Aviso visual cuando se está completando el pago de una orden ya creada.
+            if (resumeOrderId) {
+                showToast(`Estás completando el pago de tu pedido #${resumeOrderId}.`, 'success');
+            }
 
             document.getElementById('chkRegion').addEventListener('change', calculateShipping);
             document.getElementById('chkComuna').addEventListener('blur', calculateShipping);
@@ -546,6 +554,8 @@
                 total: cartTotal + shippingCost,
                 shipping_cost: shippingCost
             };
+            // Modo reanudar: el backend actualiza la orden existente (no la duplica).
+            if (resumeOrderId) payload.resume_order_id = parseInt(resumeOrderId, 10);
 
             try {
                 // LLAMADA REAL AL BACKEND

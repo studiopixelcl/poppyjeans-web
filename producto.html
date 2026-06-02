@@ -1067,6 +1067,11 @@
             let sizesHTML = '';
             if (isKit && typeof tallasData === 'object' && !Array.isArray(tallasData)) {
                 const labels = { bata: 'Talla Bata', bata_camisa: 'Talla Bata + Camisa', sosten: 'Talla Sostén Maternal', sosten_deportivo: 'Talla Sostén Deportivo', calzon: 'Talla Calzón', calzon_elasticado: 'Talla Calzón Elasticado', calzon_embarazo: 'Talla Calzón Embarazo', camisa: 'Talla Camisa', pantuflas: 'Nº Pantuflas', bebe: 'Talla Bebé' };
+                sizesHTML += `
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.5rem;">
+                            <span style="font-size:0.7rem; font-weight:700; color:#aaa; letter-spacing:1px; text-transform:uppercase;">Selecciona tus tallas</span>
+                            <button class="size-guide-btn" onclick="openSizeGuide()">📏 Guía de Tallas</button>
+                        </div>`;
                 for (const [comp, sizes] of Object.entries(tallasData)) {
                     if (sizes && sizes.length > 0) {
                         requiredKitComponents.push(comp);
