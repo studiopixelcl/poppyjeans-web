@@ -45,6 +45,38 @@ function serializeCategorias(ids) {
   return JSON.stringify(ids.map(Number).filter(Boolean));
 }
 
+// Resuelve el desfase UTC de Chile (UTC-4) para consultas SQL en SQLite.
+// Convierte fechas YYYY-MM-DD locales a strings YYYY-MM-DD HH:MM:SS en UTC.
+function getUtcBounds(fromStr, toStr) {
+  const normDate = raw => {
+    if (!raw) return null;
+    const m = raw.match(/^(\d{2})-(\d{2})-(\d{4})$/); // DD-MM-YYYY
+    return m ? `${m[3]}-${m[2]}-${m[1]}` : raw;       // → YYYY-MM-DD
+  };
+
+  const fNorm = normDate(fromStr);
+  const tNorm = normDate(toStr);
+
+  let utcFrom = null;
+  let utcTo = null;
+
+  if (fNorm) {
+    const dFrom = new Date(`${fNorm}T00:00:00-04:00`);
+    if (!isNaN(dFrom.getTime())) {
+      utcFrom = dFrom.toISOString().replace('T', ' ').substring(0, 19);
+    }
+  }
+
+  if (tNorm) {
+    const dTo = new Date(`${tNorm}T23:59:59.999-04:00`);
+    if (!isNaN(dTo.getTime())) {
+      utcTo = dTo.toISOString().replace('T', ' ').substring(0, 19);
+    }
+  }
+
+  return { utcFrom, utcTo };
+}
+
 // ============================================================================
 // HELPER: Subida de imagen Base64 a Cloudflare R2
 // Devuelve la URL pública (PUBLIC_IMAGES_URL/key) que se guarda en D1.
@@ -1545,8 +1577,9 @@ export default {
           // Los aliases explícitos o.${fechaCol} y c.nombre evitan ambigüedad.
           const conditions = [];
           const bindParams = [];
-          if (fromQ) { conditions.push(`strftime('%Y-%m-%d', o.${fechaCol}) >= ?`); bindParams.push(fromQ); }
-          if (toQ)   { conditions.push(`strftime('%Y-%m-%d', o.${fechaCol}) <= ?`); bindParams.push(toQ); }
+          const { utcFrom, utcTo } = getUtcBounds(fromQ, toQ);
+          if (utcFrom) { conditions.push(`datetime(o.${fechaCol}) >= ?`); bindParams.push(utcFrom); }
+          if (utcTo)   { conditions.push(`datetime(o.${fechaCol}) <= ?`); bindParams.push(utcTo); }
           if (searchTerm) {
             conditions.push(`(CAST(o.id AS TEXT) LIKE ? OR c.nombre LIKE ? OR c.email LIKE ?)`);
             bindParams.push(searchTerm, searchTerm, searchTerm);
@@ -1901,11 +1934,13 @@ export default {
           const sqlFrom = from || null;
           const sqlTo   = to   || null;
 
+          const { utcFrom, utcTo } = getUtcBounds(from, to);
+
           // ── Helper: construye cláusula AND para filtro de fechas ─────────
           const buildFilter = (col) => {
             const conds = [], params = [];
-            if (sqlFrom) { conds.push(`strftime('%Y-%m-%d', ${col}) >= ?`); params.push(sqlFrom); }
-            if (sqlTo)   { conds.push(`strftime('%Y-%m-%d', ${col}) <= ?`); params.push(sqlTo); }
+            if (utcFrom) { conds.push(`datetime(${col}) >= ?`); params.push(utcFrom); }
+            if (utcTo)   { conds.push(`datetime(${col}) <= ?`); params.push(utcTo); }
             return { clause: conds.length ? 'AND ' + conds.join(' AND ') : '', params };
           };
 
@@ -1964,19 +1999,21 @@ export default {
               const pf = prevFrom.toISOString().slice(0, 10);
               const pt = prevTo.toISOString().slice(0, 10);
 
+              const { utcFrom: prevUtcFrom, utcTo: prevUtcTo } = getUtcBounds(pf, pt);
+
               const prevIngresos = await env.DB.prepare(
                 `SELECT COALESCE(SUM(total), 0) AS total, COUNT(*) AS count
                  FROM Orders
                  WHERE LOWER(${estadoCol}) IN ('pagado','preparando','enviado','recibido','entregado')
-                 AND strftime('%Y-%m-%d', ${fechaCol}) >= ?
-                 AND strftime('%Y-%m-%d', ${fechaCol}) <= ?`
-              ).bind(pf, pt).first();
+                 AND datetime(${fechaCol}) >= ?
+                 AND datetime(${fechaCol}) <= ?`
+              ).bind(prevUtcFrom, prevUtcTo).first();
 
               const prevTotales = await env.DB.prepare(
                 `SELECT COUNT(*) AS c FROM Orders
-                 WHERE strftime('%Y-%m-%d', ${fechaCol}) >= ?
-                 AND strftime('%Y-%m-%d', ${fechaCol}) <= ?`
-              ).bind(pf, pt).first();
+                 WHERE datetime(${fechaCol}) >= ?
+                 AND datetime(${fechaCol}) <= ?`
+              ).bind(prevUtcFrom, prevUtcTo).first();
 
               const pIng = prevIngresos?.total || 0;
               const pPag = prevIngresos?.count || 0;
@@ -1990,12 +2027,12 @@ export default {
             }
           }
 
-          // Ventas agrupadas por día para el gráfico de líneas
+          // Ventas agrupadas por día para el gráfico de líneas (convirtiendo a hora local de Chile UTC-4 para la agrupación)
           const { results: salesByDay } = await exec(
             env.DB.prepare(
-              `SELECT strftime('%Y-%m-%d', ${fechaCol}) AS dia, COALESCE(SUM(total), 0) AS total
+              `SELECT strftime('%Y-%m-%d', datetime(${fechaCol}, '-4 hours')) AS dia, COALESCE(SUM(total), 0) AS total
                FROM Orders WHERE LOWER(${estadoCol}) IN ('pagado','preparando','enviado','recibido','entregado') ${f.clause}
-               GROUP BY strftime('%Y-%m-%d', ${fechaCol}) ORDER BY dia ASC`
+               GROUP BY strftime('%Y-%m-%d', datetime(${fechaCol}, '-4 hours')) ORDER BY dia ASC`
             ), f.params
           ).all();
 
@@ -2101,7 +2138,7 @@ export default {
           console.log('[Metrics] Debug fechas →',
             JSON.stringify({
               schema:     { estadoCol, fechaCol },
-              params:     { from: sqlFrom, to: sqlTo },
+              params:     { from: sqlFrom, to: sqlTo, utcFrom, utcTo },
               bd:         { total_rows: dateRangeDebug?.total_rows, oldest: dateRangeDebug?.oldest, newest: dateRangeDebug?.newest, null_dates: dateRangeDebug?.null_dates },
               filtered:   inRangeRow?.n,
               samples:    dateSamples,
@@ -2115,6 +2152,8 @@ export default {
               _debug:  {
                 sql_from:        sqlFrom,
                 sql_to:          sqlTo,
+                utc_from:        utcFrom,
+                utc_to:          utcTo,
                 date_range_bd:   dateRangeDebug,
                 date_samples:    dateSamples || [],
                 rows_in_range:   inRangeRow?.n ?? 0,
