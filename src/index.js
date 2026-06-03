@@ -1576,8 +1576,8 @@ export default {
           const conditions = [];
           const bindParams = [];
           const { utcFrom, utcTo } = getUtcBounds(fromQ, toQ);
-          if (utcFrom) { conditions.push(`datetime(o.${fechaCol}) >= datetime(?)`); bindParams.push(utcFrom); }
-          if (utcTo)   { conditions.push(`datetime(o.${fechaCol}) <= datetime(?)`); bindParams.push(utcTo); }
+          if (utcFrom) { conditions.push(`o.${fechaCol} >= ?`); bindParams.push(utcFrom); }
+          if (utcTo)   { conditions.push(`o.${fechaCol} <= ?`); bindParams.push(utcTo); }
           if (searchTerm) {
             conditions.push(`(CAST(o.id AS TEXT) LIKE ? OR c.nombre LIKE ? OR c.email LIKE ?)`);
             bindParams.push(searchTerm, searchTerm, searchTerm);
@@ -1935,10 +1935,12 @@ export default {
           const { utcFrom, utcTo } = getUtcBounds(from, to);
 
           // ── Helper: construye cláusula AND para filtro de fechas ─────────
+          // Comparación directa de strings UTC: la BD almacena 'YYYY-MM-DD HH:MM:SS' en UTC,
+          // y utcFrom/utcTo son también strings UTC. No se necesita ningún wrapper datetime().
           const buildFilter = (col) => {
             const conds = [], params = [];
-            if (utcFrom) { conds.push(`datetime(${col}) >= datetime(?)`); params.push(utcFrom); }
-            if (utcTo)   { conds.push(`datetime(${col}) <= datetime(?)`); params.push(utcTo); }
+            if (utcFrom) { conds.push(`${col} >= ?`); params.push(utcFrom); }
+            if (utcTo)   { conds.push(`${col} <= ?`); params.push(utcTo); }
             return { clause: conds.length ? 'AND ' + conds.join(' AND ') : '', params };
           };
 
@@ -2003,14 +2005,14 @@ export default {
                 `SELECT COALESCE(SUM(total), 0) AS total, COUNT(*) AS count
                  FROM Orders
                  WHERE LOWER(${estadoCol}) IN ('pagado','preparando','enviado','recibido','entregado')
-                 AND datetime(${fechaCol}) >= datetime(?)
-                 AND datetime(${fechaCol}) <= datetime(?)`
+                 AND ${fechaCol} >= ?
+                 AND ${fechaCol} <= ?`
               ).bind(prevUtcFrom, prevUtcTo).first();
 
               const prevTotales = await env.DB.prepare(
                 `SELECT COUNT(*) AS c FROM Orders
-                 WHERE datetime(${fechaCol}) >= datetime(?)
-                 AND datetime(${fechaCol}) <= datetime(?)`
+                 WHERE ${fechaCol} >= ?
+                 AND ${fechaCol} <= ?`
               ).bind(prevUtcFrom, prevUtcTo).first();
 
               const pIng = prevIngresos?.total || 0;
