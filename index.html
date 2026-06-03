@@ -1398,6 +1398,10 @@
                 // Extraer el ID real del producto desde la estructura cart_PRODID_VARIANTID_SIZE
                 const originalProductId = item.id.split('_')[1];
 
+                const isMax = item.maxStock !== undefined && item.quantity >= item.maxStock;
+                const plusDisabledAttr = isMax ? 'disabled' : '';
+                const plusStyle = isMax ? 'opacity: 0.5; cursor: not-allowed;' : '';
+
                 const itemHTML = `
                     <div class="cart-item">
                         <img src="${item.img}" alt="Img" class="cart-item-img" onclick="window.location.href='producto.html?id=${originalProductId}'">
@@ -1407,7 +1411,7 @@
                             <div class="cart-item-controls">
                                 <button class="qty-btn" onclick="updateQuantity('${item.id}', -1)">-</button>
                                 <span class="qty-display">${item.quantity}</span>
-                                <button class="qty-btn" onclick="updateQuantity('${item.id}', 1)">+</button>
+                                <button class="qty-btn" ${plusDisabledAttr} style="${plusStyle}" onclick="updateQuantity('${item.id}', 1)">+</button>
                                 <button class="remove-btn" onclick="removeFromCart('${item.id}')">
                                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"></path><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
                                 </button>
@@ -1428,6 +1432,10 @@
         window.updateQuantity = (id, change) => {
             const item = cart.find(item => item.id === id);
             if (item) { 
+                if (change > 0 && item.maxStock !== undefined && item.quantity + change > item.maxStock) {
+                    alert('Has alcanzado el límite de stock disponible para esta prenda.');
+                    return;
+                }
                 item.quantity += change; 
                 if (item.quantity <= 0) removeFromCart(id); 
                 else {

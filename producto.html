@@ -1144,13 +1144,37 @@
             }
 
             const cartItemId = `cart_${cartItemIdStr}`;
+
+            // Calcular stockDisponible para esta variante y talla exacta
+            let tallasData = null;
+            try { tallasData = JSON.parse(variant.tallas); } catch(e) { tallasData = []; }
+
+            let stockDisponible = 0;
+            if (currentProduct.es_kit === 1 && typeof tallasData === 'object' && !Array.isArray(tallasData)) {
+                let minStock = Infinity;
+                for (const [comp, sizeVal] of Object.entries(selectedSizeStr)) {
+                    const componentSizes = tallasData[comp] || [];
+                    const sizeObj = componentSizes.find(s => s.size === sizeVal);
+                    const componentStock = sizeObj ? parseInt(sizeObj.stock) || 0 : 0;
+                    if (componentStock < minStock) {
+                        minStock = componentStock;
+                    }
+                }
+                stockDisponible = minStock === Infinity ? (parseInt(variant.stock) || 0) : minStock;
+            } else if (Array.isArray(tallasData) && tallasData.length > 0) {
+                const sizeObj = tallasData.find(s => s.size === selectedSizeStr);
+                stockDisponible = sizeObj ? parseInt(sizeObj.stock) || 0 : 0;
+            } else {
+                stockDisponible = parseInt(variant.stock) || 0;
+            }
             
             const itemObj = {
                 id: cartItemId,
                 name: finalName,
                 price: currentProduct.en_oferta === 1 ? currentProduct.precio_oferta : currentProduct.precio_normal,
                 weight: currentProduct.weight || 0,
-                img: variant.imagen_1 || './ico.jpg'
+                img: variant.imagen_1 || './ico.jpg',
+                maxStock: stockDisponible
             };
 
             // Kit: adjuntar mapa estructurado componente→talla para descuento granular en backend.
@@ -1160,8 +1184,21 @@
             }
 
             const existingItem = cart.find(item => item.id === itemObj.id);
-            if (existingItem) existingItem.quantity += 1;
-            else cart.push({ ...itemObj, quantity: 1 });
+            if (existingItem) {
+                // Actualizar maxStock por si acaso
+                existingItem.maxStock = stockDisponible;
+                if (existingItem.quantity + 1 > existingItem.maxStock) {
+                    alert('Has alcanzado el límite de stock disponible para esta prenda.');
+                    return;
+                }
+                existingItem.quantity += 1;
+            } else {
+                if (1 > itemObj.maxStock) {
+                    alert('Has alcanzado el límite de stock disponible para esta prenda.');
+                    return;
+                }
+                cart.push({ ...itemObj, quantity: 1 });
+            }
             
             localStorage.setItem('mathsoluis_cart', JSON.stringify(cart));
             renderCartUI();
@@ -1420,6 +1457,10 @@
                 totalItems += item.quantity; cartTotal += item.price * item.quantity;
                 const originalProductId = item.id.split('_')[1];
 
+                const isMax = item.maxStock !== undefined && item.quantity >= item.maxStock;
+                const plusDisabledAttr = isMax ? 'disabled' : '';
+                const plusCursorStyle = isMax ? 'opacity: 0.5; cursor: not-allowed;' : 'cursor: pointer;';
+
                 container.insertAdjacentHTML('beforeend', `
                     <div class="cart-item">
                         <img src="${item.img}" class="cart-item-img" onclick="window.location.href='producto.html?id=${originalProductId}'">
@@ -1429,7 +1470,7 @@
                             <div style="display:flex; align-items:center; gap:0.8rem; margin-top:0.5rem;">
                                 <button onclick="updateQuantity('${item.id}', -1)" style="width:28px; height:28px; border-radius:50%; background:var(--celeste-claro); border:none; cursor:pointer; font-weight:bold;">-</button>
                                 <span style="font-weight:600; font-size:0.9rem;">${item.quantity}</span>
-                                <button onclick="updateQuantity('${item.id}', 1)" style="width:28px; height:28px; border-radius:50%; background:var(--celeste-claro); border:none; cursor:pointer; font-weight:bold;">+</button>
+                                <button ${plusDisabledAttr} onclick="updateQuantity('${item.id}', 1)" style="width:28px; height:28px; border-radius:50%; background:var(--celeste-claro); border:none; font-weight:bold; ${plusCursorStyle}">+</button>
                                 <button onclick="removeFromCart('${item.id}')" style="color:#ff4d4d; margin-left:auto; background:none; border:none; font-size:1.2rem; cursor:pointer;">🗑️</button>
                             </div>
                         </div>
@@ -1446,7 +1487,18 @@
 
         window.updateQuantity = (id, change) => {
             const item = cart.find(i => i.id === id);
-            if (item) { item.quantity += change; if (item.quantity <= 0) removeFromCart(id); else { localStorage.setItem('mathsoluis_cart', JSON.stringify(cart)); renderCartUI(); } }
+            if (item) {
+                if (change > 0 && item.maxStock !== undefined && item.quantity + change > item.maxStock) {
+                    alert('Has alcanzado el límite de stock disponible para esta prenda.');
+                    return;
+                }
+                item.quantity += change;
+                if (item.quantity <= 0) removeFromCart(id);
+                else {
+                    localStorage.setItem('mathsoluis_cart', JSON.stringify(cart));
+                    renderCartUI();
+                }
+            }
         };
         window.removeFromCart = (id) => { cart = cart.filter(i => i.id !== id); localStorage.setItem('mathsoluis_cart', JSON.stringify(cart)); renderCartUI(); };
 

@@ -573,7 +573,8 @@
                     price: it.precio_unitario,
                     weight: it.weight || 0,
                     img: it.imagen_url || './ico.jpg',
-                    quantity: it.cantidad
+                    quantity: it.cantidad,
+                    maxStock: it.stock_disponible
                 };
                 if (kitSizes) item.kitSizes = kitSizes;
                 return item;
