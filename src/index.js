@@ -61,16 +61,14 @@ function getUtcBounds(fromStr, toStr) {
   let utcTo = null;
 
   if (fNorm) {
-    const dFrom = new Date(`${fNorm}T00:00:00-04:00`);
-    if (!isNaN(dFrom.getTime())) {
-      utcFrom = dFrom.toISOString().replace('T', ' ').substring(0, 19);
-    }
+    utcFrom = `${fNorm} 04:00:00`;
   }
 
   if (tNorm) {
-    const dTo = new Date(`${tNorm}T23:59:59.999-04:00`);
-    if (!isNaN(dTo.getTime())) {
-      utcTo = dTo.toISOString().replace('T', ' ').substring(0, 19);
+    const d = new Date(`${tNorm}T00:00:00Z`);
+    if (!isNaN(d.getTime())) {
+      d.setUTCDate(d.getUTCDate() + 1);
+      utcTo = `${d.toISOString().slice(0, 10)} 03:59:59`;
     }
   }
 
@@ -1578,8 +1576,8 @@ export default {
           const conditions = [];
           const bindParams = [];
           const { utcFrom, utcTo } = getUtcBounds(fromQ, toQ);
-          if (utcFrom) { conditions.push(`datetime(o.${fechaCol}) >= ?`); bindParams.push(utcFrom); }
-          if (utcTo)   { conditions.push(`datetime(o.${fechaCol}) <= ?`); bindParams.push(utcTo); }
+          if (utcFrom) { conditions.push(`datetime(o.${fechaCol}) >= datetime(?)`); bindParams.push(utcFrom); }
+          if (utcTo)   { conditions.push(`datetime(o.${fechaCol}) <= datetime(?)`); bindParams.push(utcTo); }
           if (searchTerm) {
             conditions.push(`(CAST(o.id AS TEXT) LIKE ? OR c.nombre LIKE ? OR c.email LIKE ?)`);
             bindParams.push(searchTerm, searchTerm, searchTerm);
@@ -1939,8 +1937,8 @@ export default {
           // ── Helper: construye cláusula AND para filtro de fechas ─────────
           const buildFilter = (col) => {
             const conds = [], params = [];
-            if (utcFrom) { conds.push(`datetime(${col}) >= ?`); params.push(utcFrom); }
-            if (utcTo)   { conds.push(`datetime(${col}) <= ?`); params.push(utcTo); }
+            if (utcFrom) { conds.push(`datetime(${col}) >= datetime(?)`); params.push(utcFrom); }
+            if (utcTo)   { conds.push(`datetime(${col}) <= datetime(?)`); params.push(utcTo); }
             return { clause: conds.length ? 'AND ' + conds.join(' AND ') : '', params };
           };
 
@@ -2005,14 +2003,14 @@ export default {
                 `SELECT COALESCE(SUM(total), 0) AS total, COUNT(*) AS count
                  FROM Orders
                  WHERE LOWER(${estadoCol}) IN ('pagado','preparando','enviado','recibido','entregado')
-                 AND datetime(${fechaCol}) >= ?
-                 AND datetime(${fechaCol}) <= ?`
+                 AND datetime(${fechaCol}) >= datetime(?)
+                 AND datetime(${fechaCol}) <= datetime(?)`
               ).bind(prevUtcFrom, prevUtcTo).first();
 
               const prevTotales = await env.DB.prepare(
                 `SELECT COUNT(*) AS c FROM Orders
-                 WHERE datetime(${fechaCol}) >= ?
-                 AND datetime(${fechaCol}) <= ?`
+                 WHERE datetime(${fechaCol}) >= datetime(?)
+                 AND datetime(${fechaCol}) <= datetime(?)`
               ).bind(prevUtcFrom, prevUtcTo).first();
 
               const pIng = prevIngresos?.total || 0;
