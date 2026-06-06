@@ -865,11 +865,10 @@ export default {
             if (isSaleParam === '1') {
                 whereConditions.push('p.en_oferta = 1');
             }
-            // Filtro de categoría: slug sin tildes, busca en categoría, etiquetas y nombre del producto
+            // Filtro de categoría: validación estricta y directa sobre c.nombre
             if (categoryParam) {
-                const catSlug = `%${categoryParam.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase()}%`;
-                whereConditions.push('(LOWER(c.nombre) LIKE ? OR LOWER(p.etiquetas) LIKE ? OR LOWER(p.nombre) LIKE ?)');
-                queryParams.push(catSlug, catSlug, catSlug);
+                whereConditions.push('LOWER(c.nombre) = LOWER(?)');
+                queryParams.push(categoryParam.trim());
             }
             const whereClause = whereConditions.join(' AND ');
 
