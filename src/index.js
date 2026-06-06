@@ -846,7 +846,17 @@ export default {
             const searchTerm = search ? `%${search}%` : null;
             const isPackParam    = url.searchParams.get('is_pack');
             const isSaleParam    = url.searchParams.get('is_sale');
-            const categoryParam  = url.searchParams.get('category');
+            let categoryParam  = url.searchParams.get('category');
+            if (categoryParam) {
+                try {
+                    categoryParam = decodeURIComponent(categoryParam);
+                } catch (e) {
+                    console.error('[API] Error decodificando categoryParam:', e);
+                }
+            }
+
+            console.log('[API] url.searchParams:', url.searchParams.toString());
+            console.log('[API] Valor final categoryParam:', categoryParam);
 
             // WHERE dinámico: siempre visible=1; LIKE en nombre y etiquetas cuando hay búsqueda
             const whereConditions = ['p.visible = 1'];
@@ -866,7 +876,7 @@ export default {
                 whereConditions.push('p.en_oferta = 1');
             }
             // Filtro de categoría: validación estricta y directa sobre c.nombre
-            if (categoryParam) {
+            if (categoryParam && categoryParam.trim() !== '') {
                 whereConditions.push('LOWER(c.nombre) = LOWER(?)');
                 queryParams.push(categoryParam.trim());
             }
