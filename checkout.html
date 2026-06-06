@@ -368,7 +368,7 @@
         const formatCurrency = (amount) => '$' + amount.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
 
         // 1. CARGAR MEMORIA (CARRITO Y CLIENTE LOGUEADO)
-        const cart = JSON.parse(localStorage.getItem('mathsoluis_cart')) || [];
+        let cart = JSON.parse(localStorage.getItem('mathsoluis_cart')) || [];
         const currentCustomer = JSON.parse(localStorage.getItem('mathsoluis_customer')) || null;
         // Si venimos desde "Reanudar pago" (cuenta.html), checkout actualiza la
         // orden existente en vez de crear una nueva (?orderId=XXX).
@@ -614,6 +614,33 @@
                 });
                 
                 const result = await response.json();
+
+                // REACCION REACTIVA A QUIEBRE DE STOCK (STALE CART)
+                if (result.error === 'stock_insufficient') {
+                    showToast(result.message, 'error');
+                    
+                    // Sincronizar el localStorage y el scope global
+                    const failedItemIndex = cart.findIndex(i => i.id === result.item_id);
+                    if (failedItemIndex !== -1) {
+                        if (result.max_available > 0) {
+                            cart[failedItemIndex].quantity = result.max_available;
+                        } else {
+                            cart.splice(failedItemIndex, 1);
+                        }
+                        localStorage.setItem('mathsoluis_cart', JSON.stringify(cart));
+                        renderSummary();
+                        if (cart.length === 0) {
+                           setTimeout(() => {
+                               alert("Tu carrito se ha quedado vacío por quiebres de stock. Serás redirigido a la tienda.");
+                               window.location.href = 'index.html';
+                           }, 2000);
+                        }
+                    }
+                    
+                    btn.innerHTML = '💳 PAGAR AHORA';
+                    btn.disabled = false;
+                    return;
+                }
 
                 if (result.success && result.tbk_url && result.tbk_token) {
                     // Persistir cliente para que la pantalla de éxito (post-retorno) muestre el correo.

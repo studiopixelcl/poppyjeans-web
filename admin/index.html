@@ -1,272 +1,1341 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mathsoluis | Panel de Administración</title>
-    
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;600;700;800&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+
+    <link
+        href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;600;700;800&family=Poppins:wght@300;400;500;600&display=swap"
+        rel="stylesheet">
     <link rel="stylesheet" href="../pagination.css">
-    
+
     <style>
         /* --- STUDIO PIXEL TOKENS --- */
         :root {
             --blanco-puro: #FFFFFF;
-            --fondo-claro: #F4F7F6; 
-            --teal-studio: #13C2B3; 
-            --teal-claro: #E0F6F5;  
-            --dark-studio: #1E1E24; 
+            --fondo-claro: #F4F7F6;
+            --teal-studio: #13C2B3;
+            --teal-claro: #E0F6F5;
+            --dark-studio: #1E1E24;
             --gris-claro: #E8ECEB;
             --danger-color: #E74C3C;
             --danger-light: #FDEDEC;
-            
+
             --font-main: 'Poppins', sans-serif;
             --font-display: 'Montserrat', sans-serif;
-            
+
             --radius-md: 12px;
             --radius-lg: 24px;
             --radius-pill: 50px;
-            
+
             --transition-smooth: all 0.3s ease;
         }
 
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        
-        body { font-family: var(--font-main); background-color: var(--fondo-claro); color: var(--dark-studio); }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: var(--font-main);
+            background-color: var(--fondo-claro);
+            color: var(--dark-studio);
+        }
 
         /* --- LOGIN VIEW --- */
-        #loginView { min-height: 100vh; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, var(--dark-studio) 0%, #2a2a35 100%); }
-        .login-card { background: var(--blanco-puro); padding: 3rem; border-radius: var(--radius-md); box-shadow: 0 20px 40px rgba(0,0,0,0.2); width: 100%; max-width: 400px; text-align: center; }
-        .login-logo { font-family: var(--font-display); font-size: 1.8rem; font-weight: 800; color: var(--dark-studio); margin-bottom: 2rem; }
-        .login-logo span { color: var(--teal-studio); }
-        .input-group { margin-bottom: 1.5rem; text-align: left; }
-        .input-group label { display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 0.5rem; color: #666; }
-        .input-group input[type="text"], .input-group input[type="number"], .input-group input[type="email"], 
-        .input-group input[type="password"], .input-group select, .input-group textarea { width: 100%; padding: 0.8rem 1rem; border: 1px solid var(--gris-claro); border-radius: 8px; font-family: var(--font-main); font-size: 0.95rem; outline: none; transition: var(--transition-smooth); background: var(--fondo-claro); }
-        .input-group input:focus, .input-group select:focus, .input-group textarea:focus { border-color: var(--teal-studio); background: var(--blanco-puro); box-shadow: 0 0 0 3px var(--teal-claro); }
-        .btn-primary { width: 100%; background: var(--teal-studio); color: var(--blanco-puro); border: none; padding: 1rem; border-radius: 8px; font-family: var(--font-main); font-size: 1rem; font-weight: 600; cursor: pointer; transition: var(--transition-smooth); }
-        .btn-primary:hover { background: #10a89b; transform: translateY(-2px); }
-        .btn-secondary { background: var(--gris-claro); color: var(--dark-studio); border: none; padding: 0.8rem 1.5rem; border-radius: 8px; font-weight: 600; cursor: pointer; transition: var(--transition-smooth); }
-        .btn-secondary:hover { background: #d5dbda; }
-        .error-msg { color: var(--danger-color); font-size: 0.85rem; margin-top: 1rem; display: none; }
-
-        /* --- DASHBOARD VIEW --- */
-        #dashboardView { display: none; min-height: 100vh; }
-        .sidebar { width: 250px; background: var(--dark-studio); color: var(--blanco-puro); position: fixed; height: 100vh; top: 0; left: 0; padding: 2rem 1.5rem; z-index: 100; }
-        .sidebar-logo { font-family: var(--font-display); font-size: 1.5rem; font-weight: 800; margin-bottom: 3rem; }
-        .sidebar-logo span { color: var(--teal-studio); }
-        .nav-menu { list-style: none; }
-        .nav-item { margin-bottom: 0.5rem; }
-        .nav-link { display: block; color: #aaa; text-decoration: none; padding: 0.8rem 1rem; border-radius: 8px; font-weight: 500; transition: var(--transition-smooth); }
-        .nav-link:hover, .nav-link.active { background: rgba(255,255,255,0.1); color: var(--teal-studio); }
-
-        .main-content { margin-left: 250px; padding: 2rem 3rem; }
-        .topbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 3rem; }
-        .topbar h2 { font-family: var(--font-display); font-size: 1.8rem; font-weight: 700; }
-        .user-info { display: flex; align-items: center; gap: 1rem; font-weight: 600; }
-        .logout-btn { background: var(--danger-light); color: var(--danger-color); border: none; padding: 0.5rem 1rem; border-radius: 6px; cursor: pointer; font-weight: 600; }
-
-        /* --- DATA TABLE Y FILTROS --- */
-        .card { background: var(--blanco-puro); border-radius: var(--radius-md); padding: 1.5rem; box-shadow: var(--shadow-subtle); }
-        .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; }
-        .card-header h3 { font-family: var(--font-display); font-size: 1.2rem; }
-        
-        .quick-filters { display: flex; gap: 0.8rem; margin-bottom: 1.5rem; }
-        .filter-btn { background: var(--fondo-claro); border: 1px solid var(--gris-claro); padding: 0.4rem 1rem; border-radius: var(--radius-pill); font-size: 0.8rem; font-weight: 600; color: #666; cursor: pointer; transition: var(--transition-smooth); }
-        .filter-btn:hover { border-color: var(--teal-studio); color: var(--teal-studio); }
-        .filter-btn.active { background: var(--teal-studio); color: var(--blanco-puro); border-color: var(--teal-studio); }
-
-        table { width: 100%; border-collapse: collapse; text-align: left; }
-        th { padding: 1rem; border-bottom: 2px solid var(--gris-claro); color: #888; font-weight: 600; font-size: 0.85rem; text-transform: uppercase; }
-        td { padding: 1rem; border-bottom: 1px solid var(--gris-claro); font-size: 0.95rem; vertical-align: middle; }
-        tbody tr:hover { background: var(--fondo-claro); }
-        
-        .badge { padding: 0.3rem 0.8rem; border-radius: 50px; font-size: 0.75rem; font-weight: 600; }
-        .badge-active { background: var(--teal-claro); color: var(--teal-studio); }
-        .badge-inactive { background: var(--danger-light); color: var(--danger-color); }
-        .badge-oferta { background: #fff3e0; color: #e65100; display: inline-block; margin-top: 4px; padding: 0.2rem 0.6rem; font-size: 0.65rem; }
-        .tag-display-pill { background: var(--gris-claro); color: #666; font-size: 0.65rem; padding: 3px 8px; border-radius: 6px; margin-right: 4px; font-weight: 600; display: inline-block; margin-bottom: 4px; text-transform: lowercase;}
-        .color-dot { display: inline-block; width: 16px; height: 16px; border-radius: 50%; border: 1px solid #ddd; margin-right: 5px; vertical-align: middle; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
-        
-        .action-btn { background: none; border: none; cursor: pointer; font-size: 1.2rem; margin-right: 0.5rem; color: #888; transition: var(--transition-smooth); }
-        .action-btn:hover { color: var(--teal-studio); transform: scale(1.1); }
-
-        .controls-row { display: flex; gap: 1rem; align-items: center; }
-        .search-input { padding: 0.6rem 1.2rem; border: 1px solid var(--gris-claro); border-radius: var(--radius-pill); font-family: var(--font-main); font-size: 0.9rem; outline: none; width: 300px; transition: var(--transition-smooth); background: var(--fondo-claro); }
-        .search-input:focus { border-color: var(--teal-studio); box-shadow: 0 0 0 3px var(--teal-claro); background: var(--blanco-puro); }
-        th.sortable { cursor: pointer; user-select: none; transition: color 0.2s; white-space: nowrap; }
-        th.sortable:hover { color: var(--teal-studio); }
-        .sort-icon { font-size: 0.7rem; margin-left: 5px; opacity: 0.3; transition: opacity 0.2s; }
-        th.sortable.active { color: var(--teal-studio); }
-        th.sortable.active .sort-icon { opacity: 1; }
-
-        /* --- MODAL CREAR/EDITAR PRODUCTO --- */
-        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(30, 30, 36, 0.6); backdrop-filter: blur(5px); display: none; align-items: center; justify-content: center; z-index: 1000; opacity: 0; transition: opacity 0.3s ease; }
-        .modal-overlay.active { display: flex; opacity: 1; }
-        .modal-content { background: var(--blanco-puro); width: 100%; max-width: 950px; max-height: 90vh; border-radius: var(--radius-lg); box-shadow: 0 25px 50px rgba(0,0,0,0.15); transform: translateY(20px); transition: transform 0.3s ease; display: flex; flex-direction: column; overflow: hidden; }
-        .modal-overlay.active .modal-content { transform: translateY(0); }
-        .modal-header { display: flex; justify-content: space-between; align-items: center; padding: 2rem 2.5rem; border-bottom: 1px solid var(--gris-claro); background: var(--blanco-puro); z-index: 10; }
-        .modal-header h3 { font-family: var(--font-display); font-size: 1.5rem; color: var(--dark-studio); }
-        .close-modal { background: none; border: none; font-size: 1.5rem; cursor: pointer; color: #888; transition: color 0.3s ease; }
-        .close-modal:hover { color: var(--danger-color); }
-        #productForm { display: flex; flex-direction: column; overflow: hidden; height: 100%; }
-        .modal-body-scroll { padding: 2rem 2.5rem; overflow-y: auto; flex: 1; }
-        .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
-        .modal-actions { display: flex; justify-content: flex-end; gap: 1rem; padding: 1.5rem 2.5rem; border-top: 1px solid var(--gris-claro); background: var(--fondo-claro); z-index: 10; }
-        .section-divider { grid-column: span 2; margin-top: 1.5rem; border-bottom: 2px solid var(--gris-claro); padding-bottom: 0.5rem; font-family: var(--font-display); font-weight: 700; color: var(--dark-studio); font-size: 1.2rem;}
-
-        /* --- TOGGLE SWITCH DE ACTIVACIÓN --- */
-        .switch { position: relative; display: inline-block; width: 46px; height: 24px; flex-shrink: 0;}
-        .switch input { opacity: 0; width: 0; height: 0; }
-        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .4s; border-radius: 24px; }
-        .slider:before { position: absolute; content: ""; height: 18px; width: 18px; left: 3px; bottom: 3px; background-color: white; transition: .4s; border-radius: 50%; box-shadow: 0 2px 4px rgba(0,0,0,0.2);}
-        input:checked + .slider { background-color: var(--teal-studio); }
-        input:checked + .slider:before { transform: translateX(22px); }
-        .status-toggle-wrapper { display: flex; align-items: center; gap: 10px; }
-        .status-toggle-label { font-size: 0.85rem; font-weight: 700; color: var(--teal-studio); text-transform: uppercase; letter-spacing: 0.5px; transition: var(--transition-smooth);}
-
-        /* --- ALERTA PERSONALIZADA (MODAL CUSTOM CONFIRM) --- */
-        .custom-confirm-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(30, 30, 36, 0.6); backdrop-filter: blur(5px); z-index: 2000; opacity: 0; visibility: hidden; transition: var(--transition-smooth); display: flex; align-items: center; justify-content: center; padding: 1rem; }
-        .custom-confirm-overlay.active { opacity: 1; visibility: visible; }
-        .custom-confirm-box { background: var(--blanco-puro); border-radius: var(--radius-lg); padding: 2.5rem; width: 100%; max-width: 450px; text-align: center; box-shadow: 0 25px 50px rgba(0,0,0,0.15); transform: scale(0.9) translateY(20px); transition: transform 0.4s cubic-bezier(0.25, 0.8, 0.25, 1); }
-        .custom-confirm-overlay.active .custom-confirm-box { transform: scale(1) translateY(0); }
-        .custom-confirm-icon { font-size: 3.5rem; margin-bottom: 1rem; }
-        .custom-confirm-title { font-family: var(--font-display); font-size: 1.5rem; color: var(--dark-studio); margin-bottom: 1rem; }
-        .custom-confirm-text { color: #666; margin-bottom: 2rem; font-size: 0.95rem; line-height: 1.5; }
-        .custom-confirm-actions { display: flex; gap: 1rem; justify-content: center; }
-        .custom-confirm-actions button { flex: 1; padding: 0.8rem; border-radius: var(--radius-pill); font-weight: 600; font-size: 0.95rem; cursor: pointer; transition: var(--transition-smooth); border: none; }
-        .btn-cancel-modal { background: var(--gris-claro); color: var(--gris-oscuro); }
-        .btn-cancel-modal:hover { background: #d5dbda; }
-        .btn-accept-modal { background: var(--teal-studio); color: var(--blanco-puro); box-shadow: 0 4px 15px rgba(19, 194, 179, 0.3); }
-        .btn-accept-modal:hover { background: #10a89b; transform: translateY(-2px); box-shadow: 0 8px 20px rgba(19, 194, 179, 0.4); }
-
-        /* --- VARIANTES Y GALERÍA --- */
-        .variants-container { grid-column: span 2; display: flex; flex-direction: column; gap: 1.5rem; margin-top: 1rem; }
-        .variant-card { border: 2px solid var(--teal-claro); border-radius: var(--radius-md); padding: 1.5rem; background: var(--blanco-puro); box-shadow: 0 4px 15px rgba(0,0,0,0.02); position: relative; transition: var(--transition-smooth); }
-        .variant-card:hover { border-color: var(--teal-studio); }
-        
-        .variant-header { display: flex; gap: 1rem; align-items: flex-end; margin-bottom: 1rem; margin-top: 1.5rem; border-top: 1px solid var(--gris-claro); padding-top: 1.5rem; flex-wrap: wrap;}
-        .variant-header-col { display: flex; flex-direction: column; gap: 0.3rem; }
-        .variant-header input[type="text"], .variant-header input[type="number"] { padding: 0.6rem 1rem; border: 1px solid var(--gris-claro); border-radius: 8px; font-family: var(--font-main); font-size: 0.95rem; outline: none; }
-        
-        /* EL NUEVO BOTÓN DE ELIMINAR VARIANTE (Más seguro y visible) */
-        .btn-remove-variant { 
-            width: 100%; 
-            padding: 1rem; 
-            margin-top: 1.5rem; 
-            background: var(--danger-light); 
-            color: var(--danger-color); 
-            border: 1px dashed var(--danger-color); 
-            border-radius: var(--radius-md); 
-            font-weight: 600; 
-            font-size: 0.95rem; 
-            cursor: pointer; 
-            transition: var(--transition-smooth); 
-            display: flex; 
-            align-items: center; 
-            justify-content: center; 
-            gap: 0.5rem; 
+        #loginView {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, var(--dark-studio) 0%, #2a2a35 100%);
         }
-        .btn-remove-variant:hover { 
-            background: var(--danger-color); 
-            color: var(--blanco-puro); 
+
+        .login-card {
+            background: var(--blanco-puro);
+            padding: 3rem;
+            border-radius: var(--radius-md);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+            width: 100%;
+            max-width: 400px;
+            text-align: center;
+        }
+
+        .login-logo {
+            font-family: var(--font-display);
+            font-size: 1.8rem;
+            font-weight: 800;
+            color: var(--dark-studio);
+            margin-bottom: 2rem;
+        }
+
+        .login-logo span {
+            color: var(--teal-studio);
+        }
+
+        .input-group {
+            margin-bottom: 1.5rem;
+            text-align: left;
+        }
+
+        .input-group label {
+            display: block;
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: #666;
+        }
+
+        .input-group input[type="text"],
+        .input-group input[type="number"],
+        .input-group input[type="email"],
+        .input-group input[type="password"],
+        .input-group select,
+        .input-group textarea {
+            width: 100%;
+            padding: 0.8rem 1rem;
+            border: 1px solid var(--gris-claro);
+            border-radius: 8px;
+            font-family: var(--font-main);
+            font-size: 0.95rem;
+            outline: none;
+            transition: var(--transition-smooth);
+            background: var(--fondo-claro);
+        }
+
+        .input-group input:focus,
+        .input-group select:focus,
+        .input-group textarea:focus {
+            border-color: var(--teal-studio);
+            background: var(--blanco-puro);
+            box-shadow: 0 0 0 3px var(--teal-claro);
+        }
+
+        .btn-primary {
+            width: 100%;
+            background: var(--teal-studio);
+            color: var(--blanco-puro);
+            border: none;
+            padding: 1rem;
+            border-radius: 8px;
+            font-family: var(--font-main);
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition-smooth);
+        }
+
+        .btn-primary:hover {
+            background: #10a89b;
             transform: translateY(-2px);
         }
-        
-        .btn-add-variant { grid-column: span 2; width: 100%; padding: 1.2rem; border: 2px dashed var(--teal-studio); background: rgba(19, 194, 179, 0.05); color: var(--teal-studio); font-weight: 600; font-size: 1rem; border-radius: var(--radius-md); cursor: pointer; transition: var(--transition-smooth); margin-top: 0.5rem; }
-        .btn-add-variant:hover { background: var(--teal-studio); color: var(--blanco-puro); }
+
+        .btn-secondary {
+            background: var(--gris-claro);
+            color: var(--dark-studio);
+            border: none;
+            padding: 0.8rem 1.5rem;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition-smooth);
+        }
+
+        .btn-secondary:hover {
+            background: #d5dbda;
+        }
+
+        .error-msg {
+            color: var(--danger-color);
+            font-size: 0.85rem;
+            margin-top: 1rem;
+            display: none;
+        }
+
+        /* --- DASHBOARD VIEW --- */
+        #dashboardView {
+            display: none;
+            min-height: 100vh;
+        }
+
+        .sidebar {
+            width: 250px;
+            background: var(--dark-studio);
+            color: var(--blanco-puro);
+            position: fixed;
+            height: 100vh;
+            top: 0;
+            left: 0;
+            padding: 2rem 1.5rem;
+            z-index: 100;
+        }
+
+        .sidebar-logo {
+            font-family: var(--font-display);
+            font-size: 1.5rem;
+            font-weight: 800;
+            margin-bottom: 3rem;
+        }
+
+        .sidebar-logo span {
+            color: var(--teal-studio);
+        }
+
+        .nav-menu {
+            list-style: none;
+        }
+
+        .nav-item {
+            margin-bottom: 0.5rem;
+        }
+
+        .nav-link {
+            display: block;
+            color: #aaa;
+            text-decoration: none;
+            padding: 0.8rem 1rem;
+            border-radius: 8px;
+            font-weight: 500;
+            transition: var(--transition-smooth);
+        }
+
+        .nav-link:hover,
+        .nav-link.active {
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--teal-studio);
+        }
+
+        .main-content {
+            margin-left: 250px;
+            padding: 2rem 3rem;
+        }
+
+        .topbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 3rem;
+        }
+
+        .topbar h2 {
+            font-family: var(--font-display);
+            font-size: 1.8rem;
+            font-weight: 700;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            font-weight: 600;
+        }
+
+        .logout-btn {
+            background: var(--danger-light);
+            color: var(--danger-color);
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        /* --- DATA TABLE Y FILTROS --- */
+        .card {
+            background: var(--blanco-puro);
+            border-radius: var(--radius-md);
+            padding: 1.5rem;
+            box-shadow: var(--shadow-subtle);
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .card-header h3 {
+            font-family: var(--font-display);
+            font-size: 1.2rem;
+        }
+
+        .quick-filters {
+            display: flex;
+            gap: 0.8rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .filter-btn {
+            background: var(--fondo-claro);
+            border: 1px solid var(--gris-claro);
+            padding: 0.4rem 1rem;
+            border-radius: var(--radius-pill);
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: #666;
+            cursor: pointer;
+            transition: var(--transition-smooth);
+        }
+
+        .filter-btn:hover {
+            border-color: var(--teal-studio);
+            color: var(--teal-studio);
+        }
+
+        .filter-btn.active {
+            background: var(--teal-studio);
+            color: var(--blanco-puro);
+            border-color: var(--teal-studio);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+        }
+
+        th {
+            padding: 1rem;
+            border-bottom: 2px solid var(--gris-claro);
+            color: #888;
+            font-weight: 600;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+        }
+
+        td {
+            padding: 1rem;
+            border-bottom: 1px solid var(--gris-claro);
+            font-size: 0.95rem;
+            vertical-align: middle;
+        }
+
+        tbody tr:hover {
+            background: var(--fondo-claro);
+        }
+
+        .badge {
+            padding: 0.3rem 0.8rem;
+            border-radius: 50px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .badge-active {
+            background: var(--teal-claro);
+            color: var(--teal-studio);
+        }
+
+        .badge-inactive {
+            background: var(--danger-light);
+            color: var(--danger-color);
+        }
+
+        .badge-oferta {
+            background: #fff3e0;
+            color: #e65100;
+            display: inline-block;
+            margin-top: 4px;
+            padding: 0.2rem 0.6rem;
+            font-size: 0.65rem;
+        }
+
+        .tag-display-pill {
+            background: var(--gris-claro);
+            color: #666;
+            font-size: 0.65rem;
+            padding: 3px 8px;
+            border-radius: 6px;
+            margin-right: 4px;
+            font-weight: 600;
+            display: inline-block;
+            margin-bottom: 4px;
+            text-transform: lowercase;
+        }
+
+        .color-dot {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            border: 1px solid #ddd;
+            margin-right: 5px;
+            vertical-align: middle;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        .action-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 1.2rem;
+            margin-right: 0.5rem;
+            color: #888;
+            transition: var(--transition-smooth);
+        }
+
+        .action-btn:hover {
+            color: var(--teal-studio);
+            transform: scale(1.1);
+        }
+
+        .controls-row {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        .search-input {
+            padding: 0.6rem 1.2rem;
+            border: 1px solid var(--gris-claro);
+            border-radius: var(--radius-pill);
+            font-family: var(--font-main);
+            font-size: 0.9rem;
+            outline: none;
+            width: 300px;
+            transition: var(--transition-smooth);
+            background: var(--fondo-claro);
+        }
+
+        .search-input:focus {
+            border-color: var(--teal-studio);
+            box-shadow: 0 0 0 3px var(--teal-claro);
+            background: var(--blanco-puro);
+        }
+
+        th.sortable {
+            cursor: pointer;
+            user-select: none;
+            transition: color 0.2s;
+            white-space: nowrap;
+        }
+
+        th.sortable:hover {
+            color: var(--teal-studio);
+        }
+
+        .sort-icon {
+            font-size: 0.7rem;
+            margin-left: 5px;
+            opacity: 0.3;
+            transition: opacity 0.2s;
+        }
+
+        th.sortable.active {
+            color: var(--teal-studio);
+        }
+
+        th.sortable.active .sort-icon {
+            opacity: 1;
+        }
+
+        /* --- MODAL CREAR/EDITAR PRODUCTO --- */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(30, 30, 36, 0.6);
+            backdrop-filter: blur(5px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+            opacity: 1;
+        }
+
+        .modal-content {
+            background: var(--blanco-puro);
+            width: 100%;
+            max-width: 950px;
+            max-height: 90vh;
+            border-radius: var(--radius-lg);
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15);
+            transform: translateY(20px);
+            transition: transform 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .modal-overlay.active .modal-content {
+            transform: translateY(0);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 2rem 2.5rem;
+            border-bottom: 1px solid var(--gris-claro);
+            background: var(--blanco-puro);
+            z-index: 10;
+        }
+
+        .modal-header h3 {
+            font-family: var(--font-display);
+            font-size: 1.5rem;
+            color: var(--dark-studio);
+        }
+
+        .close-modal {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #888;
+            transition: color 0.3s ease;
+        }
+
+        .close-modal:hover {
+            color: var(--danger-color);
+        }
+
+        #productForm {
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            height: 100%;
+        }
+
+        .modal-body-scroll {
+            padding: 2rem 2.5rem;
+            overflow-y: auto;
+            flex: 1;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+        }
+
+        .modal-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 1rem;
+            padding: 1.5rem 2.5rem;
+            border-top: 1px solid var(--gris-claro);
+            background: var(--fondo-claro);
+            z-index: 10;
+        }
+
+        .section-divider {
+            grid-column: span 2;
+            margin-top: 1.5rem;
+            border-bottom: 2px solid var(--gris-claro);
+            padding-bottom: 0.5rem;
+            font-family: var(--font-display);
+            font-weight: 700;
+            color: var(--dark-studio);
+            font-size: 1.2rem;
+        }
+
+        /* --- TOGGLE SWITCH DE ACTIVACIÓN --- */
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 46px;
+            height: 24px;
+            flex-shrink: 0;
+        }
+
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 24px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 18px;
+            width: 18px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        input:checked+.slider {
+            background-color: var(--teal-studio);
+        }
+
+        input:checked+.slider:before {
+            transform: translateX(22px);
+        }
+
+        .status-toggle-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .status-toggle-label {
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: var(--teal-studio);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            transition: var(--transition-smooth);
+        }
+
+        /* --- ALERTA PERSONALIZADA (MODAL CUSTOM CONFIRM) --- */
+        .custom-confirm-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(30, 30, 36, 0.6);
+            backdrop-filter: blur(5px);
+            z-index: 2000;
+            opacity: 0;
+            visibility: hidden;
+            transition: var(--transition-smooth);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+        }
+
+        .custom-confirm-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .custom-confirm-box {
+            background: var(--blanco-puro);
+            border-radius: var(--radius-lg);
+            padding: 2.5rem;
+            width: 100%;
+            max-width: 450px;
+            text-align: center;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15);
+            transform: scale(0.9) translateY(20px);
+            transition: transform 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+        }
+
+        .custom-confirm-overlay.active .custom-confirm-box {
+            transform: scale(1) translateY(0);
+        }
+
+        .custom-confirm-icon {
+            font-size: 3.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .custom-confirm-title {
+            font-family: var(--font-display);
+            font-size: 1.5rem;
+            color: var(--dark-studio);
+            margin-bottom: 1rem;
+        }
+
+        .custom-confirm-text {
+            color: #666;
+            margin-bottom: 2rem;
+            font-size: 0.95rem;
+            line-height: 1.5;
+        }
+
+        .custom-confirm-actions {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+        }
+
+        .custom-confirm-actions button {
+            flex: 1;
+            padding: 0.8rem;
+            border-radius: var(--radius-pill);
+            font-weight: 600;
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: var(--transition-smooth);
+            border: none;
+        }
+
+        .btn-cancel-modal {
+            background: var(--gris-claro);
+            color: var(--gris-oscuro);
+        }
+
+        .btn-cancel-modal:hover {
+            background: #d5dbda;
+        }
+
+        .btn-accept-modal {
+            background: var(--teal-studio);
+            color: var(--blanco-puro);
+            box-shadow: 0 4px 15px rgba(19, 194, 179, 0.3);
+        }
+
+        .btn-accept-modal:hover {
+            background: #10a89b;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(19, 194, 179, 0.4);
+        }
+
+        /* --- VARIANTES Y GALERÍA --- */
+        .variants-container {
+            grid-column: span 2;
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+            margin-top: 1rem;
+        }
+
+        .variant-card {
+            border: 2px solid var(--teal-claro);
+            border-radius: var(--radius-md);
+            padding: 1.5rem;
+            background: var(--blanco-puro);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.02);
+            position: relative;
+            transition: var(--transition-smooth);
+        }
+
+        .variant-card:hover {
+            border-color: var(--teal-studio);
+        }
+
+        .variant-header {
+            display: flex;
+            gap: 1rem;
+            align-items: flex-end;
+            margin-bottom: 1rem;
+            margin-top: 1.5rem;
+            border-top: 1px solid var(--gris-claro);
+            padding-top: 1.5rem;
+            flex-wrap: wrap;
+        }
+
+        .variant-header-col {
+            display: flex;
+            flex-direction: column;
+            gap: 0.3rem;
+        }
+
+        .variant-header input[type="text"],
+        .variant-header input[type="number"] {
+            padding: 0.6rem 1rem;
+            border: 1px solid var(--gris-claro);
+            border-radius: 8px;
+            font-family: var(--font-main);
+            font-size: 0.95rem;
+            outline: none;
+        }
+
+        /* EL NUEVO BOTÓN DE ELIMINAR VARIANTE (Más seguro y visible) */
+        .btn-remove-variant {
+            width: 100%;
+            padding: 1rem;
+            margin-top: 1.5rem;
+            background: var(--danger-light);
+            color: var(--danger-color);
+            border: 1px dashed var(--danger-color);
+            border-radius: var(--radius-md);
+            font-weight: 600;
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: var(--transition-smooth);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        .btn-remove-variant:hover {
+            background: var(--danger-color);
+            color: var(--blanco-puro);
+            transform: translateY(-2px);
+        }
+
+        .btn-add-variant {
+            grid-column: span 2;
+            width: 100%;
+            padding: 1.2rem;
+            border: 2px dashed var(--teal-studio);
+            background: rgba(19, 194, 179, 0.05);
+            color: var(--teal-studio);
+            font-weight: 600;
+            font-size: 1rem;
+            border-radius: var(--radius-md);
+            cursor: pointer;
+            transition: var(--transition-smooth);
+            margin-top: 0.5rem;
+        }
+
+        .btn-add-variant:hover {
+            background: var(--teal-studio);
+            color: var(--blanco-puro);
+        }
 
         /* GALERÍA ARRASTRABLE */
-        .images-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 0.8rem; margin-top: 0.5rem; }
-        .img-upload-box { border: 2px dashed var(--gris-claro); border-radius: 8px; padding: 0.5rem; text-align: center; position: relative; background: var(--fondo-claro); transition: var(--transition-smooth); aspect-ratio: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; }
-        .img-upload-box[draggable="true"] { cursor: grab; }
-        .img-upload-box[draggable="true"]:active { cursor: grabbing; }
-        .img-upload-box.drag-over { border-color: var(--danger-color); background: var(--danger-light); border-style: solid; transform: scale(1.05); }
-        .img-upload-box:hover { border-color: var(--teal-studio); }
-        .img-upload-box input { position: absolute; top: 0; left: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; z-index: 2; }
-        .img-upload-box img { width: 100%; height: 100%; object-fit: cover; border-radius: 6px; display: none; position: absolute; top:0; left:0; pointer-events: none;}
-        
-        .img-main-label { position: absolute; top: -10px; left: 50%; transform: translateX(-50%); background: var(--teal-studio); color: white; font-size: 0.65rem; padding: 2px 8px; border-radius: 10px; z-index: 5; font-weight: 600; box-shadow: 0 2px 5px rgba(0,0,0,0.1);}
-        
-        .btn-clear-img { position: absolute; top: -8px; right: -8px; background: var(--danger-color); color: white; border: none; width: 22px; height: 22px; border-radius: 50%; font-size: 0.7rem; font-weight: bold; cursor: pointer; z-index: 10; box-shadow: 0 2px 5px rgba(0,0,0,0.2); display: none; }
-        .img-upload-box:hover .btn-clear-img { display: flex; align-items: center; justify-content: center; }
+        .images-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 0.8rem;
+            margin-top: 0.5rem;
+        }
+
+        .img-upload-box {
+            border: 2px dashed var(--gris-claro);
+            border-radius: 8px;
+            padding: 0.5rem;
+            text-align: center;
+            position: relative;
+            background: var(--fondo-claro);
+            transition: var(--transition-smooth);
+            aspect-ratio: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .img-upload-box[draggable="true"] {
+            cursor: grab;
+        }
+
+        .img-upload-box[draggable="true"]:active {
+            cursor: grabbing;
+        }
+
+        .img-upload-box.drag-over {
+            border-color: var(--danger-color);
+            background: var(--danger-light);
+            border-style: solid;
+            transform: scale(1.05);
+        }
+
+        .img-upload-box:hover {
+            border-color: var(--teal-studio);
+        }
+
+        .img-upload-box input {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            cursor: pointer;
+            z-index: 2;
+        }
+
+        .img-upload-box img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 6px;
+            display: none;
+            position: absolute;
+            top: 0;
+            left: 0;
+            pointer-events: none;
+        }
+
+        .img-main-label {
+            position: absolute;
+            top: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--teal-studio);
+            color: white;
+            font-size: 0.65rem;
+            padding: 2px 8px;
+            border-radius: 10px;
+            z-index: 5;
+            font-weight: 600;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        .btn-clear-img {
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            background: var(--danger-color);
+            color: white;
+            border: none;
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            font-size: 0.7rem;
+            font-weight: bold;
+            cursor: pointer;
+            z-index: 10;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+            display: none;
+        }
+
+        .img-upload-box:hover .btn-clear-img {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
 
         /* SELECCIÓN MÚLTIPLE DE COLORES */
-        .multi-color-container { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; min-height: 45px;}
-        .color-input-wrapper { position: relative; display: inline-block; }
-        .variant-color-hex { width: 38px; height: 38px; padding: 0; border: none; border-radius: 50%; cursor: pointer; overflow: hidden; box-shadow: 0 2px 5px rgba(0,0,0,0.1); transition: var(--transition-smooth);}
-        .variant-color-hex::-webkit-color-swatch-wrapper { padding: 0; }
-        .variant-color-hex::-webkit-color-swatch { border: none; border-radius: 50%; }
-        .variant-color-hex:hover { transform: scale(1.1); }
-        .remove-color-btn { position: absolute; top: -5px; right: -5px; background: var(--danger-color); color: white; border: none; width: 18px; height: 18px; border-radius: 50%; font-size: 0.7rem; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 4px rgba(0,0,0,0.2); transition: var(--transition-smooth);}
-        .remove-color-btn:hover { transform: scale(1.2); }
-        .add-color-btn { width: 38px; height: 38px; border-radius: 50%; border: 2px dashed #aaa; background: transparent; color: #888; font-size: 1.2rem; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: var(--transition-smooth); }
-        .add-color-btn:hover { border-color: var(--teal-studio); color: var(--teal-studio); background: rgba(19, 194, 179, 0.1); }
+        .multi-color-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            align-items: center;
+            min-height: 45px;
+        }
+
+        .color-input-wrapper {
+            position: relative;
+            display: inline-block;
+        }
+
+        .variant-color-hex {
+            width: 38px;
+            height: 38px;
+            padding: 0;
+            border: none;
+            border-radius: 50%;
+            cursor: pointer;
+            overflow: hidden;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            transition: var(--transition-smooth);
+        }
+
+        .variant-color-hex::-webkit-color-swatch-wrapper {
+            padding: 0;
+        }
+
+        .variant-color-hex::-webkit-color-swatch {
+            border: none;
+            border-radius: 50%;
+        }
+
+        .variant-color-hex:hover {
+            transform: scale(1.1);
+        }
+
+        .remove-color-btn {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background: var(--danger-color);
+            color: white;
+            border: none;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            font-size: 0.7rem;
+            font-weight: bold;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+            transition: var(--transition-smooth);
+        }
+
+        .remove-color-btn:hover {
+            transform: scale(1.2);
+        }
+
+        .add-color-btn {
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            border: 2px dashed #aaa;
+            background: transparent;
+            color: #888;
+            font-size: 1.2rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: var(--transition-smooth);
+        }
+
+        .add-color-btn:hover {
+            border-color: var(--teal-studio);
+            color: var(--teal-studio);
+            background: rgba(19, 194, 179, 0.1);
+        }
 
         /* --- SISTEMA DE TALLAS POR STOCK --- */
-        .size-type-selector { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 1.2rem; }
-        .type-pill { background: var(--fondo-claro); border: 1px solid var(--gris-claro); color: var(--gris-oscuro); padding: 0.4rem 1rem; border-radius: var(--radius-pill); font-size: 0.85rem; font-weight: 600; cursor: pointer; transition: var(--transition-smooth); }
-        .type-pill:hover { border-color: var(--teal-claro); color: var(--teal-studio); }
-        .type-pill.active { background: var(--teal-studio); color: var(--blanco-puro); border-color: var(--teal-studio); }
+        .size-type-selector {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-bottom: 1.2rem;
+        }
 
-        .cat-pill { background: var(--fondo-claro); border: 1px solid var(--gris-claro); color: var(--gris-oscuro); padding: 0.4rem 1rem; border-radius: var(--radius-pill); font-size: 0.85rem; font-weight: 600; cursor: pointer; transition: var(--transition-smooth); }
-        .cat-pill:hover { border-color: var(--teal-claro); color: var(--teal-studio); }
-        .cat-pill.selected { background: var(--teal-studio); color: var(--blanco-puro); border-color: var(--teal-studio); }
+        .type-pill {
+            background: var(--fondo-claro);
+            border: 1px solid var(--gris-claro);
+            color: var(--gris-oscuro);
+            padding: 0.4rem 1rem;
+            border-radius: var(--radius-pill);
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition-smooth);
+        }
 
-        .size-item-row { display: flex; align-items: center; justify-content: space-between; padding: 0.5rem 0.8rem; border: 1.5px solid var(--gris-claro); border-radius: 10px; margin-bottom: 0.5rem; background: var(--blanco-puro); transition: var(--transition-smooth); min-height: 48px;}
-        .size-item-row.active-size { border-color: var(--teal-studio); background: rgba(19, 194, 179, 0.05); }
-        .size-checkbox { width: 18px; height: 18px; accent-color: var(--teal-studio); cursor: pointer; margin-right: 0.5rem; flex-shrink: 0;}
-        .size-label { font-weight: 700; color: var(--dark-studio); font-size: 0.85rem; flex: 1; line-height: 1.2; padding-right: 5px; word-break: break-word;}
-        
-        .stock-input-wrapper { display: flex; align-items: center; gap: 0.5rem; font-size: 0.75rem; font-weight: 600; color: #888; flex-shrink: 0;}
-        .stock-input-wrapper input { width: 65px; padding: 0.4rem; border: 1px solid #ccc; border-radius: 6px; text-align: center; font-family: var(--font-main); outline: none; font-weight: 700;}
-        .stock-input-wrapper input:focus { border-color: var(--teal-studio); box-shadow: 0 0 0 2px var(--teal-claro); }
-        
+        .type-pill:hover {
+            border-color: var(--teal-claro);
+            color: var(--teal-studio);
+        }
+
+        .type-pill.active {
+            background: var(--teal-studio);
+            color: var(--blanco-puro);
+            border-color: var(--teal-studio);
+        }
+
+        .cat-pill {
+            background: var(--fondo-claro);
+            border: 1px solid var(--gris-claro);
+            color: var(--gris-oscuro);
+            padding: 0.4rem 1rem;
+            border-radius: var(--radius-pill);
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition-smooth);
+        }
+
+        .cat-pill:hover {
+            border-color: var(--teal-claro);
+            color: var(--teal-studio);
+        }
+
+        .cat-pill.selected {
+            background: var(--teal-studio);
+            color: var(--blanco-puro);
+            border-color: var(--teal-studio);
+        }
+
+        .size-item-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.5rem 0.8rem;
+            border: 1.5px solid var(--gris-claro);
+            border-radius: 10px;
+            margin-bottom: 0.5rem;
+            background: var(--blanco-puro);
+            transition: var(--transition-smooth);
+            min-height: 48px;
+        }
+
+        .size-item-row.active-size {
+            border-color: var(--teal-studio);
+            background: rgba(19, 194, 179, 0.05);
+        }
+
+        .size-checkbox {
+            width: 18px;
+            height: 18px;
+            accent-color: var(--teal-studio);
+            cursor: pointer;
+            margin-right: 0.5rem;
+            flex-shrink: 0;
+        }
+
+        .size-label {
+            font-weight: 700;
+            color: var(--dark-studio);
+            font-size: 0.85rem;
+            flex: 1;
+            line-height: 1.2;
+            padding-right: 5px;
+            word-break: break-word;
+        }
+
+        .stock-input-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: #888;
+            flex-shrink: 0;
+        }
+
+        .stock-input-wrapper input {
+            width: 65px;
+            padding: 0.4rem;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            text-align: center;
+            font-family: var(--font-main);
+            outline: none;
+            font-weight: 700;
+        }
+
+        .stock-input-wrapper input:focus {
+            border-color: var(--teal-studio);
+            box-shadow: 0 0 0 2px var(--teal-claro);
+        }
+
         /* SISTEMA MULTI-PRENDA (Píldoras de Kits) */
-        .kit-components-selector { display: flex; flex-wrap: wrap; gap: 0.8rem; margin-bottom: 1.5rem; padding-bottom: 1.5rem; border-bottom: 1px dashed var(--gris-claro);}
-        .kit-comp-pill { background: var(--blanco-puro); border: 2px solid var(--gris-claro); color: #888; padding: 0.6rem 1.2rem; border-radius: 12px; font-size: 0.9rem; font-weight: 600; cursor: pointer; transition: var(--transition-smooth); display: flex; align-items: center; gap: 0.5rem;}
-        .kit-comp-pill:hover { border-color: var(--teal-claro); color: var(--teal-studio); }
-        .kit-comp-pill.active { background: var(--teal-claro); border-color: var(--teal-studio); color: var(--teal-studio); }
+        .kit-components-selector {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.8rem;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1.5rem;
+            border-bottom: 1px dashed var(--gris-claro);
+        }
 
-        .kit-components-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem; background: #F9FBFB; padding: 1.5rem; border-radius: 12px; border: 1px solid var(--gris-claro); }
-        .kit-components-grid h5 { margin-bottom: 1rem; color: var(--teal-studio); font-family: var(--font-display); font-size: 1.1rem; border-bottom: 2px solid var(--teal-claro); padding-bottom: 0.3rem; }
+        .kit-comp-pill {
+            background: var(--blanco-puro);
+            border: 2px solid var(--gris-claro);
+            color: #888;
+            padding: 0.6rem 1.2rem;
+            border-radius: 12px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition-smooth);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .kit-comp-pill:hover {
+            border-color: var(--teal-claro);
+            color: var(--teal-studio);
+        }
+
+        .kit-comp-pill.active {
+            background: var(--teal-claro);
+            border-color: var(--teal-studio);
+            color: var(--teal-studio);
+        }
+
+        .kit-components-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            background: #F9FBFB;
+            padding: 1.5rem;
+            border-radius: 12px;
+            border: 1px solid var(--gris-claro);
+        }
+
+        .kit-components-grid h5 {
+            margin-bottom: 1rem;
+            color: var(--teal-studio);
+            font-family: var(--font-display);
+            font-size: 1.1rem;
+            border-bottom: 2px solid var(--teal-claro);
+            padding-bottom: 0.3rem;
+        }
 
         /* --- ETIQUETAS --- */
-        .tags-input-container { display: flex; flex-wrap: wrap; gap: 0.5rem; width: 100%; padding: 0.5rem; border: 1px solid var(--gris-claro); border-radius: 8px; background: var(--fondo-claro); transition: var(--transition-smooth); position: relative; }
-        .tags-input-container:focus-within { border-color: var(--teal-studio); background: var(--blanco-puro); box-shadow: 0 0 0 3px var(--teal-claro); }
-        .tag-pill { background: var(--teal-claro); color: var(--teal-studio); padding: 0.3rem 0.8rem; border-radius: 50px; font-size: 0.85rem; display: flex; align-items: center; gap: 0.5rem; font-weight: 600; }
-        .tag-pill span { cursor: pointer; font-weight: 800; font-size: 0.9rem; }
-        .tag-pill span:hover { color: var(--danger-color); }
-        .tags-input-container input { border: none; outline: none; background: transparent; flex: 1; min-width: 120px; font-family: var(--font-main); font-size: 0.95rem; padding: 0.3rem; color: var(--dark-studio); }
+        .tags-input-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            width: 100%;
+            padding: 0.5rem;
+            border: 1px solid var(--gris-claro);
+            border-radius: 8px;
+            background: var(--fondo-claro);
+            transition: var(--transition-smooth);
+            position: relative;
+        }
+
+        .tags-input-container:focus-within {
+            border-color: var(--teal-studio);
+            background: var(--blanco-puro);
+            box-shadow: 0 0 0 3px var(--teal-claro);
+        }
+
+        .tag-pill {
+            background: var(--teal-claro);
+            color: var(--teal-studio);
+            padding: 0.3rem 0.8rem;
+            border-radius: 50px;
+            font-size: 0.85rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-weight: 600;
+        }
+
+        .tag-pill span {
+            cursor: pointer;
+            font-weight: 800;
+            font-size: 0.9rem;
+        }
+
+        .tag-pill span:hover {
+            color: var(--danger-color);
+        }
+
+        .tags-input-container input {
+            border: none;
+            outline: none;
+            background: transparent;
+            flex: 1;
+            min-width: 120px;
+            font-family: var(--font-main);
+            font-size: 0.95rem;
+            padding: 0.3rem;
+            color: var(--dark-studio);
+        }
 
         /* Switch inline para tabla de productos */
-        .switch-inline { position: relative; display: inline-block; width: 40px; height: 22px; margin-right: 8px; vertical-align: middle; }
-        .switch-inline input { opacity: 0; width: 0; height: 0; }
-        .slider-inline { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #e0e0e0; transition: .3s; border-radius: 22px; }
-        .slider-inline:before { position: absolute; content: ""; height: 16px; width: 16px; left: 3px; bottom: 3px; background-color: white; transition: .3s; border-radius: 50%; box-shadow: 0 2px 4px rgba(0,0,0,0.2); }
-        .switch-inline input:checked + .slider-inline { background-color: var(--teal-studio); }
-        .switch-inline input:checked + .slider-inline:before { transform: translateX(18px); }
+        .switch-inline {
+            position: relative;
+            display: inline-block;
+            width: 40px;
+            height: 22px;
+            margin-right: 8px;
+            vertical-align: middle;
+        }
+
+        .switch-inline input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider-inline {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #e0e0e0;
+            transition: .3s;
+            border-radius: 22px;
+        }
+
+        .slider-inline:before {
+            position: absolute;
+            content: "";
+            height: 16px;
+            width: 16px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: .3s;
+            border-radius: 50%;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .switch-inline input:checked+.slider-inline {
+            background-color: var(--teal-studio);
+        }
+
+        .switch-inline input:checked+.slider-inline:before {
+            transform: translateX(18px);
+        }
 
         /* Ocultar flechas nativas en inputs numéricos */
         input[type="number"]::-webkit-inner-spin-button,
-        input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
-        input[type="number"] { -moz-appearance: textfield; }
+        input[type="number"]::-webkit-outer-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+
+        input[type="number"] {
+            -moz-appearance: textfield;
+        }
 
         /* Toast de notificación */
-        #adminToast { position: fixed; bottom: 2rem; right: 2rem; padding: 0.75rem 1.4rem; border-radius: 8px; font-size: 0.9rem; font-weight: 600; color: #fff; z-index: 9999; opacity: 0; transform: translateY(10px); transition: opacity 0.3s ease, transform 0.3s ease; pointer-events: none; }
-        #adminToast.show { opacity: 1; transform: translateY(0); }
-        #adminToast.success { background: var(--teal-studio); }
-        #adminToast.error { background: var(--danger-color); }
+        #adminToast {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            padding: 0.75rem 1.4rem;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: #fff;
+            z-index: 9999;
+            opacity: 0;
+            transform: translateY(10px);
+            transition: opacity 0.3s ease, transform 0.3s ease;
+            pointer-events: none;
+        }
+
+        #adminToast.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        #adminToast.success {
+            background: var(--teal-studio);
+        }
+
+        #adminToast.error {
+            background: var(--danger-color);
+        }
 
         /* --- BADGES DE ESTADÍSTICAS (tabla de productos) --- */
-        .stat-badge { display: inline-block; padding: 4px 10px; border-radius: 20px; font-size: 0.85rem; font-weight: 600; }
-        .badge-precio { background: #e8f8f5; color: #0d9e8e; }
-        .badge-stock  { background: #e8f0fb; color: #2563eb; }
-        .badge-peso   { background: #fff3e0; color: #c2620a; }
+        .stat-badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+
+        .badge-precio {
+            background: #e8f8f5;
+            color: #0d9e8e;
+        }
+
+        .badge-stock {
+            background: #e8f0fb;
+            color: #2563eb;
+        }
+
+        .badge-peso {
+            background: #fff3e0;
+            color: #c2620a;
+        }
 
         /* --- FILA 3-COLUMNAS EN EL FORMULARIO --- */
-        .form-row-3 { grid-column: span 2; display: flex; gap: 1rem; }
-        .form-row-3 .input-group { flex: 1; margin-bottom: 0; }
+        .form-row-3 {
+            grid-column: span 2;
+            display: flex;
+            gap: 1rem;
+        }
+
+        .form-row-3 .input-group {
+            flex: 1;
+            margin-bottom: 0;
+        }
 
         /* --- CABECERA DE GRUPO EN EL MODAL --- */
         .form-group-header {
@@ -281,7 +1350,10 @@
             border-bottom: 1px solid var(--gris-claro);
             margin-top: 1.8rem;
         }
-        .form-group-header:first-child { margin-top: 0.5rem; }
+
+        .form-group-header:first-child {
+            margin-top: 0.5rem;
+        }
 
         /* --- PRECIO OFERTA (transición suave) --- */
         #offerPriceWrapper {
@@ -290,12 +1362,14 @@
             opacity: 0;
             transition: max-height 0.35s ease, opacity 0.3s ease;
         }
+
         #offerPriceWrapper.visible {
             max-height: 120px;
             opacity: 1;
         }
     </style>
 </head>
+
 <body>
 
     <div id="adminToast"></div>
@@ -304,11 +1378,13 @@
     <div id="loginView">
         <div class="login-card">
             <div class="login-logo">MATHSO<span>LUIS</span></div>
-            <p style="color: #888; margin-bottom: 2rem; font-size: 0.9rem;">Ingresa tus credenciales para acceder al panel corporativo.</p>
+            <p style="color: #888; margin-bottom: 2rem; font-size: 0.9rem;">Ingresa tus credenciales para acceder al
+                panel corporativo.</p>
             <form id="loginForm">
                 <div class="input-group">
                     <label>Correo Electrónico</label>
-                    <input type="email" id="loginEmail" required placeholder="admin@mathsoluis.cl" value="admin@mathsoluis.cl">
+                    <input type="email" id="loginEmail" required placeholder="admin@mathsoluis.cl"
+                        value="admin@mathsoluis.cl">
                 </div>
                 <div class="input-group">
                     <label>Contraseña</label>
@@ -329,14 +1405,17 @@
                 <li class="nav-item"><a href="pedidos.html" class="nav-link">📝 Pedidos</a></li>
                 <li class="nav-item"><a href="clientes.html" class="nav-link">👥 Clientes</a></li>
                 <li id="admin-only-nav" style="margin-top: 1.5rem;">
-                    <span style="display:block; font-size:0.65rem; font-weight:700; text-transform:uppercase; letter-spacing:1px; color:#555; padding:0 1rem 0.5rem;">Solo Admin</span>
+                    <span
+                        style="display:block; font-size:0.65rem; font-weight:700; text-transform:uppercase; letter-spacing:1px; color:#555; padding:0 1rem 0.5rem;">Solo
+                        Admin</span>
                     <ul style="list-style:none; padding:0; margin:0;">
                         <li class="nav-item"><a href="metricas.html" class="nav-link">📈 Métricas</a></li>
                         <li class="nav-item"><a href="actividades.html" class="nav-link">📜 Actividades</a></li>
                         <li class="nav-item"><a href="configuracion.html" class="nav-link">⚙️ Configuración</a></li>
                     </ul>
                 </li>
-                <li class="nav-item" style="margin-top: 2rem; border-top: 1px solid rgba(255,255,255,0.08); padding-top: 1rem;">
+                <li class="nav-item"
+                    style="margin-top: 2rem; border-top: 1px solid rgba(255,255,255,0.08); padding-top: 1rem;">
                     <a href="#" class="nav-link" onclick="logout(); return false;">🚪 Cerrar Sesión</a>
                 </li>
             </ul>
@@ -354,24 +1433,30 @@
             <section class="card">
                 <div class="card-header">
                     <h3>Todos los Productos</h3>
-                    
+
                     <div class="controls-row">
-                        <input type="text" id="searchInput" class="search-input" placeholder="🔍 Buscar por nombre, SKU o etiqueta...">
-                        <button class="btn-primary" style="width: auto; padding: 0.6rem 1.5rem;" onclick="openProductModal()">+ Nuevo Producto</button>
+                        <input type="text" id="searchInput" class="search-input"
+                            placeholder="🔍 Buscar por nombre, SKU o etiqueta...">
+                        <button class="btn-primary" style="width: auto; padding: 0.6rem 1.5rem;"
+                            onclick="openProductModal()">+ Nuevo Producto</button>
                     </div>
                 </div>
-                
+
                 <!-- Filtros Rápidos Sugeridos -->
                 <div class="quick-filters">
                     <button class="filter-btn active" id="btnFilterAll" onclick="setQuickFilter('all')">Todos</button>
                     <button class="filter-btn" id="btnFilterKits" onclick="setQuickFilter('kits')">Kits</button>
-                    <button class="filter-btn" id="btnFilterOfertas" onclick="setQuickFilter('ofertas')">En Oferta 🔥</button>
+                    <button class="filter-btn" id="btnFilterOfertas" onclick="setQuickFilter('ofertas')">En Oferta
+                        🔥</button>
                     <button class="filter-btn" id="btnFilterPacks" onclick="setQuickFilter('packs')">📦 Packs</button>
                 </div>
-                
-                <div id="bulkActions" style="display: none; align-items: center; gap: 10px; margin-bottom: 15px; padding: 12px 20px; background: var(--fondo-claro); border: 1px solid var(--teal-studio); border-radius: var(--radius-md);">
-                    <span id="bulkCount" style="font-weight: 700; color: var(--teal-studio); margin-right: auto;">0 seleccionados</span>
-                    <button class="btn-primary" id="btnOpenBulkModal" style="padding: 6px 15px; font-size: 0.85rem;">Editar Seleccionados</button>
+
+                <div id="bulkActions"
+                    style="display: none; align-items: center; gap: 10px; margin-bottom: 15px; padding: 12px 20px; background: var(--fondo-claro); border: 1px solid var(--teal-studio); border-radius: var(--radius-md);">
+                    <span id="bulkCount" style="font-weight: 700; color: var(--teal-studio); margin-right: auto;">0
+                        seleccionados</span>
+                    <button class="btn-primary" id="btnOpenBulkModal"
+                        style="padding: 6px 15px; font-size: 0.85rem;">Editar Seleccionados</button>
                 </div>
 
                 <div id="productsPaginationTop"></div>
@@ -380,19 +1465,28 @@
                     <table>
                         <thead>
                             <tr>
-                                <th style="width: 40px;"><input type="checkbox" id="selectAllBtn" style="cursor: pointer;"></th>
-                                <th class="sortable" onclick="sortData('id')">ID / SKU <span class="sort-icon" id="sort-id">↕️</span></th>
-                                <th class="sortable" onclick="sortData('nombre')">Producto <span class="sort-icon" id="sort-nombre">↕️</span></th>
-                                <th class="sortable" onclick="sortData('categoria_nombre')">Categoría <span class="sort-icon" id="sort-categoria_nombre">↕️</span></th>
+                                <th style="width: 40px;"><input type="checkbox" id="selectAllBtn"
+                                        style="cursor: pointer;"></th>
+                                <th class="sortable" onclick="sortData('id')">ID / SKU <span class="sort-icon"
+                                        id="sort-id">↕️</span></th>
+                                <th class="sortable" onclick="sortData('nombre')">Producto <span class="sort-icon"
+                                        id="sort-nombre">↕️</span></th>
+                                <th class="sortable" onclick="sortData('categoria_nombre')">Categoría <span
+                                        class="sort-icon" id="sort-categoria_nombre">↕️</span></th>
                                 <th>Tags (Etiquetas)</th>
-                                <th class="sortable" onclick="sortData('precio_normal')">Precio <span class="sort-icon" id="sort-precio_normal">↕️</span></th>
-                                <th class="sortable" onclick="sortData('stock')">Stock <span class="sort-icon" id="sort-stock">↕️</span></th>
+                                <th class="sortable" onclick="sortData('precio_normal')">Precio <span class="sort-icon"
+                                        id="sort-precio_normal">↕️</span></th>
+                                <th class="sortable" onclick="sortData('stock')">Stock <span class="sort-icon"
+                                        id="sort-stock">↕️</span></th>
                                 <th>Estado</th>
                                 <th>Acciones</th>
                             </tr>
                         </thead>
                         <tbody id="productsTableBody">
-                            <tr><td colspan="9" style="text-align: center; padding: 2rem;">Cargando inventario conectando con la base de datos...</td></tr>
+                            <tr>
+                                <td colspan="9" style="text-align: center; padding: 2rem;">Cargando inventario
+                                    conectando con la base de datos...</td>
+                            </tr>
                         </tbody>
                     </table>
                 </div>
@@ -421,18 +1515,21 @@
             <div class="modal-header">
                 <div style="display: flex; align-items: center; flex-wrap: wrap;">
                     <h3 id="modalTitle" style="margin-right: 10px; margin-bottom: 0;">Crear Nuevo Producto</h3>
-                    <span id="modalProductNameMirror" style="font-size: 1.1rem; color: var(--teal-studio); font-style: italic; font-weight: 500; opacity: 0.8;"></span>
+                    <span id="modalProductNameMirror"
+                        style="font-size: 1.1rem; color: var(--teal-studio); font-style: italic; font-weight: 500; opacity: 0.8;"></span>
                 </div>
                 <div class="status-toggle-wrapper">
-                    <span class="status-toggle-label" id="lblProdStatus" style="color: var(--teal-studio);">Activo en Tienda</span>
+                    <span class="status-toggle-label" id="lblProdStatus" style="color: var(--teal-studio);">Activo en
+                        Tienda</span>
                     <label class="switch">
-                        <input type="checkbox" id="prodVisible" checked onchange="document.getElementById('lblProdStatus').textContent = this.checked ? 'Activo en Tienda' : 'Oculto / Borrador'; document.getElementById('lblProdStatus').style.color = this.checked ? 'var(--teal-studio)' : '#888';">
+                        <input type="checkbox" id="prodVisible" checked
+                            onchange="document.getElementById('lblProdStatus').textContent = this.checked ? 'Activo en Tienda' : 'Oculto / Borrador'; document.getElementById('lblProdStatus').style.color = this.checked ? 'var(--teal-studio)' : '#888';">
                         <span class="slider"></span>
                     </label>
                 </div>
                 <button class="close-modal" onclick="closeProductModal()">✕</button>
             </div>
-            
+
             <form id="productForm">
                 <div class="modal-body-scroll">
                     <div class="form-grid">
@@ -446,13 +1543,17 @@
                         </div>
                         <div class="input-group" style="grid-column: span 2;">
                             <label>Descripción</label>
-                            <textarea id="prodDesc" rows="3" placeholder="Describe los materiales, el calce y los beneficios de esta prenda..."></textarea>
+                            <textarea id="prodDesc" rows="3"
+                                placeholder="Describe los materiales, el calce y los beneficios de esta prenda..."></textarea>
                         </div>
                         <div class="input-group" style="grid-column: span 2;">
-                            <label>Etiquetas de Búsqueda (Tags) <span style="font-weight: 300; font-size: 0.75rem;">(Ej: nuevo, verano)</span></label>
+                            <label>Etiquetas de Búsqueda (Tags) <span style="font-weight: 300; font-size: 0.75rem;">(Ej:
+                                    nuevo, verano)</span></label>
                             <div class="tags-input-container">
-                                <div id="selectedTagsContainer" style="display: flex; flex-wrap: wrap; gap: 0.5rem;"></div>
-                                <input type="text" id="prodTagInput" placeholder="Escribe y presiona Enter..." autocomplete="off">
+                                <div id="selectedTagsContainer" style="display: flex; flex-wrap: wrap; gap: 0.5rem;">
+                                </div>
+                                <input type="text" id="prodTagInput" placeholder="Escribe y presiona Enter..."
+                                    autocomplete="off">
                             </div>
                         </div>
 
@@ -460,7 +1561,8 @@
                         <div class="form-group-header">📦 Logística</div>
 
                         <!-- SKU · Peso · Categoría en 3 columnas -->
-                        <div style="grid-column: span 2; display: grid; grid-template-columns: 1fr 1fr 2fr; gap: 1rem; align-items: start;">
+                        <div
+                            style="grid-column: span 2; display: grid; grid-template-columns: 1fr 1fr 2fr; gap: 1rem; align-items: start;">
                             <div class="input-group" style="margin-bottom: 0;">
                                 <label>SKU (Código Base)</label>
                                 <input type="text" id="prodSku" placeholder="Ej: CS-001">
@@ -470,15 +1572,19 @@
                                 <input type="number" id="prodWeight" placeholder="Ej: 870" min="0">
                             </div>
                             <div class="input-group" style="margin-bottom: 0;">
-                                <label>Categorías <span style="color: var(--danger-color);">*</span> <span style="font-weight: 300; font-size: 0.75rem;">(al menos una)</span></label>
-                                <div id="prodCategorias" style="display: flex; gap: 0.4rem; flex-wrap: wrap; margin-top: 0.3rem;">
+                                <label>Categorías <span style="color: var(--danger-color);">*</span> <span
+                                        style="font-weight: 300; font-size: 0.75rem;">(al menos una)</span></label>
+                                <div id="prodCategorias"
+                                    style="display: flex; gap: 0.4rem; flex-wrap: wrap; margin-top: 0.3rem;">
                                     <button type="button" class="cat-pill" data-id="1">Mamás</button>
                                     <button type="button" class="cat-pill" data-id="2">Bebés</button>
                                     <button type="button" class="cat-pill" data-id="3">Niños</button>
                                     <button type="button" class="cat-pill" data-id="4">Niñas</button>
                                     <button type="button" class="cat-pill" data-id="5">Unisex</button>
                                 </div>
-                                <small id="catRequiredMsg" style="color: var(--danger-color); font-size: 0.75rem; display: none; margin-top: 4px;">⚠️ Selecciona al menos una categoría.</small>
+                                <small id="catRequiredMsg"
+                                    style="color: var(--danger-color); font-size: 0.75rem; display: none; margin-top: 4px;">⚠️
+                                    Selecciona al menos una categoría.</small>
                             </div>
                         </div>
 
@@ -487,44 +1593,65 @@
 
                         <!-- Fila A: Toggles Kit + Oferta -->
                         <div style="grid-column: span 2; display: flex; gap: 1.5rem; align-items: stretch;">
-                            <div style="flex: 1; background: rgba(19, 194, 179, 0.05); padding: 1.2rem 1.5rem; border-radius: 10px; border: 1px dashed var(--teal-studio);">
-                                <label style="display: flex; align-items: center; gap: 0.75rem; cursor: pointer; margin-bottom: 0;">
-                                    <input type="checkbox" id="prodEsKit" style="width: 20px; height: 20px; accent-color: var(--teal-studio); flex-shrink: 0;" onchange="toggleKitMode()">
+                            <div
+                                style="flex: 1; background: rgba(19, 194, 179, 0.05); padding: 1.2rem 1.5rem; border-radius: 10px; border: 1px dashed var(--teal-studio);">
+                                <label
+                                    style="display: flex; align-items: center; gap: 0.75rem; cursor: pointer; margin-bottom: 0;">
+                                    <input type="checkbox" id="prodEsKit"
+                                        style="width: 20px; height: 20px; accent-color: var(--teal-studio); flex-shrink: 0;"
+                                        onchange="toggleKitMode()">
                                     <div>
-                                        <div style="font-weight: 700; color: var(--teal-studio); font-size: 1rem; line-height: 1.2;">🛍️ Es un Kit</div>
-                                        <div style="font-size: 0.78rem; color: #888; margin-top: 3px;">Set de múltiples prendas · stock por prenda</div>
+                                        <div
+                                            style="font-weight: 700; color: var(--teal-studio); font-size: 1rem; line-height: 1.2;">
+                                            🛍️ Es un Kit</div>
+                                        <div style="font-size: 0.78rem; color: #888; margin-top: 3px;">Set de múltiples
+                                            prendas · stock por prenda</div>
                                     </div>
                                 </label>
                             </div>
-                            <div style="flex: 1; background: rgba(231, 76, 60, 0.05); padding: 1.2rem 1.5rem; border-radius: 10px; border: 1px dashed var(--danger-color);">
-                                <label style="display: flex; align-items: center; gap: 0.75rem; cursor: pointer; margin-bottom: 0;">
-                                    <input type="checkbox" id="prodOffer" style="width: 20px; height: 20px; accent-color: var(--danger-color); flex-shrink: 0;" onchange="toggleOfferPrice()">
+                            <div
+                                style="flex: 1; background: rgba(231, 76, 60, 0.05); padding: 1.2rem 1.5rem; border-radius: 10px; border: 1px dashed var(--danger-color);">
+                                <label
+                                    style="display: flex; align-items: center; gap: 0.75rem; cursor: pointer; margin-bottom: 0;">
+                                    <input type="checkbox" id="prodOffer"
+                                        style="width: 20px; height: 20px; accent-color: var(--danger-color); flex-shrink: 0;"
+                                        onchange="toggleOfferPrice()">
                                     <div>
-                                        <div style="font-weight: 700; color: var(--danger-color); font-size: 1rem; line-height: 1.2;">🔥 En Oferta</div>
-                                        <div style="font-size: 0.78rem; color: #888; margin-top: 3px;">Muestra badge y precio rebajado en la tienda</div>
+                                        <div
+                                            style="font-weight: 700; color: var(--danger-color); font-size: 1rem; line-height: 1.2;">
+                                            🔥 En Oferta</div>
+                                        <div style="font-size: 0.78rem; color: #888; margin-top: 3px;">Muestra badge y
+                                            precio rebajado en la tienda</div>
                                     </div>
                                 </label>
                             </div>
                         </div>
                         <!-- Fila A.2: Toggle B2B Pack Mayorista -->
-                        <div style="grid-column: span 2; background: rgba(138, 115, 96, 0.06); padding: 1.2rem 1.5rem; border-radius: 10px; border: 1px dashed #8A7360;">
-                            <label style="display: flex; align-items: center; gap: 0.75rem; cursor: pointer; margin-bottom: 0;">
-                                <input type="checkbox" id="isPack" style="width: 20px; height: 20px; accent-color: #8A7360; flex-shrink: 0;">
+                        <div
+                            style="grid-column: span 2; background: rgba(138, 115, 96, 0.06); padding: 1.2rem 1.5rem; border-radius: 10px; border: 1px dashed #8A7360;">
+                            <label
+                                style="display: flex; align-items: center; gap: 0.75rem; cursor: pointer; margin-bottom: 0;">
+                                <input type="checkbox" id="isPack"
+                                    style="width: 20px; height: 20px; accent-color: #8A7360; flex-shrink: 0;">
                                 <div>
-                                    <div style="font-weight: 700; color: #8A7360; font-size: 1rem; line-height: 1.2;">📦 ¿Es un Pack Surtido? (Ocultar del catálogo normal)</div>
-                                    <div style="font-size: 0.78rem; color: #888; margin-top: 3px;">Venta al por mayor B2B · sólo visible cuando el cliente activa el filtro "Packs Mayoristas"</div>
+                                    <div style="font-weight: 700; color: #8A7360; font-size: 1rem; line-height: 1.2;">📦
+                                        ¿Es un Pack Surtido? (Ocultar del catálogo normal)</div>
+                                    <div style="font-size: 0.78rem; color: #888; margin-top: 3px;">Venta al por mayor
+                                        B2B · sólo visible cuando el cliente activa el filtro "Packs Mayoristas"</div>
                                 </div>
                             </label>
                         </div>
 
                         <!-- Fila B: Precios -->
-                        <div style="grid-column: span 2; display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-top: 1rem;">
+                        <div
+                            style="grid-column: span 2; display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-top: 1rem;">
                             <div class="input-group" style="margin-bottom: 0;">
                                 <label>Precio Normal ($) *</label>
                                 <input type="number" id="prodPrecio" required placeholder="Ej: 25990" min="0">
                             </div>
                             <div class="input-group" id="offerPriceWrapper" style="margin-bottom: 0;">
-                                <label>Precio Oferta ($) <span style="color: var(--danger-color); font-size: 0.75rem;">↓ precio rebajado</span></label>
+                                <label>Precio Oferta ($) <span style="color: var(--danger-color); font-size: 0.75rem;">↓
+                                        precio rebajado</span></label>
                                 <input type="number" id="prodOfferPrice" placeholder="Ej: 19990" min="0">
                             </div>
                         </div>
@@ -532,11 +1659,15 @@
                         <!-- ═══════════ VARIANTES (tallas, colores y stock) ═══════════ -->
                         <div class="section-divider">Variantes y Stock Exacto</div>
 
-                        <div style="display: flex; gap: 10px; align-items: center; margin-bottom: 1.5rem; padding: 12px 15px; background: var(--fondo-claro); border-radius: 8px; border: 1px dashed var(--teal-studio); grid-column: span 2;">
+                        <div
+                            style="display: flex; gap: 10px; align-items: center; margin-bottom: 1.5rem; padding: 12px 15px; background: var(--fondo-claro); border-radius: 8px; border: 1px dashed var(--teal-studio); grid-column: span 2;">
                             <span style="font-size: 1.2rem;">⚡</span>
-                            <span style="font-weight: 600; font-size: 0.9rem; color: var(--dark-studio);">Llenado Rápido:</span>
-                            <input type="number" id="quickFillValue" placeholder="Ej: 10" style="width: 80px; padding: 6px; border-radius: 6px; border: 1px solid var(--gris-claro);">
-                            <button type="button" class="btn-secondary" onclick="applyQuickFill()" style="padding: 6px 15px; font-size: 0.85rem; margin: 0;">Aplicar a activas</button>
+                            <span style="font-weight: 600; font-size: 0.9rem; color: var(--dark-studio);">Llenado
+                                Rápido:</span>
+                            <input type="number" id="quickFillValue" placeholder="Ej: 10"
+                                style="width: 80px; padding: 6px; border-radius: 6px; border: 1px solid var(--gris-claro);">
+                            <button type="button" class="btn-secondary" onclick="applyQuickFill()"
+                                style="padding: 6px 15px; font-size: 0.85rem; margin: 0;">Aplicar a activas</button>
                         </div>
 
                         <div id="variantsWrapper" class="variants-container"></div>
@@ -548,36 +1679,45 @@
                         <!-- ═══════════ GRUPO 4 · INVENTARIO ═══════════ -->
                         <div class="form-group-header">📊 Inventario</div>
 
-                        <div style="grid-column: span 2; background: var(--fondo-claro); border-radius: 10px; padding: 1rem 1.5rem; display: flex; align-items: center; gap: 1rem; border: 1px solid var(--gris-claro);">
+                        <div
+                            style="grid-column: span 2; background: var(--fondo-claro); border-radius: 10px; padding: 1rem 1.5rem; display: flex; align-items: center; gap: 1rem; border: 1px solid var(--gris-claro);">
                             <div style="font-size: 2rem; line-height: 1;">📦</div>
                             <div style="flex: 1;">
-                                <div style="font-size: 0.75rem; font-weight: 600; color: #888; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px;">Stock Global (calculado automáticamente)</div>
+                                <div
+                                    style="font-size: 0.75rem; font-weight: 600; color: #888; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px;">
+                                    Stock Global (calculado automáticamente)</div>
                                 <input type="number" id="prodStock" value="0" min="0" readonly
                                     style="background: transparent; border: none; font-family: var(--font-display); font-size: 2rem; font-weight: 800; color: var(--dark-studio); width: 120px; cursor: not-allowed; padding: 0; outline: none;"
                                     title="Suma automática del stock de todas las variantes activas">
                                 <span style="font-size: 0.85rem; color: #aaa; font-weight: 500;">unidades</span>
                             </div>
-                            <div style="font-size: 0.78rem; color: #bbb; text-align: right; line-height: 1.5; max-width: 180px;">Se actualiza al definir<br>tallas en las variantes</div>
+                            <div
+                                style="font-size: 0.78rem; color: #bbb; text-align: right; line-height: 1.5; max-width: 180px;">
+                                Se actualiza al definir<br>tallas en las variantes</div>
                         </div>
 
                     </div>
                 </div>
-                
+
                 <div class="modal-actions">
                     <button type="button" class="btn-secondary" onclick="closeProductModal()">Cancelar</button>
-                    <button type="submit" class="btn-primary" style="width: auto;" id="btnSaveProduct">Guardar Producto</button>
+                    <button type="submit" class="btn-primary" style="width: auto;" id="btnSaveProduct">Guardar
+                        Producto</button>
                 </div>
             </form>
         </div>
     </div>
 
     <!-- MODAL EDICIÓN MASIVA -->
-    <div id="bulkEditModal" style="display: none; align-items: center; justify-content: center; position: fixed; z-index: 2000; inset: 0; background: rgba(0,0,0,0.5);">
-        <div style="background: var(--blanco-puro); padding: 2rem; border-radius: var(--radius-md); width: 100%; max-width: 450px; box-shadow: 0 10px 25px rgba(0,0,0,0.1);">
+    <div id="bulkEditModal"
+        style="display: none; align-items: center; justify-content: center; position: fixed; z-index: 2000; inset: 0; background: rgba(0,0,0,0.5);">
+        <div
+            style="background: var(--blanco-puro); padding: 2rem; border-radius: var(--radius-md); width: 100%; max-width: 450px; box-shadow: 0 10px 25px rgba(0,0,0,0.1);">
             <h3 style="margin-bottom: 1.5rem; color: var(--dark-studio);">Edición Masiva</h3>
             <div style="margin-bottom: 1.5rem;">
                 <label style="font-weight: 600; display: block; margin-bottom: 0.5rem;">Cambiar Estado</label>
-                <select id="bulkStatusSelect" style="width: 100%; padding: 0.8rem; border-radius: 8px; border: 1px solid var(--gris-claro); font-family: var(--font-main); font-size: 0.95rem; background: var(--fondo-claro);">
+                <select id="bulkStatusSelect"
+                    style="width: 100%; padding: 0.8rem; border-radius: 8px; border: 1px solid var(--gris-claro); font-family: var(--font-main); font-size: 0.95rem; background: var(--fondo-claro);">
                     <option value="">-- No cambiar --</option>
                     <option value="1">Activo (Visible)</option>
                     <option value="0">Oculto (Borrador)</option>
@@ -595,7 +1735,8 @@
                 <small style="color: #888;">Si no seleccionas ninguna, se mantendrán las actuales.</small>
             </div>
             <div style="display: flex; gap: 1rem; justify-content: flex-end;">
-                <button class="btn-secondary" onclick="document.getElementById('bulkEditModal').style.display='none'">Cancelar</button>
+                <button class="btn-secondary"
+                    onclick="document.getElementById('bulkEditModal').style.display='none'">Cancelar</button>
                 <button class="btn-primary" id="btnConfirmBulk" style="width: auto;">Aplicar Cambios</button>
             </div>
         </div>
@@ -604,12 +1745,12 @@
     <!-- LÓGICA JAVASCRIPT -->
     <script src="../pagination.js"></script>
     <script>
-                const loginView = document.getElementById('loginView');
+        const loginView = document.getElementById('loginView');
         const dashboardView = document.getElementById('dashboardView');
         const loginForm = document.getElementById('loginForm');
         const productsTableBody = document.getElementById('productsTableBody');
         const globalStockInput = document.getElementById('prodStock');
-        
+
         let allProducts = []; let filteredProducts = []; let CATEGORIAS_MAP = {}; let CATEGORIAS_LIST = [];
         let currentSortColumn = ''; let sortAscending = true; let editingProductId = null;
         let currentTags = []; let allExistingTags = new Set();
@@ -619,7 +1760,7 @@
 
         function makeDebounce(fn, ms) {
             let timer;
-            return function(...args) { clearTimeout(timer); timer = setTimeout(() => fn.apply(this, args), ms); };
+            return function (...args) { clearTimeout(timer); timer = setTimeout(() => fn.apply(this, args), ms); };
         }
 
         // Matrices maestras de tallas 
@@ -657,7 +1798,7 @@
 
             try {
                 const response = await fetch(`${API_BASE_URL}/api/admin/login`, {
-                    method: 'POST', headers: { 'Content-Type': 'application/json' }, 
+                    method: 'POST', headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ email: document.getElementById('loginEmail').value, password: document.getElementById('loginPassword').value })
                 });
                 const result = await response.json();
@@ -723,20 +1864,20 @@
 
         // --- SISTEMA BLINDADO DE CARGA DE PRODUCTOS ---
         // Estado paginación + búsqueda productos admin
-        let productsPage  = 1;
+        let productsPage = 1;
         let productsLimit = 20;
 
         async function loadProducts(page = productsPage, limit = productsLimit, search = productsSearch) {
-            productsPage   = page;
-            productsLimit  = limit;
+            productsPage = page;
+            productsLimit = limit;
             productsSearch = search;
             productsTableBody.innerHTML = `<tr><td colspan="9" style="text-align: center; padding: 2rem;">Cargando inventario...</td></tr>`;
             try {
                 const params = new URLSearchParams({ page, limit });
-                if (search)                          params.set('search', search);
-                if (currentQuickFilter === 'kits')   params.set('kit', '1');
+                if (search) params.set('search', search);
+                if (currentQuickFilter === 'kits') params.set('kit', '1');
                 if (currentQuickFilter === 'ofertas') params.set('oferta', '1');
-                if (currentQuickFilter === 'packs')  params.set('is_pack', '1');
+                if (currentQuickFilter === 'packs') params.set('is_pack', '1');
 
                 const response = await adminFetch(`/api/admin/products?${params}`);
                 if (!response) return;
@@ -745,7 +1886,7 @@
                 try {
                     const result = JSON.parse(text);
                     if (result.success) {
-                        allProducts    = result.data || [];
+                        allProducts = result.data || [];
                         filteredProducts = [...allProducts];
                         extractAllTags();
                         applySort(currentSortColumn || 'id', sortAscending);
@@ -786,10 +1927,10 @@
         window.setQuickFilter = (filterType) => {
             currentQuickFilter = filterType;
             document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
-            if(filterType === 'all')    document.getElementById('btnFilterAll').classList.add('active');
-            if(filterType === 'kits')   document.getElementById('btnFilterKits').classList.add('active');
-            if(filterType === 'ofertas') document.getElementById('btnFilterOfertas').classList.add('active');
-            if(filterType === 'packs')  document.getElementById('btnFilterPacks').classList.add('active');
+            if (filterType === 'all') document.getElementById('btnFilterAll').classList.add('active');
+            if (filterType === 'kits') document.getElementById('btnFilterKits').classList.add('active');
+            if (filterType === 'ofertas') document.getElementById('btnFilterOfertas').classList.add('active');
+            if (filterType === 'packs') document.getElementById('btnFilterPacks').classList.add('active');
             // Recargar desde página 1 con el nuevo filtro (el search actual se preserva)
             loadProducts(1, productsLimit, productsSearch);
         };
@@ -824,13 +1965,13 @@
                 const isChecked = product.visible === 1 ? 'checked' : '';
                 const statusText = product.visible === 1 ? '<span style="color:var(--teal-studio); font-weight:600; font-size:0.85rem;">Activo</span>' : '<span style="color:#888; font-weight:600; font-size:0.85rem;">Oculto</span>';
                 const statusBadge = `<div style="display:flex; align-items:center;"><label class="switch-inline"><input type="checkbox" ${isChecked} onchange="toggleListStatus(${product.id}, this.checked)"><span class="slider-inline"></span></label>${statusText}</div>`;
-                
+
                 const normalPriceStr = new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP' }).format(product.precio_normal || 0);
                 let displayPrice = '';
 
                 // Usar isOffer + offerPrice (nuevo) con fallback a en_oferta + precio_oferta (legado)
                 const hasOffer = product.isOffer == 1 || product.en_oferta === 1;
-                const offerAmt  = product.offerPrice || product.precio_oferta || 0;
+                const offerAmt = product.offerPrice || product.precio_oferta || 0;
 
                 if (hasOffer && offerAmt > 0) {
                     const offerPriceStr = new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP' }).format(offerAmt);
@@ -839,24 +1980,24 @@
                     displayPrice = `<strong style="color:var(--teal-studio);">${normalPriceStr}</strong>`;
                 }
 
-                const kitBadge     = product.es_kit === 1 ? `<span style="background:var(--teal-claro);color:var(--teal-studio);font-size:0.65rem;padding:2px 6px;border-radius:4px;font-weight:bold;margin-left:5px;">KIT</span>` : '';
+                const kitBadge = product.es_kit === 1 ? `<span style="background:var(--teal-claro);color:var(--teal-studio);font-size:0.65rem;padding:2px 6px;border-radius:4px;font-weight:bold;margin-left:5px;">KIT</span>` : '';
                 const isOfferBadge = hasOffer ? `<span style="display:inline-block;background:linear-gradient(135deg,#e91e8c,#e84118);color:#fff;font-size:0.68rem;padding:2px 8px;border-radius:20px;font-weight:800;margin-left:5px;letter-spacing:0.3px;box-shadow:0 2px 6px rgba(233,30,140,0.3);">🔥 OFERTA</span>` : '';
 
                 let mainImgUrl = product.variantes && product.variantes.length > 0 ? product.variantes[0].imagen_1 : '';
                 const imgThumb = mainImgUrl ? `<img src="${mainImgUrl}" style="width: 50px; height: 50px; object-fit: cover; border-radius: 8px;">` : `<div style="width:50px;height:50px;background:var(--fondo-claro);border-radius:8px;"></div>`;
 
                 let colorDots = '';
-                if(product.variantes) {
-                    product.variantes.forEach(v => { 
-                        if(v.color_hex) colorDots += renderColorDot(v.color_hex, v.color_name); 
+                if (product.variantes) {
+                    product.variantes.forEach(v => {
+                        if (v.color_hex) colorDots += renderColorDot(v.color_hex, v.color_name);
                     });
                 }
 
                 let tagsDisplay = '';
-                if(product.etiquetas) {
+                if (product.etiquetas) {
                     const tagsArray = product.etiquetas.split(',');
                     tagsDisplay = tagsArray.slice(0, 2).map(t => `<span class="tag-display-pill">${t.trim()}</span>`).join('');
-                    if(tagsArray.length > 2) tagsDisplay += `<span style="font-size:0.65rem; color:#888; font-weight:bold;">+${tagsArray.length - 2}</span>`;
+                    if (tagsArray.length > 2) tagsDisplay += `<span style="font-size:0.65rem; color:#888; font-weight:bold;">+${tagsArray.length - 2}</span>`;
                 } else {
                     tagsDisplay = `<span style="color:#ccc; font-size:0.8rem;">-</span>`;
                 }
@@ -871,7 +2012,7 @@
                     if (!Array.isArray(catArray) || catArray.length === 0) catArray = [product.categoria_id];
                     const names = catArray.map(id => categoryMap[Number(id)]).filter(Boolean);
                     catText = names.length > 0 ? names.join(', ') : (product.categoria_nombre || '-');
-                } catch(e) {
+                } catch (e) {
                     catText = categoryMap[Number(product.categoria_id)] || product.categoria_nombre || '-';
                 }
 
@@ -907,7 +2048,7 @@
         function extractAllTags() {
             allExistingTags.clear();
             allProducts.forEach(product => {
-                if (product.etiquetas) product.etiquetas.split(',').forEach(tag => { if(tag.trim()) allExistingTags.add(tag.trim().toLowerCase()); });
+                if (product.etiquetas) product.etiquetas.split(',').forEach(tag => { if (tag.trim()) allExistingTags.add(tag.trim().toLowerCase()); });
             });
         }
         function renderTags() {
@@ -919,9 +2060,9 @@
         function addTag(tagText) {
             const tag = tagText.trim().toLowerCase();
             if (tag && !currentTags.includes(tag)) { currentTags.push(tag); renderTags(); }
-            document.getElementById('prodTagInput').value = ''; 
+            document.getElementById('prodTagInput').value = '';
         }
-        window.removeTag = function(tag) { currentTags = currentTags.filter(t => t !== tag); renderTags(); }
+        window.removeTag = function (tag) { currentTags = currentTags.filter(t => t !== tag); renderTags(); }
         document.getElementById('prodTagInput').addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ',') { e.preventDefault(); addTag(e.target.value); } });
 
         // --- ORDENAMIENTO ---
@@ -939,14 +2080,14 @@
                 if (vA > vB) return isAscending ? 1 : -1;
                 return 0;
             });
-            
+
             document.querySelectorAll('th.sortable').forEach(th => {
                 th.classList.remove('active');
-                if(th.querySelector('.sort-icon')) th.querySelector('.sort-icon').textContent = '↕️';
+                if (th.querySelector('.sort-icon')) th.querySelector('.sort-icon').textContent = '↕️';
             });
-            
+
             const currentIcon = document.getElementById(`sort-${column}`);
-            if(currentIcon) {
+            if (currentIcon) {
                 currentIcon.textContent = sortAscending ? '⬆️' : '⬇️';
                 currentIcon.parentElement.classList.add('active');
             }
@@ -961,46 +2102,46 @@
         window.calculateTotalStock = () => {
             let total = 0;
             const isKit = document.getElementById('prodEsKit').checked;
-            
+
             document.querySelectorAll('.variant-card').forEach(card => {
                 let variantStock = 0;
-                
+
                 if (isKit) {
                     const activePill = card.querySelector('.kit-comp-pill.active');
                     if (activePill) {
                         const compId = activePill.dataset.compid;
                         card.querySelectorAll(`.size-stock[data-component="${compId}"]`).forEach(input => {
-                            if(input.closest('.size-item-row').classList.contains('active-size')) {
+                            if (input.closest('.size-item-row').classList.contains('active-size')) {
                                 variantStock += (parseInt(input.value) || 0);
                             }
                         });
                     }
                 } else {
                     card.querySelectorAll('.size-stock').forEach(input => {
-                        if(input.closest('.size-item-row').classList.contains('active-size')) {
+                        if (input.closest('.size-item-row').classList.contains('active-size')) {
                             variantStock += (parseInt(input.value) || 0);
                         }
                     });
                 }
-                
+
                 let colorStockInput = card.querySelector('.variant-stock-display');
-                if(colorStockInput) colorStockInput.value = variantStock;
+                if (colorStockInput) colorStockInput.value = variantStock;
                 total += variantStock;
             });
-            if(globalStockInput) globalStockInput.value = total;
+            if (globalStockInput) globalStockInput.value = total;
         };
 
         window.toggleSizeStock = (checkbox) => {
             const row = checkbox.closest('.size-item-row');
             const wrapper = row.querySelector('.stock-input-wrapper');
-            
+
             if (checkbox.checked) {
                 row.classList.add('active-size');
                 wrapper.style.display = 'flex';
             } else {
                 row.classList.remove('active-size');
                 wrapper.style.display = 'none';
-                wrapper.querySelector('input').value = 0; 
+                wrapper.querySelector('input').value = 0;
             }
             calculateTotalStock();
         };
@@ -1012,7 +2153,7 @@
             document.getElementById('cConfirmText').textContent = text;
             const btnAccept = document.getElementById('btnConfirmAccept');
             btnAccept.textContent = acceptText;
-            
+
             if (isDanger) {
                 btnAccept.style.background = 'var(--danger-color)';
                 btnAccept.style.boxShadow = '0 4px 15px rgba(231, 76, 60, 0.3)';
@@ -1031,7 +2172,7 @@
 
             btnAccept.onclick = () => {
                 modal.classList.remove('active');
-                if(acceptCallback) acceptCallback();
+                if (acceptCallback) acceptCallback();
             };
         };
 
@@ -1049,7 +2190,7 @@
 
         window.toggleKitMode = () => {
             const checkbox = document.getElementById('prodEsKit');
-            if(productVariants.length > 0) {
+            if (productVariants.length > 0) {
                 showConfirmModal(
                     '¿Cambiar Modalidad?',
                     'Cambiar la modalidad de Kit reseteará la estructura de tallas actual de todas las variantes. ¿Deseas continuar?',
@@ -1064,7 +2205,7 @@
                 // Sobrescribir el cancelar para revertir el checkbox visualmente
                 document.getElementById('btnConfirmCancel').onclick = () => {
                     document.getElementById('customConfirmModal').classList.remove('active');
-                    checkbox.checked = !checkbox.checked; 
+                    checkbox.checked = !checkbox.checked;
                 };
             } else {
                 variantsWrapper.innerHTML = '';
@@ -1105,7 +2246,7 @@
                         saved = savedData[component].find(item => item.size === size);
                     }
                 }
-                
+
                 let isChecked = saved ? 'checked' : '';
                 let stockVal = saved ? saved.stock : 0;
                 let rowClass = saved ? 'size-item-row active-size' : 'size-item-row';
@@ -1155,16 +2296,16 @@
         // --- COMPRESIÓN DE ALTA CALIDAD Y DRAG & DROP DE FOTOS ---
         window.renderVariantImages = (vId) => {
             const container = document.getElementById(`imagesGrid_${vId}`);
-            if(!container) return;
+            if (!container) return;
             const variant = productVariants.find(v => v.id === vId);
-            if(!variant) return;
+            if (!variant) return;
 
             let html = '';
-            for(let i=0; i<5; i++) {
+            for (let i = 0; i < 5; i++) {
                 const imgSrc = variant.images[i] || '';
                 const hasImg = imgSrc.length > 0;
                 const mainLabel = i === 0 ? '<span class="img-main-label">Principal</span>' : '';
-                
+
                 html += `
                 <div class="img-upload-box" 
                      draggable="${hasImg}" 
@@ -1178,7 +2319,7 @@
                     ${hasImg ? `<button type="button" class="btn-clear-img" onclick="event.stopPropagation(); clearVariantImage(${vId}, ${i})" title="Quitar foto">✕</button>` : ''}
                     
                     <span style="font-size:1.5rem; color:#ccc; margin-bottom:5px;">📷</span>
-                    <span style="font-size:0.6rem; color:#888;">Foto ${i+1}</span>
+                    <span style="font-size:0.6rem; color:#888;">Foto ${i + 1}</span>
                     
                     <input type="file" accept="image/png, image/jpeg" onchange="handleVariantImageUpload(event, ${vId}, ${i})" style="display: ${hasImg ? 'none' : 'block'};">
                     <img id="vImg_${vId}_${i}" src="${imgSrc}" style="display: ${hasImg ? 'block' : 'none'};">
@@ -1188,7 +2329,7 @@
         };
 
         window.dragImgStart = (e, vId, i) => {
-            e.dataTransfer.setData('text/plain', JSON.stringify({vId, i}));
+            e.dataTransfer.setData('text/plain', JSON.stringify({ vId, i }));
             e.dataTransfer.effectAllowed = 'move';
             setTimeout(() => e.target.style.opacity = '0.4', 0);
         };
@@ -1198,25 +2339,25 @@
         window.dropImg = (e, targetVId, targetIndex) => {
             e.preventDefault();
             e.currentTarget.classList.remove('drag-over');
-            
+
             try {
                 const data = JSON.parse(e.dataTransfer.getData('text/plain'));
-                if(data.vId !== targetVId) return; 
+                if (data.vId !== targetVId) return;
                 const sourceIndex = data.i;
-                if(sourceIndex === targetIndex) return;
+                if (sourceIndex === targetIndex) return;
 
                 const variant = productVariants.find(v => v.id === targetVId);
                 const temp = variant.images[sourceIndex];
                 variant.images[sourceIndex] = variant.images[targetIndex];
                 variant.images[targetIndex] = temp;
-                
+
                 renderVariantImages(targetVId);
             } catch (err) { console.error("Drop error", err); }
         };
 
         window.clearVariantImage = (vId, i) => {
             const variant = productVariants.find(v => v.id === vId);
-            if(variant) {
+            if (variant) {
                 variant.images[i] = "";
                 renderVariantImages(vId);
             }
@@ -1226,9 +2367,9 @@
             const file = event.target.files[0];
             if (!file) return;
             const reader = new FileReader();
-            reader.onload = function(e) {
+            reader.onload = function (e) {
                 const img = new Image();
-                img.onload = async function() {
+                img.onload = async function () {
                     const canvas = document.createElement('canvas');
 
                     // Subimos a 1600px (más resolución que antes — R2 no penaliza tamaño)
@@ -1251,7 +2392,7 @@
                     const base64 = canvas.toDataURL('image/jpeg', quality);
 
                     const variant = productVariants.find(v => v.id === vId);
-                    if(!variant) return;
+                    if (!variant) return;
 
                     // Vista previa inmediata (data URL local) mientras se sube a R2
                     variant.images[imgIndex] = base64;
@@ -1289,7 +2430,7 @@
         function addVariantUI(variantData = null) {
             const vId = variantIdCounter++;
             let isKit = document.getElementById('prodEsKit').checked;
-            
+
             let name = "Único"; let hex = "#cccccc"; let imgs = ["", "", "", "", ""];
             let parsedTallas = null;
 
@@ -1297,8 +2438,8 @@
                 name = variantData.color_name; hex = variantData.color_hex || hex;
                 imgs = [variantData.imagen_1, variantData.imagen_2, variantData.imagen_3, variantData.imagen_4, variantData.imagen_5];
                 if (variantData.tallas) {
-                    try { parsedTallas = JSON.parse(variantData.tallas); } 
-                    catch(e) { parsedTallas = variantData.tallas.split(',').map(s => ({size: s.trim(), stock: variantData.stock || 0})); }
+                    try { parsedTallas = JSON.parse(variantData.tallas); }
+                    catch (e) { parsedTallas = variantData.tallas.split(',').map(s => ({ size: s.trim(), stock: variantData.stock || 0 })); }
                 }
             }
 
@@ -1328,7 +2469,7 @@
                     }
 
                     pillsHTML += `<button type="button" class="kit-comp-pill ${isActive ? 'active' : ''}" data-compid="${comp.id}" onclick="toggleKitComponent(${vId}, '${comp.id}', this)">${comp.icon} ${comp.name}</button>`;
-                    
+
                     gridsHTML += `
                     <div id="kit_grid_${vId}_${comp.id}" style="display: ${isActive ? 'block' : 'none'};">
                         <h5>${comp.name}</h5>
@@ -1358,11 +2499,11 @@
 
                 sizesUI = `
                     <div class="size-type-selector">
-                        <button type="button" class="type-pill ${initType==='adulto'?'active':''}" onclick="changeVariantSizeType(${vId}, 'adulto', this)">Adulto</button>
-                        <button type="button" class="type-pill ${initType==='bebe'?'active':''}" onclick="changeVariantSizeType(${vId}, 'bebe', this)">Bebé</button>
-                        <button type="button" class="type-pill ${initType==='unica'?'active':''}" onclick="changeVariantSizeType(${vId}, 'unica', this)">Talla Única</button>
-                        <button type="button" class="type-pill ${initType==='sosten'?'active':''}" onclick="changeVariantSizeType(${vId}, 'sosten', this)">Sostén Maternal</button>
-                        <button type="button" class="type-pill ${initType==='calzon'?'active':''}" onclick="changeVariantSizeType(${vId}, 'calzon', this)">Calzón Maternal</button>
+                        <button type="button" class="type-pill ${initType === 'adulto' ? 'active' : ''}" onclick="changeVariantSizeType(${vId}, 'adulto', this)">Adulto</button>
+                        <button type="button" class="type-pill ${initType === 'bebe' ? 'active' : ''}" onclick="changeVariantSizeType(${vId}, 'bebe', this)">Bebé</button>
+                        <button type="button" class="type-pill ${initType === 'unica' ? 'active' : ''}" onclick="changeVariantSizeType(${vId}, 'unica', this)">Talla Única</button>
+                        <button type="button" class="type-pill ${initType === 'sosten' ? 'active' : ''}" onclick="changeVariantSizeType(${vId}, 'sosten', this)">Sostén Maternal</button>
+                        <button type="button" class="type-pill ${initType === 'calzon' ? 'active' : ''}" onclick="changeVariantSizeType(${vId}, 'calzon', this)">Calzón Maternal</button>
                     </div>
                     <div id="sizeOptions_${vId}" data-size-type="${initType}" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 1rem;">
                         ${renderSizeCheckboxes('normal', tallasNormal[initType], parsedTallas)}
@@ -1372,8 +2513,8 @@
             // Múltiples Colores Logic
             let colorsHTML = '';
             let hexArray = hex.split(',').map(h => h.trim());
-            if(hexArray.length === 0) hexArray = ['#cccccc'];
-            
+            if (hexArray.length === 0) hexArray = ['#cccccc'];
+
             hexArray.forEach(h => {
                 colorsHTML += `
                 <div class="color-input-wrapper">
@@ -1385,7 +2526,7 @@
             const card = document.createElement('div');
             card.className = 'variant-card';
             card.id = `variantCard_${vId}`;
-            
+
             card.innerHTML = `
                 <label style="font-size:0.85rem; font-weight:600; margin-bottom:0.5rem; display:block; color: var(--dark-studio);">
                     1. Galería de Imágenes <span style="font-weight:400; color:#888; font-size:0.75rem; margin-left:5px;">(Arrastra la foto para reordenar)</span>
@@ -1421,7 +2562,7 @@
                 </button>
             `;
             variantsWrapper.appendChild(card);
-            
+
             // Renderizamos la galería arrastrable después de inyectar el HTML de la tarjeta
             renderVariantImages(vId);
             calculateTotalStock();
@@ -1444,7 +2585,7 @@
 
         window.removeVariantUI = (vId) => {
             const card = document.getElementById(`variantCard_${vId}`);
-            if(card) {
+            if (card) {
                 card.style.opacity = '0';
                 card.style.transform = 'scale(0.95)';
                 setTimeout(() => {
@@ -1458,7 +2599,7 @@
         // --- FORMULARIO Y APERTURA DE MODAL ---
         const productModal = document.getElementById('productModal');
         const productForm = document.getElementById('productForm');
-        
+
         // --- HELPERS DE CATEGORÍAS MÚLTIPLES ---
         document.getElementById('prodCategorias').addEventListener('click', (e) => {
             const pill = e.target.closest('.cat-pill');
@@ -1519,10 +2660,10 @@
         function openEditModal(id) {
             const p = allProducts.find(x => x.id === id);
             if (!p) return;
-            
-            editingProductId = id; 
+
+            editingProductId = id;
             document.getElementById('modalTitle').textContent = 'Editar Producto #' + id;
-            
+
             const isVisible = p.visible === 1 || p.visible === true;
             document.getElementById('prodVisible').checked = isVisible;
             document.getElementById('lblProdStatus').textContent = isVisible ? 'Activo en Tienda' : 'Oculto / Borrador';
@@ -1557,7 +2698,7 @@
             renderTags();
 
             variantsWrapper.innerHTML = ''; productVariants = [];
-            if(p.variantes && p.variantes.length > 0) p.variantes.forEach(v => addVariantUI(v));
+            if (p.variantes && p.variantes.length > 0) p.variantes.forEach(v => addVariantUI(v));
             else addVariantUI();
 
             document.getElementById('modalProductNameMirror').textContent = '- ' + p.nombre;
@@ -1570,10 +2711,10 @@
         window.duplicateProduct = (id) => {
             const p = allProducts.find(x => x.id === id);
             if (!p) return;
-            
-            editingProductId = null; 
+
+            editingProductId = null;
             document.getElementById('modalTitle').textContent = 'Duplicar Producto (Copia)';
-            
+
             // Duplicated products start as Draft/Hidden
             document.getElementById('prodVisible').checked = false;
             document.getElementById('lblProdStatus').textContent = 'Oculto / Borrador';
@@ -1608,7 +2749,7 @@
             renderTags();
 
             variantsWrapper.innerHTML = ''; productVariants = [];
-            if(p.variantes && p.variantes.length > 0) p.variantes.forEach(v => addVariantUI(v));
+            if (p.variantes && p.variantes.length > 0) p.variantes.forEach(v => addVariantUI(v));
             else addVariantUI();
 
             document.getElementById('modalProductNameMirror').textContent = '- ' + p.nombre + ' (Copia)';
@@ -1625,10 +2766,10 @@
         productForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             const btnSave = document.getElementById('btnSaveProduct');
-            
+
             const cleanVariants = [];
             const variantCards = document.querySelectorAll('.variant-card');
-            if(variantCards.length === 0) return alert("Debes agregar al menos una variante.");
+            if (variantCards.length === 0) return alert("Debes agregar al menos una variante.");
 
             // ── Validación estricta de categoría ──────────────────────────────
             const selectedCats = getCategoriaIds();
@@ -1642,20 +2783,20 @@
                 prodCategoriasEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
                 return;
             }
-            
+
             const isKit = document.getElementById('prodEsKit').checked;
 
             variantCards.forEach(card => {
                 const vId = parseInt(card.id.replace('variantCard_', ''));
                 const stateVariant = productVariants.find(v => v.id === vId);
-                
+
                 // Extraer los colores múltiples unificados con coma
                 const colorInputs = card.querySelectorAll('.variant-color-hex');
                 const hexVals = Array.from(colorInputs).map(inp => inp.value).join(',');
                 const hex = hexVals || '#cccccc';
 
                 const name = card.querySelector('.variant-color-name').value || 'Único';
-                
+
                 let tallasPayload;
                 let totalStock = 0;
 
@@ -1666,11 +2807,11 @@
                     card.querySelectorAll('.kit-comp-pill.active').forEach(pill => {
                         const comp = pill.dataset.compid;
                         if (!firstActiveComp) firstActiveComp = comp;
-                        
+
                         card.querySelectorAll(`.size-checkbox[data-component="${comp}"]:checked`).forEach(cb => {
                             let s = parseInt(card.querySelector(`.size-stock[data-component="${comp}"][data-size="${cb.value}"]`).value) || 0;
                             tallasPayload[comp].push({ size: cb.value, stock: s });
-                            if (comp === firstActiveComp) totalStock += s; 
+                            if (comp === firstActiveComp) totalStock += s;
                         });
                     });
                     tallasPayload = JSON.stringify(tallasPayload);
@@ -1693,12 +2834,12 @@
                     tallas: tallasPayload,
                     tipo_talla: isKit ? null : tipoTalla,
                     stock: totalStock,
-                    images: stateVariant ? stateVariant.images : ["","","","",""]
+                    images: stateVariant ? stateVariant.images : ["", "", "", "", ""]
                 });
             });
 
-            const _offerOn        = document.getElementById('prodOffer').checked;
-            const _offerPriceVal  = parseInt(document.getElementById('prodOfferPrice').value) || 0;
+            const _offerOn = document.getElementById('prodOffer').checked;
+            const _offerPriceVal = parseInt(document.getElementById('prodOfferPrice').value) || 0;
 
             // ── Validación: precio de oferta obligatorio si "En Oferta" está activo ──
             if (_offerOn && _offerPriceVal <= 0) {
@@ -1708,33 +2849,33 @@
             }
 
             btnSave.textContent = 'Guardando...'; btnSave.disabled = true;
-            const _descVal        = document.getElementById('prodDesc').value || null;
-            const _tagsVal        = currentTags.length > 0 ? currentTags.join(',') : null;
+            const _descVal = document.getElementById('prodDesc').value || null;
+            const _tagsVal = currentTags.length > 0 ? currentTags.join(',') : null;
 
             const productData = {
-                admin_name:    localStorage.getItem('admin_name'),
-                nombre:        document.getElementById('prodNombre').value,
-                sku:           document.getElementById('prodSku').value || null,
+                admin_name: localStorage.getItem('admin_name'),
+                nombre: document.getElementById('prodNombre').value,
+                sku: document.getElementById('prodSku').value || null,
                 // Nuevos campos canónicos (inglés)
-                description:   _descVal,
-                tags:          _tagsVal,
-                isOffer:       _offerOn ? 1 : 0,
-                offerPrice:    _offerOn ? _offerPriceVal : 0,
+                description: _descVal,
+                tags: _tagsVal,
+                isOffer: _offerOn ? 1 : 0,
+                offerPrice: _offerOn ? _offerPriceVal : 0,
                 // Campos legacy mantenidos para compatibilidad
-                descripcion:   _descVal,
-                etiquetas:     _tagsVal,
-                en_oferta:     _offerOn ? 1 : 0,
+                descripcion: _descVal,
+                etiquetas: _tagsVal,
+                en_oferta: _offerOn ? 1 : 0,
                 precio_oferta: _offerOn ? _offerPriceVal || null : null,
-                oferta_limitada:  0,
+                oferta_limitada: 0,
                 fecha_fin_oferta: null,
                 precio_normal: parseFloat(document.getElementById('prodPrecio').value),
-                stock:         cleanVariants.reduce((sum, v) => sum + v.stock, 0),
+                stock: cleanVariants.reduce((sum, v) => sum + v.stock, 0),
                 categorias_ids: getCategoriaIds(),
-                es_kit:        isKit ? 1 : 0,
-                is_pack:       document.getElementById('isPack').checked ? 1 : 0,
-                weight:        parseInt(document.getElementById('prodWeight').value) || 0,
-                variantes:     cleanVariants,
-                visible:       document.getElementById('prodVisible').checked ? 1 : 0
+                es_kit: isKit ? 1 : 0,
+                is_pack: document.getElementById('isPack').checked ? 1 : 0,
+                weight: parseInt(document.getElementById('prodWeight').value) || 0,
+                variantes: cleanVariants,
+                visible: document.getElementById('prodVisible').checked ? 1 : 0
             };
 
             const method = editingProductId ? 'PUT' : 'POST';
@@ -1744,16 +2885,16 @@
                 const response = await adminFetch(url.replace(API_BASE_URL, ''), { method: method, body: JSON.stringify(productData) });
                 if (!response) return;
                 const text = await response.text();
-                
+
                 try {
                     const result = JSON.parse(text);
-                    if (result.success) { closeProductModal(); loadProducts(); } 
+                    if (result.success) { closeProductModal(); loadProducts(); }
                     else alert('Error: ' + result.error);
-                } catch(e) {
+                } catch (e) {
                     alert('Error Interno del servidor (500). Verifica que hayas hecho "npx wrangler deploy"');
                     console.error("Respuesta cruda:", text);
                 }
-            } catch (error) { alert('Error de conexión de red.'); } 
+            } catch (error) { alert('Error de conexión de red.'); }
             finally { btnSave.textContent = 'Guardar Producto'; btnSave.disabled = false; }
         });
 
@@ -1835,7 +2976,7 @@
                         if (!response) { errores.push(`#${id}: sin sesión`); continue; }
                         const text = await response.text();
                         let result = null;
-                        try { result = JSON.parse(text); } catch (_) {}
+                        try { result = JSON.parse(text); } catch (_) { }
                         if (!response.ok || !result || !result.success) {
                             const msg = (result && result.error) ? result.error : (text || `HTTP ${response.status}`);
                             console.error(`PUT producto #${id} falló:`, msg, 'payload:', payload);
@@ -1871,14 +3012,14 @@
             if (!confirm(`ESTA ACCIÓN ES IRREVERSIBLE.\n\n¿Seguro que deseas eliminar permanentemente el producto #${id} y todas sus variantes de color y fotos asociadas?`)) {
                 return;
             }
-            
+
             try {
                 const response = await adminFetch(`/api/admin/products/${id}`, { method: 'DELETE' });
                 if (!response) return;
                 const result = await response.json();
-                
+
                 if (result.success) {
-                    loadProducts(); 
+                    loadProducts();
                 } else {
                     alert('No se pudo eliminar: ' + result.error);
                 }
@@ -1984,4 +3125,5 @@
     </script>
 
 </body>
+
 </html>

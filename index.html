@@ -2653,7 +2653,8 @@
             <a href="/politicas.html">Políticas de Envío</a>
         </div>
         <p style="font-size: 0.85rem; color: #888; letter-spacing: 0.5px;">Desarrollado con excelencia por
-            <strong>Studio Pixel</strong> | Agencia Digital High-Ticket</p>
+            <strong>Studio Pixel</strong> | Agencia Digital High-Ticket
+        </p>
     </footer>
 
     <!-- CARRITO LATERAL OFF-CANVAS -->
@@ -2929,12 +2930,12 @@
                 if (search) params.set('search', search);
                 params.set('is_pack', currentIsPack);
                 if (currentIsSale === 1) params.set('is_sale', '1');
-                const categoryToSend = currentCategory || new URLSearchParams(window.location.search).get('category') || '';
+                const categoryToSend = (currentCategory || '').trim();
                 if (categoryToSend) params.set('category', categoryToSend);
-                
+
                 const finalUrl = `${API_URL}?${params}`;
                 console.log('[DEBUG] URL a consultar:', finalUrl);
-                
+
                 const response = await fetchWithRetry(finalUrl);
                 if (!response.ok) throw new Error(`HTTP ${response.status}`);
                 const result = await response.json();
@@ -3434,11 +3435,11 @@
         // =========================================================
         // FILTRO POR CATEGORÍA — TARJETAS CIRCULARES
         // =========================================================
-        window.filtrarCategoria = (cat) => {
-            currentCategory = cat;
+        window.selectCategoryFilter = (cat) => {
+            currentCategory = cat ? cat.trim() : '';
             currentIsPack = 0;
             currentIsSale = 0;
-            catalogPage = 1;
+            catalogPage = 1; // Reseteo estricto
             catalogSearch = '';
             const sInput = document.getElementById('searchInput');
             if (sInput) sInput.value = '';
@@ -3446,11 +3447,13 @@
             if (mInput) mInput.value = '';
             document.getElementById('packFilterContainer').style.display = 'none';
             document.getElementById('cyberFilterContainer').style.display = 'none';
-            document.getElementById('activeFilterName').textContent = cat.toUpperCase();
+            document.getElementById('activeFilterName').textContent = currentCategory.toUpperCase();
             document.getElementById('activeFilterContainer').style.display = 'flex';
             fetchCatalog(1, catalogLimit, '');
             document.getElementById('catalogo').scrollIntoView({ behavior: 'smooth' });
         };
+        // Mantener compatibilidad con llamadas HTML previas
+        window.filtrarCategoria = window.selectCategoryFilter;
 
         // Escuchador principal — debounce 400ms → búsqueda server-side
         const _debouncedCatalogSearch = makeDebounce((term) => {

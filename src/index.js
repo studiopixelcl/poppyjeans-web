@@ -14,14 +14,14 @@ async function hashPassword(password) {
 // Función auxiliar para descifrar el Token de Google
 function parseJwtPayload(token) {
   try {
-      const base64Url = token.split('.')[1];
-      const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-      const binaryString = atob(base64);
-      const bytes = new Uint8Array(binaryString.length);
-      for (let i = 0; i < binaryString.length; i++) bytes[i] = binaryString.charCodeAt(i);
-      const decoder = new TextDecoder('utf-8');
-      return JSON.parse(decoder.decode(bytes));
-  } catch(e) { return null; }
+    const base64Url = token.split('.')[1];
+    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+    const binaryString = atob(base64);
+    const bytes = new Uint8Array(binaryString.length);
+    for (let i = 0; i < binaryString.length; i++) bytes[i] = binaryString.charCodeAt(i);
+    const decoder = new TextDecoder('utf-8');
+    return JSON.parse(decoder.decode(bytes));
+  } catch (e) { return null; }
 }
 
 const formatCurrency = (amount) => '$' + amount.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
@@ -35,7 +35,7 @@ function parseCategorias(raw) {
   try {
     const parsed = JSON.parse(s);
     if (Array.isArray(parsed)) return parsed.map(Number).filter(Boolean);
-  } catch (_) {}
+  } catch (_) { }
   return s.split(',').map(x => parseInt(x, 10)).filter(Boolean);
 }
 
@@ -87,10 +87,10 @@ async function uploadBase64ToR2(env, dataUrl, meta = {}) {
   const base64 = match[2];
 
   const ext = mime === 'image/jpeg' ? 'jpg'
-            : mime === 'image/png'  ? 'png'
-            : mime === 'image/webp' ? 'webp'
-            : mime === 'image/gif'  ? 'gif'
-            : 'bin';
+    : mime === 'image/png' ? 'png'
+      : mime === 'image/webp' ? 'webp'
+        : mime === 'image/gif' ? 'gif'
+          : 'bin';
 
   // Decodificar Base64 a bytes
   const binary = atob(base64);
@@ -167,36 +167,36 @@ async function sendWelcomeEmail(env, email, nombre) {
   </div>`;
 
   try {
-      const resendRes = await fetch('https://api.resend.com/emails', {
-          method: 'POST', headers: { 'Authorization': `Bearer ${env.RESEND_API_KEY}`, 'Content-Type': 'application/json' },
-          body: JSON.stringify({ from: 'Mathsoluis <pedidos@mathsoluis.cl>', to: [email], subject: '¡Bienvenida a Mathsoluis! 💖', html: htmlContent })
-      });
-      if (!resendRes.ok) {
-          const dataError = await resendRes.json().catch(async () => ({ raw: await resendRes.text() }));
-          console.error("Error en Resend (bienvenida):", JSON.stringify(dataError));
-      }
+    const resendRes = await fetch('https://api.resend.com/emails', {
+      method: 'POST', headers: { 'Authorization': `Bearer ${env.RESEND_API_KEY}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ from: 'Mathsoluis <pedidos@mathsoluis.cl>', to: [email], subject: '¡Bienvenida a Mathsoluis! 💖', html: htmlContent })
+    });
+    if (!resendRes.ok) {
+      const dataError = await resendRes.json().catch(async () => ({ raw: await resendRes.text() }));
+      console.error("Error en Resend (bienvenida):", JSON.stringify(dataError));
+    }
   } catch (error) { console.error("Error enviando email:", error); }
 }
 
 // 2. Correo de Confirmación de Pedido
 async function sendOrderConfirmationEmail(env, customer, orderId, cart, total) {
-    if (!env.RESEND_API_KEY) return;
+  if (!env.RESEND_API_KEY) return;
 
-    const primerNombre = customer.nombre.split(' ')[0];
+  const primerNombre = customer.nombre.split(' ')[0];
 
-    let itemsHtml = '';
-    cart.forEach(item => {
-        // Si hay URL de imagen → <img> real. Si no → cuadrado beige con emoji 📦
-        // (display:flex no funciona en todos los clientes de correo; usamos text-align + padding)
-        const imgCell = item.img
-            ? `<img src="${item.img}" alt="${item.name}" width="65" height="65"
+  let itemsHtml = '';
+  cart.forEach(item => {
+    // Si hay URL de imagen → <img> real. Si no → cuadrado beige con emoji 📦
+    // (display:flex no funciona en todos los clientes de correo; usamos text-align + padding)
+    const imgCell = item.img
+      ? `<img src="${item.img}" alt="${item.name}" width="65" height="65"
                     style="width:65px;height:65px;object-fit:cover;border-radius:10px;
                            display:block;border:1px solid #FCEEF2;" />`
-            : `<div style="width:65px;height:65px;background-color:#F4F0EC;
+      : `<div style="width:65px;height:65px;background-color:#F4F0EC;
                            border-radius:10px;text-align:center;
                            padding-top:14px;font-size:28px;
                            box-sizing:border-box;">📦</div>`;
-        itemsHtml += `
+    itemsHtml += `
             <tr>
                 <td style="padding: 15px 0; border-bottom: 1px solid #FCEEF2; width: 75px;" valign="top">
                     ${imgCell}
@@ -210,9 +210,9 @@ async function sendOrderConfirmationEmail(env, customer, orderId, cart, total) {
                 </td>
             </tr>
         `;
-    });
+  });
 
-    const htmlContent = `
+  const htmlContent = `
     <div style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; max-width: 600px; margin: 0 auto; background-color: #FFF8F0; border: 1px solid #FCEEF2; border-radius: 16px; overflow: hidden;">
         <div style="background-color: #FFFFFF; padding: 40px 30px; text-align: center; border-bottom: 2px solid #FCEEF2;">
             <img src="${LOGO_URL}" alt="Mathsoluis" style="width: 100px; height: auto; border-radius: 10px; object-fit: contain; margin-bottom: 15px; display: block; margin-left: auto; margin-right: auto;" />
@@ -255,86 +255,86 @@ async function sendOrderConfirmationEmail(env, customer, orderId, cart, total) {
         </div>
     </div>`;
 
-    try {
-        const resendRes = await fetch('https://api.resend.com/emails', {
-            method: 'POST', headers: { 'Authorization': `Bearer ${env.RESEND_API_KEY}`, 'Content-Type': 'application/json' },
-            body: JSON.stringify({ from: 'Mathsoluis <pedidos@mathsoluis.cl>', to: [customer.email], subject: `Confirmación de Pedido #${orderId} 💖`, html: htmlContent })
-        });
-        if (!resendRes.ok) {
-            const dataError = await resendRes.json().catch(async () => ({ raw: await resendRes.text() }));
-            console.error("Error en Resend (confirmación):", JSON.stringify(dataError));
-        }
-    } catch (error) { console.error("Error enviando email de compra:", error); }
+  try {
+    const resendRes = await fetch('https://api.resend.com/emails', {
+      method: 'POST', headers: { 'Authorization': `Bearer ${env.RESEND_API_KEY}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ from: 'Mathsoluis <pedidos@mathsoluis.cl>', to: [customer.email], subject: `Confirmación de Pedido #${orderId} 💖`, html: htmlContent })
+    });
+    if (!resendRes.ok) {
+      const dataError = await resendRes.json().catch(async () => ({ raw: await resendRes.text() }));
+      console.error("Error en Resend (confirmación):", JSON.stringify(dataError));
+    }
+  } catch (error) { console.error("Error enviando email de compra:", error); }
 }
 
 // 3. Correo de Cambio de Estado de Pedido
 async function sendOrderStatusChangeEmail(env, order, customerEmail, customerName) {
-    if (!env.RESEND_API_KEY) return;
+  if (!env.RESEND_API_KEY) return;
 
-    const primerNombre = (customerName || 'Cliente').split(' ')[0];
-    const estado = order.estado;
-    const orderId = order.id;
+  const primerNombre = (customerName || 'Cliente').split(' ')[0];
+  const estado = order.estado;
+  const orderId = order.id;
 
-    const statusLabels = {
-        'Pendiente': { label: 'Pendiente de Pago',  emoji: '🟡', color: '#D4AC0D', bg: '#FEF9E7' },
-        'Pagado':    { label: 'Pago Confirmado',     emoji: '🔵', color: '#13C2B3', bg: '#E0F6F5' },
-        'Preparando':{ label: 'En Preparación',      emoji: '🟣', color: '#8E44AD', bg: '#F4ECF7' },
-        'Enviado':   { label: 'En Camino',            emoji: '🚚', color: '#1ABC9C', bg: '#E8F8F5' },
-        'Entregado': { label: 'Entregado',            emoji: '✅', color: '#27AE60', bg: '#EAFAF1' },
-        'Cancelado': { label: 'Cancelado',            emoji: '🔴', color: '#E74C3C', bg: '#FDEDEC' },
+  const statusLabels = {
+    'Pendiente': { label: 'Pendiente de Pago', emoji: '🟡', color: '#D4AC0D', bg: '#FEF9E7' },
+    'Pagado': { label: 'Pago Confirmado', emoji: '🔵', color: '#13C2B3', bg: '#E0F6F5' },
+    'Preparando': { label: 'En Preparación', emoji: '🟣', color: '#8E44AD', bg: '#F4ECF7' },
+    'Enviado': { label: 'En Camino', emoji: '🚚', color: '#1ABC9C', bg: '#E8F8F5' },
+    'Entregado': { label: 'Entregado', emoji: '✅', color: '#27AE60', bg: '#EAFAF1' },
+    'Cancelado': { label: 'Cancelado', emoji: '🔴', color: '#E74C3C', bg: '#FDEDEC' },
+  };
+  const statusMessages = {
+    'Pendiente': 'Tu pedido está pendiente de confirmación de pago.',
+    'Pagado': '¡Tu pago ha sido confirmado! Ya comenzamos a revisar tu pedido.',
+    'Preparando': '¡Estamos preparando tu pedido con mucho amor y cuidado!',
+    'Enviado': '¡Tu pedido está en camino! Ya fue despachado y pronto llegará a tus manos.',
+    'Entregado': '¡Tu pedido fue entregado! Esperamos que les encanten las prendas.',
+    'Cancelado': 'Tu pedido ha sido cancelado. Si tienes preguntas, contáctanos.',
+  };
+  const subjectLabels = {
+    'Pendiente': `Pedido #${orderId} — Pendiente de Pago`,
+    'Pagado': `¡Pedido #${orderId} confirmado! 💖`,
+    'Preparando': `Tu pedido #${orderId} está en preparación 🎀`,
+    'Enviado': `¡Tu pedido #${orderId} está en camino! 🚚`,
+    'Entregado': `¡Pedido #${orderId} entregado con éxito! ✨`,
+    'Cancelado': `Pedido #${orderId} cancelado`,
+  };
+
+  const si = statusLabels[estado] || { label: estado, emoji: '📦', color: '#8A7360', bg: '#FFF8F0' };
+  const statusMsg = statusMessages[estado] || 'El estado de tu pedido ha sido actualizado.';
+  const subject = subjectLabels[estado] || `Actualización de tu pedido #${orderId}`;
+
+  // Bloque de tracking — solo si está Enviado y tiene número
+  let trackingHtml = '';
+  if (estado === 'Enviado' && order.tracking_code) {
+    const tc = order.tracking_code;
+    const courier = order.courier || '';
+    const courierUrls = {
+      'Blue Express': `https://www.blue.cl/seguimiento/?codigo=${tc}`,
+      'Starken': `https://www.starken.cl/seguimiento?codigo=${tc}`,
+      'Chilexpress': `https://www.chilexpress.cl/Views/Chilexpress/Estado-envio.aspx?DATA=${tc}`,
+      'Correos de Chile': `https://www.correos.cl/web/guest/seguimiento-en-linea?tracking_number=${tc}`,
     };
-    const statusMessages = {
-        'Pendiente':  'Tu pedido está pendiente de confirmación de pago.',
-        'Pagado':     '¡Tu pago ha sido confirmado! Ya comenzamos a revisar tu pedido.',
-        'Preparando': '¡Estamos preparando tu pedido con mucho amor y cuidado!',
-        'Enviado':    '¡Tu pedido está en camino! Ya fue despachado y pronto llegará a tus manos.',
-        'Entregado':  '¡Tu pedido fue entregado! Esperamos que les encanten las prendas.',
-        'Cancelado':  'Tu pedido ha sido cancelado. Si tienes preguntas, contáctanos.',
-    };
-    const subjectLabels = {
-        'Pendiente':  `Pedido #${orderId} — Pendiente de Pago`,
-        'Pagado':     `¡Pedido #${orderId} confirmado! 💖`,
-        'Preparando': `Tu pedido #${orderId} está en preparación 🎀`,
-        'Enviado':    `¡Tu pedido #${orderId} está en camino! 🚚`,
-        'Entregado':  `¡Pedido #${orderId} entregado con éxito! ✨`,
-        'Cancelado':  `Pedido #${orderId} cancelado`,
-    };
+    const trackingUrl = courierUrls[courier];
 
-    const si = statusLabels[estado] || { label: estado, emoji: '📦', color: '#8A7360', bg: '#FFF8F0' };
-    const statusMsg = statusMessages[estado] || 'El estado de tu pedido ha sido actualizado.';
-    const subject   = subjectLabels[estado]  || `Actualización de tu pedido #${orderId}`;
-
-    // Bloque de tracking — solo si está Enviado y tiene número
-    let trackingHtml = '';
-    if (estado === 'Enviado' && order.tracking_code) {
-        const tc = order.tracking_code;
-        const courier = order.courier || '';
-        const courierUrls = {
-            'Blue Express':      `https://www.blue.cl/seguimiento/?codigo=${tc}`,
-            'Starken':           `https://www.starken.cl/seguimiento?codigo=${tc}`,
-            'Chilexpress':       `https://www.chilexpress.cl/Views/Chilexpress/Estado-envio.aspx?DATA=${tc}`,
-            'Correos de Chile':  `https://www.correos.cl/web/guest/seguimiento-en-linea?tracking_number=${tc}`,
-        };
-        const trackingUrl = courierUrls[courier];
-
-        if (trackingUrl) {
-            trackingHtml = `
+    if (trackingUrl) {
+      trackingHtml = `
             <div style="text-align:center; margin:30px 0;">
                 <p style="color:#A09389; font-size:14px; margin-bottom:5px;">Tu número de seguimiento:</p>
                 <p style="font-family:monospace; font-size:20px; font-weight:bold; color:#8A7360; margin:0 0 20px 0; letter-spacing:2px;">${tc}</p>
                 <a href="${trackingUrl}" target="_blank" style="display:inline-block; background-color:#13C2B3; color:#FFFFFF; text-decoration:none; padding:16px 40px; border-radius:50px; font-weight:bold; font-size:15px; letter-spacing:1px;">🔍 Rastrear con ${courier}</a>
             </div>`;
-        } else {
-            trackingHtml = `
+    } else {
+      trackingHtml = `
             <div style="text-align:center; margin:30px 0; background:#F4F0EC; border-radius:12px; padding:20px; border:1px solid #E8E0D8;">
                 <p style="color:#A09389; font-size:14px; margin-bottom:5px;">Tu número de seguimiento:</p>
                 <p style="font-family:monospace; font-size:22px; font-weight:bold; color:#8A7360; margin:0; letter-spacing:2px;">${tc}</p>
                 ${courier && courier !== 'Otro' ? `<p style="color:#A09389; font-size:13px; margin:10px 0 0 0;">Courier: ${courier}</p>` : ''}
             </div>`;
-        }
     }
+  }
 
-    const htmlContent = `
+  const htmlContent = `
     <div style="font-family:'Helvetica Neue',Helvetica,Arial,sans-serif; max-width:600px; margin:0 auto; background-color:#FFF8F0; border:1px solid #FCEEF2; border-radius:16px; overflow:hidden;">
         <div style="background-color:#FFFFFF; padding:40px 30px; text-align:center; border-bottom:2px solid #FCEEF2;">
             <img src="${LOGO_URL}" alt="Mathsoluis" style="width:100px; height:auto; border-radius:10px; object-fit:contain; margin-bottom:15px; display:block; margin-left:auto; margin-right:auto;" />
@@ -357,25 +357,25 @@ async function sendOrderStatusChangeEmail(env, order, customerEmail, customerNam
         </div>
     </div>`;
 
-    try {
-        const resendRes = await fetch('https://api.resend.com/emails', {
-            method: 'POST', headers: { 'Authorization': `Bearer ${env.RESEND_API_KEY}`, 'Content-Type': 'application/json' },
-            body: JSON.stringify({ from: 'Mathsoluis <pedidos@mathsoluis.cl>', to: [customerEmail], subject, html: htmlContent })
-        });
-        if (!resendRes.ok) {
-            const dataError = await resendRes.json().catch(async () => ({ raw: await resendRes.text() }));
-            console.error("Error en Resend (cambio de estado):", JSON.stringify(dataError));
-        }
-    } catch (error) { console.error("Error enviando email de cambio de estado:", error); }
+  try {
+    const resendRes = await fetch('https://api.resend.com/emails', {
+      method: 'POST', headers: { 'Authorization': `Bearer ${env.RESEND_API_KEY}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ from: 'Mathsoluis <pedidos@mathsoluis.cl>', to: [customerEmail], subject, html: htmlContent })
+    });
+    if (!resendRes.ok) {
+      const dataError = await resendRes.json().catch(async () => ({ raw: await resendRes.text() }));
+      console.error("Error en Resend (cambio de estado):", JSON.stringify(dataError));
+    }
+  } catch (error) { console.error("Error enviando email de cambio de estado:", error); }
 }
 
 // 4. Registro de Actividades (Caja Negra)
 async function logActivity(env, adminName, action, entityType, entityId, details) {
-    try {
-        const santiagoDate = new Date().toLocaleString("es-CL", {timeZone: "America/Santiago"});
-        await env.DB.prepare(`INSERT INTO ActivityLogs (admin_name, action, entity_type, entity_id, details, fecha) VALUES (?, ?, ?, ?, ?, ?)`)
-          .bind(adminName, action, entityType, String(entityId), details, santiagoDate).run();
-    } catch(e) { console.error("Error registrando actividad", e); }
+  try {
+    const santiagoDate = new Date().toLocaleString("es-CL", { timeZone: "America/Santiago" });
+    await env.DB.prepare(`INSERT INTO ActivityLogs (admin_name, action, entity_type, entity_id, details, fecha) VALUES (?, ?, ?, ?, ?, ?)`)
+      .bind(adminName, action, entityType, String(entityId), details, santiagoDate).run();
+  } catch (e) { console.error("Error registrando actividad", e); }
 }
 
 const corsHeaders = {
@@ -402,573 +402,642 @@ export default {
     // ========================================================================
 
     if (url.pathname === "/api/auth/google" && request.method === "POST") {
-        try {
-            const { token } = await request.json();
-            const payload = parseJwtPayload(token);
-            if (!payload || !payload.email) return Response.json({ success: false, error: "Token inválido" }, { headers: corsHeaders });
+      try {
+        const { token } = await request.json();
+        const payload = parseJwtPayload(token);
+        if (!payload || !payload.email) return Response.json({ success: false, error: "Token inválido" }, { headers: corsHeaders });
 
-            const googleId = payload.sub; const email = payload.email; const nombre = payload.name;
+        const googleId = payload.sub; const email = payload.email; const nombre = payload.name;
 
-            let customer = await env.DB.prepare("SELECT * FROM Customers WHERE email = ?").bind(email).first();
-            if (!customer) {
-                const info = await env.DB.prepare("INSERT INTO Customers (google_id, nombre, email) VALUES (?, ?, ?)").bind(googleId, nombre, email).run();
-                customer = { id: info.meta.last_row_id, nombre, email };
-                ctx.waitUntil(sendWelcomeEmail(env, email, nombre));
-            } else if (!customer.google_id) {
-                await env.DB.prepare("UPDATE Customers SET google_id = ? WHERE email = ?").bind(googleId, email).run();
-            }
-            return Response.json({ success: true, customer: { id: customer.id, nombre: customer.nombre, email: customer.email } }, { headers: corsHeaders });
-        } catch (error) { return Response.json({ success: false, error: error.message }, { status: 500, headers: corsHeaders }); }
+        let customer = await env.DB.prepare("SELECT * FROM Customers WHERE email = ?").bind(email).first();
+        if (!customer) {
+          const info = await env.DB.prepare("INSERT INTO Customers (google_id, nombre, email) VALUES (?, ?, ?)").bind(googleId, nombre, email).run();
+          customer = { id: info.meta.last_row_id, nombre, email };
+          ctx.waitUntil(sendWelcomeEmail(env, email, nombre));
+        } else if (!customer.google_id) {
+          await env.DB.prepare("UPDATE Customers SET google_id = ? WHERE email = ?").bind(googleId, email).run();
+        }
+        return Response.json({ success: true, customer: { id: customer.id, nombre: customer.nombre, email: customer.email } }, { headers: corsHeaders });
+      } catch (error) { return Response.json({ success: false, error: error.message }, { status: 500, headers: corsHeaders }); }
     }
 
     if (url.pathname === "/api/auth/register" && request.method === "POST") {
-        try {
-            const { nombre, email, password } = await request.json();
-            const existing = await env.DB.prepare("SELECT id FROM Customers WHERE email = ?").bind(email).first();
-            if (existing) return Response.json({ success: false, error: "Correo ya registrado." }, { status: 400, headers: corsHeaders });
+      try {
+        const { nombre, email, password } = await request.json();
+        const existing = await env.DB.prepare("SELECT id FROM Customers WHERE email = ?").bind(email).first();
+        if (existing) return Response.json({ success: false, error: "Correo ya registrado." }, { status: 400, headers: corsHeaders });
 
-            const hashedPass = await hashPassword(password);
-            const info = await env.DB.prepare("INSERT INTO Customers (nombre, email, password_hash) VALUES (?, ?, ?)").bind(nombre, email, hashedPass).run();
-            ctx.waitUntil(sendWelcomeEmail(env, email, nombre));
+        const hashedPass = await hashPassword(password);
+        const info = await env.DB.prepare("INSERT INTO Customers (nombre, email, password_hash) VALUES (?, ?, ?)").bind(nombre, email, hashedPass).run();
+        ctx.waitUntil(sendWelcomeEmail(env, email, nombre));
 
-            return Response.json({ success: true, customer: { id: info.meta.last_row_id, nombre, email } }, { headers: corsHeaders });
-        } catch (error) { return Response.json({ success: false, error: error.message }, { status: 500, headers: corsHeaders }); }
+        return Response.json({ success: true, customer: { id: info.meta.last_row_id, nombre, email } }, { headers: corsHeaders });
+      } catch (error) { return Response.json({ success: false, error: error.message }, { status: 500, headers: corsHeaders }); }
     }
 
     if (url.pathname === "/api/auth/login" && request.method === "POST") {
-        try {
-            const { email, password } = await request.json();
-            const customer = await env.DB.prepare("SELECT * FROM Customers WHERE email = ?").bind(email).first();
-            if (!customer) return Response.json({ success: false, error: "Correo o contraseña incorrectos." }, { status: 401, headers: corsHeaders });
-            if (customer.google_id && !customer.password_hash) return Response.json({ success: false, error: "Usa el botón de Google para ingresar." }, { status: 401, headers: corsHeaders });
+      try {
+        const { email, password } = await request.json();
+        const customer = await env.DB.prepare("SELECT * FROM Customers WHERE email = ?").bind(email).first();
+        if (!customer) return Response.json({ success: false, error: "Correo o contraseña incorrectos." }, { status: 401, headers: corsHeaders });
+        if (customer.google_id && !customer.password_hash) return Response.json({ success: false, error: "Usa el botón de Google para ingresar." }, { status: 401, headers: corsHeaders });
 
-            const hashedPass = await hashPassword(password);
-            if (customer.password_hash !== hashedPass) return Response.json({ success: false, error: "Correo o contraseña incorrectos." }, { status: 401, headers: corsHeaders });
+        const hashedPass = await hashPassword(password);
+        if (customer.password_hash !== hashedPass) return Response.json({ success: false, error: "Correo o contraseña incorrectos." }, { status: 401, headers: corsHeaders });
 
-            return Response.json({ success: true, customer: { id: customer.id, nombre: customer.nombre, email: customer.email, telefono: customer.telefono, direccion: customer.direccion, comuna: customer.comuna, region: customer.region } }, { headers: corsHeaders });
-        } catch (error) { return Response.json({ success: false, error: error.message }, { status: 500, headers: corsHeaders }); }
+        return Response.json({ success: true, customer: { id: customer.id, nombre: customer.nombre, email: customer.email, telefono: customer.telefono, direccion: customer.direccion, comuna: customer.comuna, region: customer.region } }, { headers: corsHeaders });
+      } catch (error) { return Response.json({ success: false, error: error.message }, { status: 500, headers: corsHeaders }); }
     }
 
     if (url.pathname === "/api/shipping/quote" && request.method === "POST") {
-        try {
-            const { region, comuna, cart } = await request.json();
+      try {
+        const { region, comuna, cart } = await request.json();
 
-            // Sumar peso total del carrito; default 500g por item si no tiene weight
-            let totalWeightGrams = 0;
-            if (Array.isArray(cart) && cart.length > 0) {
-                for (const item of cart) {
-                    const w = (typeof item.weight === 'number' && item.weight > 0) ? item.weight : 500;
-                    totalWeightGrams += w * (item.quantity || 1);
-                }
-            }
-
-            // Tallas Blue Express (en gramos)
-            let tier;
-            if (totalWeightGrams < 500)       tier = 'XS';
-            else if (totalWeightGrams < 3000) tier = 'S';
-            else if (totalWeightGrams < 6000) tier = 'M';
-            else                              tier = 'L';
-
-            // Zonas tarifarias — valores exactos del <select> en checkout.html
-            const CENTRAL = ["Valparaíso", "O'Higgins", "Maule", "Coquimbo", "Ñuble", "Biobío"];
-            const REMOTE  = ["Arica y Parinacota", "Tarapacá", "Antofagasta", "Atacama", "La Araucanía", "Los Ríos", "Los Lagos", "Aysén", "Magallanes"];
-
-            // Tarifas Blue Express por zona y talla (CLP)
-            const PRICING = {
-                RM:      { XS: 3100, S: 3650, M: 4700,  L: 5700  },
-                Central: { XS: 3900, S: 4300, M: 7000,  L: 9600  },
-                Remote:  { XS: 6000, S: 7500, M: 10000, L: 15000 },
-            };
-
-            let zone;
-            if (region === "Región Metropolitana") zone = 'RM';
-            else if (REMOTE.includes(region))      zone = 'Remote';
-            else                                   zone = 'Central';
-
-            const cost = PRICING[zone][tier];
-            return Response.json({ success: true, courier: 'Blue Express', cost, weight: totalWeightGrams }, { headers: corsHeaders });
-        } catch (error) {
-            return Response.json({ success: false, error: error.message }, { status: 500, headers: corsHeaders });
+        // Sumar peso total del carrito; default 500g por item si no tiene weight
+        let totalWeightGrams = 0;
+        if (Array.isArray(cart) && cart.length > 0) {
+          for (const item of cart) {
+            const w = (typeof item.weight === 'number' && item.weight > 0) ? item.weight : 500;
+            totalWeightGrams += w * (item.quantity || 1);
+          }
         }
+
+        // Tallas Blue Express (en gramos)
+        let tier;
+        if (totalWeightGrams < 500) tier = 'XS';
+        else if (totalWeightGrams < 3000) tier = 'S';
+        else if (totalWeightGrams < 6000) tier = 'M';
+        else tier = 'L';
+
+        // Zonas tarifarias — valores exactos del <select> en checkout.html
+        const CENTRAL = ["Valparaíso", "O'Higgins", "Maule", "Coquimbo", "Ñuble", "Biobío"];
+        const REMOTE = ["Arica y Parinacota", "Tarapacá", "Antofagasta", "Atacama", "La Araucanía", "Los Ríos", "Los Lagos", "Aysén", "Magallanes"];
+
+        // Tarifas Blue Express por zona y talla (CLP)
+        const PRICING = {
+          RM: { XS: 3100, S: 3650, M: 4700, L: 5700 },
+          Central: { XS: 3900, S: 4300, M: 7000, L: 9600 },
+          Remote: { XS: 6000, S: 7500, M: 10000, L: 15000 },
+        };
+
+        let zone;
+        if (region === "Región Metropolitana") zone = 'RM';
+        else if (REMOTE.includes(region)) zone = 'Remote';
+        else zone = 'Central';
+
+        const cost = PRICING[zone][tier];
+        return Response.json({ success: true, courier: 'Blue Express', cost, weight: totalWeightGrams }, { headers: corsHeaders });
+      } catch (error) {
+        return Response.json({ success: false, error: error.message }, { status: 500, headers: corsHeaders });
+      }
     }
 
     if (url.pathname === "/api/checkout" && request.method === "POST") {
-        try {
-            const { customer, cart, total, shipping_cost, resume_order_id } = await request.json();
+      try {
+        const { customer, cart, total, shipping_cost, resume_order_id } = await request.json();
 
-            let cust = await env.DB.prepare("SELECT id FROM Customers WHERE email = ?").bind(customer.email).first();
-            let customerId;
-            if (!cust) {
-                const info = await env.DB.prepare("INSERT INTO Customers (nombre, email, telefono, direccion, comuna, region) VALUES (?, ?, ?, ?, ?, ?)").bind(customer.nombre, customer.email, customer.telefono || null, customer.direccion || null, customer.comuna || null, customer.region || null).run();
-                customerId = info.meta.last_row_id;
-            } else {
-                customerId = cust.id;
-                await env.DB.prepare("UPDATE Customers SET nombre = ?, telefono = ?, direccion = ?, comuna = ?, region = ? WHERE id = ?").bind(customer.nombre, customer.telefono || null, customer.direccion || null, customer.comuna || null, customer.region || null, customerId).run();
-            }
+        let cust = await env.DB.prepare("SELECT id FROM Customers WHERE email = ?").bind(customer.email).first();
+        let customerId;
+        if (!cust) {
+          const info = await env.DB.prepare("INSERT INTO Customers (nombre, email, telefono, direccion, comuna, region) VALUES (?, ?, ?, ?, ?, ?)").bind(customer.nombre, customer.email, customer.telefono || null, customer.direccion || null, customer.comuna || null, customer.region || null).run();
+          customerId = info.meta.last_row_id;
+        } else {
+          customerId = cust.id;
+          await env.DB.prepare("UPDATE Customers SET nombre = ?, telefono = ?, direccion = ?, comuna = ?, region = ? WHERE id = ?").bind(customer.nombre, customer.telefono || null, customer.direccion || null, customer.comuna || null, customer.region || null, customerId).run();
+        }
 
-            // shipping_cost: costo de envío calculado por /api/shipping/quote y enviado desde el frontend de checkout.
-            const shippingCostSafe = (typeof shipping_cost === 'number' && shipping_cost >= 0) ? shipping_cost : 0;
+        // shipping_cost: costo de envío calculado por /api/shipping/quote y enviado desde el frontend de checkout.
+        const shippingCostSafe = (typeof shipping_cost === 'number' && shipping_cost >= 0) ? shipping_cost : 0;
 
-            let orderId;
-            if (resume_order_id) {
-                // ── REANUDAR PAGO DE UNA ORDEN EXISTENTE ───────────────────────────
-                // El cliente vuelve a pagar una orden que quedó 'Pendiente'. Sus
-                // OrderItems YA existen, por lo que NO se insertan de nuevo (evita
-                // duplicar la orden). Solo se refresca total/envío y se reabre Webpay
-                // reutilizando el mismo buy_order. /api/checkout/confirm la marcará
-                // 'Pagado' y descontará stock una sola vez.
-                const existing = await env.DB.prepare(
-                    "SELECT id, estado FROM Orders WHERE id = ? AND customer_id = ?"
-                ).bind(resume_order_id, customerId).first();
-                if (!existing) {
-                    return Response.json({ success: false, error: 'La orden a reanudar no existe o no pertenece a este cliente' }, { status: 404, headers: corsHeaders });
-                }
-                const estResume = (existing.estado || '').toLowerCase();
-                if (!estResume.includes('pendiente') && !estResume.includes('sin pagar')) {
-                    return Response.json({ success: false, error: `La orden #${resume_order_id} ya no está pendiente de pago (estado actual: ${existing.estado}).` }, { status: 409, headers: corsHeaders });
-                }
-                await env.DB.prepare("UPDATE Orders SET total = ?, shipping_cost = ? WHERE id = ?")
-                    .bind(total, shippingCostSafe, resume_order_id).run();
-                orderId = resume_order_id;
-            } else {
-                // La orden nace 'Pendiente'. Solo pasa a 'Pagado' tras la confirmación AUTHORIZED en /api/checkout/confirm.
-                const orderInfo = await env.DB.prepare("INSERT INTO Orders (customer_id, total, shipping_cost, estado) VALUES (?, ?, ?, 'Pendiente')").bind(customerId, total, shippingCostSafe).run();
-                orderId = orderInfo.meta.last_row_id;
-
-                if (cart && cart.length > 0) {
-                    const itemStmts = cart.map(item => {
-                        // ID formato: "cart_{productId}_{variantId}_{...size}"
-                        const parts = item.id.split('_');
-                        const originalProductId = parts[1] || null;
-                        const variantId = parts[2] ? (parseInt(parts[2]) || null) : null;
-                        // Kit: el frontend adjunta item.kitSizes = { bata:"M", sosten:"44" }.
-                        // Se serializa como JSON y se guarda en variant_details para que el
-                        // Paso 3 del webhook pueda descontar cada componente de forma granular.
-                        // Normal: se extrae la talla del ID y se guarda como "Talla: X" / "Estándar".
-                        let variantDetail;
-                        if (item.kitSizes && typeof item.kitSizes === 'object' && !Array.isArray(item.kitSizes)) {
-                            variantDetail = JSON.stringify(item.kitSizes); // ej. '{"bata":"M","sosten":"44"}'
-                        } else {
-                            const sizeRaw = parts.slice(3).join('_');
-                            variantDetail = (sizeRaw && sizeRaw !== 'u') ? `Talla: ${sizeRaw}` : 'Estándar';
-                        }
-                        // Guardar la imagen de la variante directamente; descartar rutas relativas.
-                        const imgUrl = (item.img && !item.img.startsWith('./') && !item.img.startsWith('../')) ? item.img : null;
-                        return env.DB.prepare(
-                            "INSERT INTO OrderItems (order_id, product_id, variant_id, product_name, variant_details, cantidad, precio_unitario, imagen_url) VALUES (?, ?, ?, ?, ?, ?, ?, ?)"
-                        ).bind(orderId, originalProductId, variantId, item.name, variantDetail, item.quantity, item.price, imgUrl);
-                    });
-                    try {
-                        await env.DB.batch(itemStmts);
-                    } catch (batchErr) {
-                        // Si falla el batch de items, cancelar la orden para no dejarla huérfana
-                        await env.DB.prepare("UPDATE Orders SET estado = 'Cancelado' WHERE id = ?").bind(orderId).run();
-                        return Response.json({ success: false, error: `Error al guardar productos del pedido: ${batchErr.message}` }, { status: 500, headers: corsHeaders });
+        // VALIDACION DEFENSIVA DE STOCK PREVIA A TRANSBANK
+        if (cart && Array.isArray(cart)) {
+          for (const item of cart) {
+            const parts = item.id.split('_');
+            const variantId = parts[2] ? parseInt(parts[2], 10) : null;
+            if (variantId) {
+              const variant = await env.DB.prepare("SELECT stock, tallas FROM ProductVariants WHERE id = ?").bind(variantId).first();
+              if (!variant) {
+                return Response.json({ success: false, error: 'stock_insufficient', item_id: item.id, max_available: 0, message: `El producto ${item.name} ya no existe o fue retirado.` }, { status: 409, headers: corsHeaders });
+              }
+              
+              let maxAvailable = 0;
+              try {
+                if (variant.tallas) {
+                  const parsedTallas = JSON.parse(variant.tallas);
+                  if (item.kitSizes && typeof item.kitSizes === 'object' && !Array.isArray(item.kitSizes)) {
+                    if (typeof parsedTallas === 'object' && !Array.isArray(parsedTallas)) {
+                      let minComponentStock = Infinity;
+                      for (const [pieza, talla] of Object.entries(item.kitSizes)) {
+                        const compTallas = parsedTallas[pieza];
+                        const matchTalla = Array.isArray(compTallas) ? compTallas.find(t => t.size === talla) : null;
+                        const qty = matchTalla ? (Number(matchTalla.stock) || 0) : 0;
+                        if (qty < minComponentStock) minComponentStock = qty;
+                      }
+                      maxAvailable = minComponentStock === Infinity ? 0 : minComponentStock;
+                    } else {
+                      maxAvailable = 0;
                     }
+                  } else {
+                    const sizeRaw = parts.slice(3).join('_');
+                    if (sizeRaw && sizeRaw !== 'u' && Array.isArray(parsedTallas)) {
+                      const matchTalla = parsedTallas.find(t => t.size === sizeRaw);
+                      maxAvailable = matchTalla ? (Number(matchTalla.stock) || 0) : 0;
+                    } else {
+                      maxAvailable = Number(variant.stock) || 0;
+                    }
+                  }
+                } else {
+                  maxAvailable = Number(variant.stock) || 0;
                 }
+              } catch(e) {
+                maxAvailable = Number(variant.stock) || 0;
+              }
+
+              if (item.quantity > maxAvailable) {
+                return Response.json({ 
+                  success: false, 
+                  error: 'stock_insufficient', 
+                  item_id: item.id,
+                  max_available: maxAvailable,
+                  message: `Stock insuficiente para "${item.name}". Solo quedan ${maxAvailable} unidades disponibles.` 
+                }, { status: 409, headers: corsHeaders });
+              }
             }
+          }
+        }
 
-            // Crear transacción en Webpay Plus (entorno PRODUCCIÓN).
-            const TBK_API_KEY_ID = env.TBK_API_KEY_ID || '597051224463';
-            const TBK_API_KEY_SECRET = env.TBK_API_KEY_SECRET || '965fcf2f-2643-4528-be8e-7ef702b558c5';
-            const TBK_BASE = env.TBK_BASE_URL || 'https://webpay3g.transbank.cl/rswebpaytransaction/api/webpay/v1.2/transactions';
+        let orderId;
+        if (resume_order_id) {
+          // ── REANUDAR PAGO DE UNA ORDEN EXISTENTE ───────────────────────────
+          // El cliente vuelve a pagar una orden que quedó 'Pendiente'. Sus
+          // OrderItems YA existen, por lo que NO se insertan de nuevo (evita
+          // duplicar la orden). Solo se refresca total/envío y se reabre Webpay
+          // reutilizando el mismo buy_order. /api/checkout/confirm la marcará
+          // 'Pagado' y descontará stock una sola vez.
+          const existing = await env.DB.prepare(
+            "SELECT id, estado FROM Orders WHERE id = ? AND customer_id = ?"
+          ).bind(resume_order_id, customerId).first();
+          if (!existing) {
+            return Response.json({ success: false, error: 'La orden a reanudar no existe o no pertenece a este cliente' }, { status: 404, headers: corsHeaders });
+          }
+          const estResume = (existing.estado || '').toLowerCase();
+          if (!estResume.includes('pendiente') && !estResume.includes('sin pagar')) {
+            return Response.json({ success: false, error: `La orden #${resume_order_id} ya no está pendiente de pago (estado actual: ${existing.estado}).` }, { status: 409, headers: corsHeaders });
+          }
+          await env.DB.prepare("UPDATE Orders SET total = ?, shipping_cost = ? WHERE id = ?")
+            .bind(total, shippingCostSafe, resume_order_id).run();
+          orderId = resume_order_id;
+        } else {
+          // La orden nace 'Pendiente'. Solo pasa a 'Pagado' tras la confirmación AUTHORIZED en /api/checkout/confirm.
+          const orderInfo = await env.DB.prepare("INSERT INTO Orders (customer_id, total, shipping_cost, estado) VALUES (?, ?, ?, 'Pendiente')").bind(customerId, total, shippingCostSafe).run();
+          orderId = orderInfo.meta.last_row_id;
 
-            const tbkRes = await fetch(TBK_BASE, {
-                method: 'POST',
-                headers: {
-                    'Tbk-Api-Key-Id': TBK_API_KEY_ID,
-                    'Tbk-Api-Key-Secret': TBK_API_KEY_SECRET,
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    buy_order: String(orderId),
-                    session_id: String(customerId),
-                    amount: total,
-                    return_url: url.origin + "/api/checkout/confirm"
-                })
+          if (cart && cart.length > 0) {
+            const itemStmts = cart.map(item => {
+              // ID formato: "cart_{productId}_{variantId}_{...size}"
+              const parts = item.id.split('_');
+              const originalProductId = parts[1] || null;
+              const variantId = parts[2] ? (parseInt(parts[2]) || null) : null;
+              // Kit: el frontend adjunta item.kitSizes = { bata:"M", sosten:"44" }.
+              // Se serializa como JSON y se guarda en variant_details para que el
+              // Paso 3 del webhook pueda descontar cada componente de forma granular.
+              // Normal: se extrae la talla del ID y se guarda como "Talla: X" / "Estándar".
+              let variantDetail;
+              if (item.kitSizes && typeof item.kitSizes === 'object' && !Array.isArray(item.kitSizes)) {
+                variantDetail = JSON.stringify(item.kitSizes); // ej. '{"bata":"M","sosten":"44"}'
+              } else {
+                const sizeRaw = parts.slice(3).join('_');
+                variantDetail = (sizeRaw && sizeRaw !== 'u') ? `Talla: ${sizeRaw}` : 'Estándar';
+              }
+              // Guardar la imagen de la variante directamente; descartar rutas relativas.
+              const imgUrl = (item.img && !item.img.startsWith('./') && !item.img.startsWith('../')) ? item.img : null;
+              return env.DB.prepare(
+                "INSERT INTO OrderItems (order_id, product_id, variant_id, product_name, variant_details, cantidad, precio_unitario, imagen_url) VALUES (?, ?, ?, ?, ?, ?, ?, ?)"
+              ).bind(orderId, originalProductId, variantId, item.name, variantDetail, item.quantity, item.price, imgUrl);
             });
-
-            const tbkResponse = await tbkRes.json();
-            if (!tbkRes.ok || !tbkResponse.url || !tbkResponse.token) {
-                await env.DB.prepare("UPDATE Orders SET estado = 'Cancelado' WHERE id = ?").bind(orderId).run();
-                return Response.json({ success: false, error: tbkResponse.error_message || 'No se pudo iniciar la transacción en Webpay', tbk: tbkResponse }, { status: 502, headers: corsHeaders });
+            try {
+              await env.DB.batch(itemStmts);
+            } catch (batchErr) {
+              // Si falla el batch de items, cancelar la orden para no dejarla huérfana
+              await env.DB.prepare("UPDATE Orders SET estado = 'Cancelado' WHERE id = ?").bind(orderId).run();
+              return Response.json({ success: false, error: `Error al guardar productos del pedido: ${batchErr.message}` }, { status: 500, headers: corsHeaders });
             }
+          }
+        }
 
-            return Response.json({ success: true, tbk_url: tbkResponse.url, tbk_token: tbkResponse.token, order_id: orderId }, { headers: corsHeaders });
-        } catch (error) { return Response.json({ success: false, error: error.message }, { status: 500, headers: corsHeaders }); }
+        // Crear transacción en Webpay Plus (entorno PRODUCCIÓN).
+        const TBK_API_KEY_ID = env.TBK_API_KEY_ID || '597051224463';
+        const TBK_API_KEY_SECRET = env.TBK_API_KEY_SECRET || '965fcf2f-2643-4528-be8e-7ef702b558c5';
+        const TBK_BASE = env.TBK_BASE_URL || 'https://webpay3g.transbank.cl/rswebpaytransaction/api/webpay/v1.2/transactions';
+
+        const tbkRes = await fetch(TBK_BASE, {
+          method: 'POST',
+          headers: {
+            'Tbk-Api-Key-Id': TBK_API_KEY_ID,
+            'Tbk-Api-Key-Secret': TBK_API_KEY_SECRET,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            buy_order: String(orderId),
+            session_id: String(customerId),
+            amount: total,
+            return_url: url.origin + "/api/checkout/confirm"
+          })
+        });
+
+        const tbkResponse = await tbkRes.json();
+        if (!tbkRes.ok || !tbkResponse.url || !tbkResponse.token) {
+          await env.DB.prepare("UPDATE Orders SET estado = 'Cancelado' WHERE id = ?").bind(orderId).run();
+          return Response.json({ success: false, error: tbkResponse.error_message || 'No se pudo iniciar la transacción en Webpay', tbk: tbkResponse }, { status: 502, headers: corsHeaders });
+        }
+
+        return Response.json({ success: true, tbk_url: tbkResponse.url, tbk_token: tbkResponse.token, order_id: orderId }, { headers: corsHeaders });
+      } catch (error) { return Response.json({ success: false, error: error.message }, { status: 500, headers: corsHeaders }); }
     }
 
     // Confirmación de Webpay: Transbank redirige al cliente aquí con ?token_ws=...
     if (url.pathname === "/api/checkout/confirm" && (request.method === "GET" || request.method === "POST")) {
-        try {
-            // Webpay puede enviar token_ws por query (GET) o por form-urlencoded (POST).
-            let token_ws = url.searchParams.get('token_ws');
-            if (!token_ws && request.method === "POST") {
-                try {
-                    const form = await request.formData();
-                    token_ws = form.get('token_ws');
-                } catch (_) {}
-            }
+      try {
+        // Webpay puede enviar token_ws por query (GET) o por form-urlencoded (POST).
+        let token_ws = url.searchParams.get('token_ws');
+        if (!token_ws && request.method === "POST") {
+          try {
+            const form = await request.formData();
+            token_ws = form.get('token_ws');
+          } catch (_) { }
+        }
 
-            const FRONTEND_URL = env.FRONTEND_URL || 'https://mathsoluis.cl';
+        const FRONTEND_URL = env.FRONTEND_URL || 'https://mathsoluis.cl';
 
-            // Pago abortado por el usuario o token ausente.
-            if (!token_ws) {
-                return Response.redirect(FRONTEND_URL + "/checkout.html?status=aborted", 302);
-            }
+        // Pago abortado por el usuario o token ausente.
+        if (!token_ws) {
+          return Response.redirect(FRONTEND_URL + "/checkout.html?status=aborted", 302);
+        }
 
-            const TBK_API_KEY_ID = env.TBK_API_KEY_ID || '597051224463';
-            const TBK_API_KEY_SECRET = env.TBK_API_KEY_SECRET || '965fcf2f-2643-4528-be8e-7ef702b558c5';
-            const TBK_BASE = env.TBK_BASE_URL || 'https://webpay3g.transbank.cl/rswebpaytransaction/api/webpay/v1.2/transactions';
+        const TBK_API_KEY_ID = env.TBK_API_KEY_ID || '597051224463';
+        const TBK_API_KEY_SECRET = env.TBK_API_KEY_SECRET || '965fcf2f-2643-4528-be8e-7ef702b558c5';
+        const TBK_BASE = env.TBK_BASE_URL || 'https://webpay3g.transbank.cl/rswebpaytransaction/api/webpay/v1.2/transactions';
 
-            const confirmRes = await fetch(`${TBK_BASE}/${token_ws}`, {
-                method: 'PUT',
-                headers: {
-                    'Tbk-Api-Key-Id': TBK_API_KEY_ID,
-                    'Tbk-Api-Key-Secret': TBK_API_KEY_SECRET,
-                    'Content-Type': 'application/json'
-                }
+        const confirmRes = await fetch(`${TBK_BASE}/${token_ws}`, {
+          method: 'PUT',
+          headers: {
+            'Tbk-Api-Key-Id': TBK_API_KEY_ID,
+            'Tbk-Api-Key-Secret': TBK_API_KEY_SECRET,
+            'Content-Type': 'application/json'
+          }
+        });
+        const tbkData = await confirmRes.json();
+
+        const orderId = parseInt(tbkData.buy_order, 10);
+        const order = orderId ? await env.DB.prepare(`SELECT o.*, c.nombre, c.email, c.telefono, c.direccion, c.comuna, c.region FROM Orders o LEFT JOIN Customers c ON o.customer_id = c.id WHERE o.id = ?`).bind(orderId).first() : null;
+
+        if (tbkData.status === 'AUTHORIZED' && order) {
+          await env.DB.prepare("UPDATE Orders SET estado = 'Pagado' WHERE id = ?").bind(order.id).run();
+
+          // ── DESCUENTO DE INVENTARIO ────────────────────────────────────────────
+          // Esquema confirmado (admin/index.html línea 1588):
+          //   Producto normal → tallas = JSON array  [{ size: "3-6M", stock: 5 }, ...]
+          //   Producto kit    → tallas = JSON object { bata:[{size,stock}], ... }
+          // El cart ID usa el valor de `s.size` como segmento de talla (producto.html línea 1067).
+          // Kits codifican todas las tallas con join('-') → "M-44"; no recuperables en backend.
+          try {
+            const { results: stockItems } = await env.DB.prepare(
+              "SELECT product_id, variant_id, variant_details, cantidad FROM OrderItems WHERE order_id = ?"
+            ).bind(order.id).all();
+
+            console.log(`[Stock] Pedido #${order.id} — iniciando descuento para ${(stockItems || []).length} ítem(s)`);
+
+            // Dump explícito de cada fila para diagnosticar problemas en producción.
+            // Si un ítem llega con product_id=NULL, variant_id=NULL o variant_details="",
+            // este log mostrará la fila completa en el dashboard de Cloudflare.
+            (stockItems || []).forEach((item, i) => {
+              console.log(`[Stock] Pedido #${order.id} · ítem ${i + 1}/${stockItems.length}:`,
+                JSON.stringify({
+                  product_id: item.product_id,
+                  variant_id: item.variant_id,
+                  variant_details: item.variant_details,
+                  cantidad: item.cantidad,
+                  is_kit_format: !!(item.variant_details && item.variant_details.startsWith('{')),
+                  has_talla_prefix: !!(item.variant_details && /^Talla:/.test(item.variant_details)),
+                })
+              );
             });
-            const tbkData = await confirmRes.json();
 
-            const orderId = parseInt(tbkData.buy_order, 10);
-            const order = orderId ? await env.DB.prepare(`SELECT o.*, c.nombre, c.email, c.telefono, c.direccion, c.comuna, c.region FROM Orders o LEFT JOIN Customers c ON o.customer_id = c.id WHERE o.id = ?`).bind(orderId).first() : null;
+            if (stockItems && stockItems.length > 0) {
 
-            if (tbkData.status === 'AUTHORIZED' && order) {
-                await env.DB.prepare("UPDATE Orders SET estado = 'Pagado' WHERE id = ?").bind(order.id).run();
+              // ── PASO 1: Products.stock (global del producto) ─────────────────
+              await Promise.all(stockItems.map(async item => {
+                if (!item.product_id) return;
+                const row = await env.DB.prepare("SELECT stock FROM Products WHERE id = ?").bind(item.product_id).first();
+                const antes = row?.stock ?? 0;
+                const despues = Math.max(0, antes - item.cantidad);
+                await env.DB.prepare("UPDATE Products SET stock = MAX(0, stock - ?) WHERE id = ?")
+                  .bind(item.cantidad, item.product_id).run();
+                console.log(`[Stock] Paso1 | Producto #${item.product_id} | antes=${antes} | -${item.cantidad} | después=${despues}`);
+              }));
 
-                // ── DESCUENTO DE INVENTARIO ────────────────────────────────────────────
-                // Esquema confirmado (admin/index.html línea 1588):
-                //   Producto normal → tallas = JSON array  [{ size: "3-6M", stock: 5 }, ...]
-                //   Producto kit    → tallas = JSON object { bata:[{size,stock}], ... }
-                // El cart ID usa el valor de `s.size` como segmento de talla (producto.html línea 1067).
-                // Kits codifican todas las tallas con join('-') → "M-44"; no recuperables en backend.
+              // ── PASO 2: ProductVariants.stock (stock del color / variante) ───
+              await Promise.all(stockItems.map(async item => {
+                if (!item.variant_id) return;
+                const row = await env.DB.prepare("SELECT stock FROM ProductVariants WHERE id = ?").bind(item.variant_id).first();
+                const antes = row?.stock ?? 0;
+                const despues = Math.max(0, antes - item.cantidad);
+                await env.DB.prepare("UPDATE ProductVariants SET stock = MAX(0, stock - ?) WHERE id = ?")
+                  .bind(item.cantidad, item.variant_id).run();
+                console.log(`[Stock] Paso2 | Variante #${item.variant_id} | antes=${antes} | -${item.cantidad} | después=${despues}`);
+              }));
+
+              // ── PASO 3: ProductVariants.tallas JSON (stock de talla exacta) ──
+              // Clave confirmada: 't.size' (admin/index.html línea 1588).
+              // Dos formatos posibles en variant_details:
+              //   · Normal → "Talla: 3-6M"  (regex /^Talla:\s*(.+)$/)
+              //   · Kit    → '{"bata":"M","sosten":"44"}'  (JSON guardado en /api/checkout)
+              // "Estándar" no tiene JSON de tallas → se omite.
+              await Promise.all(stockItems.map(async item => {
+                if (!item.variant_id || !item.variant_details) return;
+                // Detectar formato: JSON de kit (empieza con '{') vs. string normal
+                const isKitVariant = item.variant_details.startsWith('{');
+                const tallaMatch = isKitVariant ? null : item.variant_details.match(/^Talla:\s*(.+)$/);
+                if (!tallaMatch && !isKitVariant) return; // "Estándar" → sin JSON que actualizar
+                const tallaName = isKitVariant ? null : tallaMatch[1].trim();
                 try {
-                    const { results: stockItems } = await env.DB.prepare(
-                        "SELECT product_id, variant_id, variant_details, cantidad FROM OrderItems WHERE order_id = ?"
-                    ).bind(order.id).all();
+                  const variant = await env.DB.prepare(
+                    "SELECT tallas FROM ProductVariants WHERE id = ?"
+                  ).bind(item.variant_id).first();
+                  if (!variant || !variant.tallas) return;
 
-                    console.log(`[Stock] Pedido #${order.id} — iniciando descuento para ${(stockItems || []).length} ítem(s)`);
+                  let tallasData;
+                  try { tallasData = JSON.parse(variant.tallas); } catch (_) {
+                    console.warn(`[Stock] Paso3 | Variante #${item.variant_id}: tallas JSON malformado — omitido`);
+                    return;
+                  }
 
-                    // Dump explícito de cada fila para diagnosticar problemas en producción.
-                    // Si un ítem llega con product_id=NULL, variant_id=NULL o variant_details="",
-                    // este log mostrará la fila completa en el dashboard de Cloudflare.
-                    (stockItems || []).forEach((item, i) => {
-                        console.log(`[Stock] Pedido #${order.id} · ítem ${i + 1}/${stockItems.length}:`,
-                            JSON.stringify({
-                                product_id:       item.product_id,
-                                variant_id:       item.variant_id,
-                                variant_details:  item.variant_details,
-                                cantidad:         item.cantidad,
-                                is_kit_format:    !!(item.variant_details && item.variant_details.startsWith('{')),
-                                has_talla_prefix: !!(item.variant_details && /^Talla:/.test(item.variant_details)),
-                            })
-                        );
-                    });
+                  // Kit → JSON object { comp: [{size,stock},...] }; no array
+                  if (!Array.isArray(tallasData)) {
+                    // variant_details debe ser el JSON de kitSizes guardado en /api/checkout
+                    // ej. '{"bata":"M","sosten":"44"}' → { bata:"M", sosten:"44" }
+                    let kitSizes = null;
+                    try { kitSizes = JSON.parse(item.variant_details); } catch (_) { }
 
-                    if (stockItems && stockItems.length > 0) {
-
-                        // ── PASO 1: Products.stock (global del producto) ─────────────────
-                        await Promise.all(stockItems.map(async item => {
-                            if (!item.product_id) return;
-                            const row    = await env.DB.prepare("SELECT stock FROM Products WHERE id = ?").bind(item.product_id).first();
-                            const antes  = row?.stock ?? 0;
-                            const despues = Math.max(0, antes - item.cantidad);
-                            await env.DB.prepare("UPDATE Products SET stock = MAX(0, stock - ?) WHERE id = ?")
-                                .bind(item.cantidad, item.product_id).run();
-                            console.log(`[Stock] Paso1 | Producto #${item.product_id} | antes=${antes} | -${item.cantidad} | después=${despues}`);
-                        }));
-
-                        // ── PASO 2: ProductVariants.stock (stock del color / variante) ───
-                        await Promise.all(stockItems.map(async item => {
-                            if (!item.variant_id) return;
-                            const row    = await env.DB.prepare("SELECT stock FROM ProductVariants WHERE id = ?").bind(item.variant_id).first();
-                            const antes  = row?.stock ?? 0;
-                            const despues = Math.max(0, antes - item.cantidad);
-                            await env.DB.prepare("UPDATE ProductVariants SET stock = MAX(0, stock - ?) WHERE id = ?")
-                                .bind(item.cantidad, item.variant_id).run();
-                            console.log(`[Stock] Paso2 | Variante #${item.variant_id} | antes=${antes} | -${item.cantidad} | después=${despues}`);
-                        }));
-
-                        // ── PASO 3: ProductVariants.tallas JSON (stock de talla exacta) ──
-                        // Clave confirmada: 't.size' (admin/index.html línea 1588).
-                        // Dos formatos posibles en variant_details:
-                        //   · Normal → "Talla: 3-6M"  (regex /^Talla:\s*(.+)$/)
-                        //   · Kit    → '{"bata":"M","sosten":"44"}'  (JSON guardado en /api/checkout)
-                        // "Estándar" no tiene JSON de tallas → se omite.
-                        await Promise.all(stockItems.map(async item => {
-                            if (!item.variant_id || !item.variant_details) return;
-                            // Detectar formato: JSON de kit (empieza con '{') vs. string normal
-                            const isKitVariant = item.variant_details.startsWith('{');
-                            const tallaMatch   = isKitVariant ? null : item.variant_details.match(/^Talla:\s*(.+)$/);
-                            if (!tallaMatch && !isKitVariant) return; // "Estándar" → sin JSON que actualizar
-                            const tallaName = isKitVariant ? null : tallaMatch[1].trim();
-                            try {
-                                const variant = await env.DB.prepare(
-                                    "SELECT tallas FROM ProductVariants WHERE id = ?"
-                                ).bind(item.variant_id).first();
-                                if (!variant || !variant.tallas) return;
-
-                                let tallasData;
-                                try { tallasData = JSON.parse(variant.tallas); } catch (_) {
-                                    console.warn(`[Stock] Paso3 | Variante #${item.variant_id}: tallas JSON malformado — omitido`);
-                                    return;
-                                }
-
-                                // Kit → JSON object { comp: [{size,stock},...] }; no array
-                                if (!Array.isArray(tallasData)) {
-                                    // variant_details debe ser el JSON de kitSizes guardado en /api/checkout
-                                    // ej. '{"bata":"M","sosten":"44"}' → { bata:"M", sosten:"44" }
-                                    let kitSizes = null;
-                                    try { kitSizes = JSON.parse(item.variant_details); } catch (_) {}
-
-                                    if (!kitSizes || typeof kitSizes !== 'object' || Array.isArray(kitSizes)) {
-                                        // variant_details tiene formato legacy "Talla: M-44" (orden antiguo)
-                                        console.warn(`[Stock] Paso3 | Variante #${item.variant_id} (kit legacy): variant_details no es JSON de componentes → "${item.variant_details}". Descuento granular omitido. Pasos 1-2 ya aplicados.`);
-                                        return;
-                                    }
-
-                                    // Clonar el objeto para no mutar la referencia original
-                                    const updatedKit = JSON.parse(JSON.stringify(tallasData));
-                                    let kitModified = false;
-
-                                    for (const [comp, selectedSize] of Object.entries(kitSizes)) {
-                                        if (!updatedKit[comp] || !Array.isArray(updatedKit[comp])) {
-                                            console.warn(`[Stock] Paso3 | Kit variante #${item.variant_id}: componente "${comp}" no existe en tallas JSON — omitido`);
-                                            continue;
-                                        }
-                                        let compModificado = false;
-                                        updatedKit[comp] = updatedKit[comp].map(t => {
-                                            if (t.size === selectedSize) {
-                                                compModificado = true;
-                                                kitModified    = true;
-                                                const antes    = t.stock ?? 0;
-                                                const despues  = Math.max(0, antes - item.cantidad);
-                                                console.log(`[Stock] Paso3 | Kit comp="${comp}" talla="${selectedSize}" variante #${item.variant_id} | antes=${antes} | -${item.cantidad} | después=${despues}`);
-                                                return { ...t, stock: despues };
-                                            }
-                                            return t;
-                                        });
-                                        if (!compModificado) {
-                                            console.warn(`[Stock] Paso3 | Kit comp="${comp}" talla="${selectedSize}" no hallada en variante #${item.variant_id}`);
-                                        }
-                                    }
-
-                                    if (!kitModified) return;
-                                    await env.DB.prepare("UPDATE ProductVariants SET tallas = ? WHERE id = ?")
-                                        .bind(JSON.stringify(updatedKit), item.variant_id).run();
-                                    return; // Kit procesado — no continuar al bloque de array
-                                }
-
-                                // Normal → [{size, stock}, ...]; clave 'size' confirmada
-                                let modified = false;
-                                const updated = tallasData.map(t => {
-                                    if (t.size === tallaName) {
-                                        modified = true;
-                                        const antes  = t.stock ?? 0;
-                                        const despues = Math.max(0, antes - item.cantidad);
-                                        console.log(`[Stock] Paso3 | Talla "${tallaName}" variante #${item.variant_id} | antes=${antes} | -${item.cantidad} | después=${despues}`);
-                                        return { ...t, stock: despues };
-                                    }
-                                    return t;
-                                });
-
-                                if (!modified) {
-                                    console.warn(`[Stock] Paso3 | Talla "${tallaName}" no hallada en variante #${item.variant_id}. Disponibles: [${tallasData.map(t => t.size).join(', ')}]`);
-                                    return;
-                                }
-
-                                await env.DB.prepare("UPDATE ProductVariants SET tallas = ? WHERE id = ?")
-                                    .bind(JSON.stringify(updated), item.variant_id).run();
-                            } catch (e) {
-                                console.error(`[Stock] Paso3 | Error en talla "${tallaName}" variante #${item.variant_id}:`, e);
-                            }
-                        }));
+                    if (!kitSizes || typeof kitSizes !== 'object' || Array.isArray(kitSizes)) {
+                      // variant_details tiene formato legacy "Talla: M-44" (orden antiguo)
+                      console.warn(`[Stock] Paso3 | Variante #${item.variant_id} (kit legacy): variant_details no es JSON de componentes → "${item.variant_details}". Descuento granular omitido. Pasos 1-2 ya aplicados.`);
+                      return;
                     }
-                } catch (stockErr) {
-                    console.error("[Stock] Error general al descontar inventario del pedido", order.id, ":", stockErr);
-                }
-                // ── FIN DESCUENTO DE INVENTARIO ────────────────────────────────────────
 
-                // Reconstruir el carrito desde OrderItems para el correo de confirmación.
-                // JOIN con ProductVariants para obtener pv.imagen_1 como fallback cuando
-                // el ítem no tenía imagen propia al momento del checkout (variant.imagen_1 null → './ico.jpg' → filtrado).
-                const { results: items } = await env.DB.prepare(
-                    `SELECT oi.product_name, oi.cantidad, oi.precio_unitario,
+                    // Clonar el objeto para no mutar la referencia original
+                    const updatedKit = JSON.parse(JSON.stringify(tallasData));
+                    let kitModified = false;
+
+                    for (const [comp, selectedSize] of Object.entries(kitSizes)) {
+                      if (!updatedKit[comp] || !Array.isArray(updatedKit[comp])) {
+                        console.warn(`[Stock] Paso3 | Kit variante #${item.variant_id}: componente "${comp}" no existe en tallas JSON — omitido`);
+                        continue;
+                      }
+                      let compModificado = false;
+                      updatedKit[comp] = updatedKit[comp].map(t => {
+                        if (t.size === selectedSize) {
+                          compModificado = true;
+                          kitModified = true;
+                          const antes = t.stock ?? 0;
+                          const despues = Math.max(0, antes - item.cantidad);
+                          console.log(`[Stock] Paso3 | Kit comp="${comp}" talla="${selectedSize}" variante #${item.variant_id} | antes=${antes} | -${item.cantidad} | después=${despues}`);
+                          return { ...t, stock: despues };
+                        }
+                        return t;
+                      });
+                      if (!compModificado) {
+                        console.warn(`[Stock] Paso3 | Kit comp="${comp}" talla="${selectedSize}" no hallada en variante #${item.variant_id}`);
+                      }
+                    }
+
+                    if (!kitModified) return;
+                    await env.DB.prepare("UPDATE ProductVariants SET tallas = ? WHERE id = ?")
+                      .bind(JSON.stringify(updatedKit), item.variant_id).run();
+                    return; // Kit procesado — no continuar al bloque de array
+                  }
+
+                  // Normal → [{size, stock}, ...]; clave 'size' confirmada
+                  let modified = false;
+                  const updated = tallasData.map(t => {
+                    if (t.size === tallaName) {
+                      modified = true;
+                      const antes = t.stock ?? 0;
+                      const despues = Math.max(0, antes - item.cantidad);
+                      console.log(`[Stock] Paso3 | Talla "${tallaName}" variante #${item.variant_id} | antes=${antes} | -${item.cantidad} | después=${despues}`);
+                      return { ...t, stock: despues };
+                    }
+                    return t;
+                  });
+
+                  if (!modified) {
+                    console.warn(`[Stock] Paso3 | Talla "${tallaName}" no hallada en variante #${item.variant_id}. Disponibles: [${tallasData.map(t => t.size).join(', ')}]`);
+                    return;
+                  }
+
+                  await env.DB.prepare("UPDATE ProductVariants SET tallas = ? WHERE id = ?")
+                    .bind(JSON.stringify(updated), item.variant_id).run();
+                } catch (e) {
+                  console.error(`[Stock] Paso3 | Error en talla "${tallaName}" variante #${item.variant_id}:`, e);
+                }
+              }));
+            }
+          } catch (stockErr) {
+            console.error("[Stock] Error general al descontar inventario del pedido", order.id, ":", stockErr);
+          }
+          // ── FIN DESCUENTO DE INVENTARIO ────────────────────────────────────────
+
+          // Reconstruir el carrito desde OrderItems para el correo de confirmación.
+          // JOIN con ProductVariants para obtener pv.imagen_1 como fallback cuando
+          // el ítem no tenía imagen propia al momento del checkout (variant.imagen_1 null → './ico.jpg' → filtrado).
+          const { results: items } = await env.DB.prepare(
+            `SELECT oi.product_name, oi.cantidad, oi.precio_unitario,
                             oi.imagen_url      AS oi_imagen_url,
                             pv.imagen_1        AS pv_imagen_1
                      FROM   OrderItems oi
                      LEFT   JOIN ProductVariants pv ON oi.variant_id = pv.id
                      WHERE  oi.order_id = ?`
-                ).bind(order.id).all();
-                const cartForEmail = (items || []).map(it => ({
-                    name:     it.product_name,
-                    quantity: it.cantidad,
-                    price:    it.precio_unitario,
-                    img:      it.oi_imagen_url || it.pv_imagen_1 || null
-                }));
-                const customerForEmail = {
-                    nombre: order.nombre || 'Cliente',
-                    email: order.email,
-                    telefono: order.telefono,
-                    direccion: order.direccion,
-                    comuna: order.comuna,
-                    region: order.region
-                };
-                if (customerForEmail.email) {
-                    ctx.waitUntil(sendOrderConfirmationEmail(env, customerForEmail, order.id, cartForEmail, order.total));
-                }
+          ).bind(order.id).all();
+          const cartForEmail = (items || []).map(it => ({
+            name: it.product_name,
+            quantity: it.cantidad,
+            price: it.precio_unitario,
+            img: it.oi_imagen_url || it.pv_imagen_1 || null
+          }));
+          const customerForEmail = {
+            nombre: order.nombre || 'Cliente',
+            email: order.email,
+            telefono: order.telefono,
+            direccion: order.direccion,
+            comuna: order.comuna,
+            region: order.region
+          };
+          if (customerForEmail.email) {
+            ctx.waitUntil(sendOrderConfirmationEmail(env, customerForEmail, order.id, cartForEmail, order.total));
+          }
 
-                return Response.redirect(FRONTEND_URL + "/checkout.html?status=success&order_id=" + order.id, 302);
-            }
-
-            // Rechazado (status distinto de AUTHORIZED) o sin orden recuperable.
-            if (order) {
-                await env.DB.prepare("UPDATE Orders SET estado = 'Cancelado' WHERE id = ?").bind(order.id).run();
-            }
-            const rejectId = order ? `&order_id=${order.id}` : '';
-            return Response.redirect(FRONTEND_URL + "/checkout.html?status=rejected" + rejectId, 302);
-        } catch (error) {
-            console.error("Error en /api/checkout/confirm:", error);
-            const FRONTEND_URL = (env.FRONTEND_URL || url.origin).replace(/\/$/, '');
-            return Response.redirect(FRONTEND_URL + "/checkout.html?status=rejected", 302);
+          return Response.redirect(FRONTEND_URL + "/checkout.html?status=success&order_id=" + order.id, 302);
         }
+
+        // Rechazado (status distinto de AUTHORIZED) o sin orden recuperable.
+        if (order) {
+          await env.DB.prepare("UPDATE Orders SET estado = 'Cancelado' WHERE id = ?").bind(order.id).run();
+        }
+        const rejectId = order ? `&order_id=${order.id}` : '';
+        return Response.redirect(FRONTEND_URL + "/checkout.html?status=rejected" + rejectId, 302);
+      } catch (error) {
+        console.error("Error en /api/checkout/confirm:", error);
+        const FRONTEND_URL = (env.FRONTEND_URL || url.origin).replace(/\/$/, '');
+        return Response.redirect(FRONTEND_URL + "/checkout.html?status=rejected", 302);
+      }
     }
 
     // Rutas públicas del ecommerce (catálogo)
     // LISTADO LIVIANO: solo imagen_1 por variante. Las imágenes 2-5 se piden por /api/products/:id
     if (url.pathname === "/api/products" && request.method === "GET") {
-        try {
-            const page  = Math.max(1, parseInt(url.searchParams.get('page')  || '1',  10) || 1);
-            const limit = Math.min(200, Math.max(1, parseInt(url.searchParams.get('limit') || '20', 10) || 20));
-            const offset = (page - 1) * limit;
-            const search = (url.searchParams.get('search') || url.searchParams.get('q') || '').trim();
-            const searchTerm = search ? `%${search}%` : null;
-            const isPackParam    = url.searchParams.get('is_pack');
-            const isSaleParam    = url.searchParams.get('is_sale');
-            let categoryParam  = url.searchParams.get('category');
-            if (categoryParam) {
-                try {
-                    categoryParam = decodeURIComponent(categoryParam);
-                } catch (e) {
-                    console.error('[API] Error decodificando categoryParam:', e);
-                }
-            }
+      try {
+        const page = Math.max(1, parseInt(url.searchParams.get('page') || '1', 10) || 1);
+        const limit = Math.min(200, Math.max(1, parseInt(url.searchParams.get('limit') || '20', 10) || 20));
+        const offset = (page - 1) * limit;
+        const search = (url.searchParams.get('search') || url.searchParams.get('q') || '').trim();
+        const searchTerm = search ? `%${search}%` : null;
+        const isPackParam = url.searchParams.get('is_pack');
+        const isSaleParam = url.searchParams.get('is_sale');
+        let categoryParam = url.searchParams.get('category') || url.searchParams.get('categoria');
+        if (categoryParam) {
+          try {
+            categoryParam = decodeURIComponent(categoryParam);
+          } catch (e) {
+            console.error('[API] Error decodificando categoryParam:', e);
+          }
+        }
 
-            console.log('[API] url.searchParams:', url.searchParams.toString());
-            console.log('[API] Valor final categoryParam:', categoryParam);
+        console.log('[API] url.searchParams:', url.searchParams.toString());
+        console.log('[API] Valor final categoryParam:', categoryParam);
 
-            // WHERE dinámico: siempre visible=1; LIKE en nombre y etiquetas cuando hay búsqueda
-            const whereConditions = ['p.visible = 1'];
-            const queryParams = [];
-            if (searchTerm) {
-                whereConditions.push('(p.nombre LIKE ? OR p.etiquetas LIKE ?)');
-                queryParams.push(searchTerm, searchTerm);
-            }
-            // Filtro B2B: si is_pack=1 sólo packs; en su defecto sólo retail (excluir packs)
-            if (isPackParam === '1') {
-                whereConditions.push('p.is_pack = 1');
-            } else {
-                whereConditions.push('(p.is_pack = 0 OR p.is_pack IS NULL)');
-            }
-            // Filtro Cyber Day: solo productos marcados como en oferta
-            if (isSaleParam === '1') {
-                whereConditions.push('p.en_oferta = 1');
-            }
-            // Filtro de categoría: validación estricta y directa sobre c.nombre
-            if (categoryParam && categoryParam.trim() !== '') {
-                whereConditions.push('LOWER(c.nombre) = LOWER(?)');
-                queryParams.push(categoryParam.trim());
-            }
-            const whereClause = whereConditions.join(' AND ');
+        // WHERE dinámico: siempre visible=1; LIKE en nombre y etiquetas cuando hay búsqueda
+        const whereConditions = ['p.visible = 1'];
+        const queryParams = [];
+        if (searchTerm) {
+          whereConditions.push('(p.nombre LIKE ? OR p.etiquetas LIKE ?)');
+          queryParams.push(searchTerm, searchTerm);
+        }
+        // Filtro B2B: si is_pack=1 sólo packs; en su defecto sólo retail (excluir packs)
+        if (isPackParam === '1') {
+          whereConditions.push('p.is_pack = 1');
+        } else {
+          whereConditions.push('(p.is_pack = 0 OR p.is_pack IS NULL)');
+        }
+        // Filtro Cyber Day: solo productos marcados como en oferta
+        if (isSaleParam === '1') {
+          whereConditions.push('p.en_oferta = 1');
+        }
 
-            const totalRow = await env.DB.prepare(
-                `SELECT COUNT(*) AS total FROM Products p LEFT JOIN Categories c ON p.categoria_id = c.id WHERE ${whereClause}`
-            ).bind(...queryParams).first();
-            const total = totalRow?.total || 0;
+        // Filtro de categoría: resolución por software para evadir límite LOWER() ASCII
+        if (categoryParam && categoryParam.trim() !== '' && categoryParam !== 'undefined') {
+          const { results: allCats } = await env.DB.prepare("SELECT id, nombre, slug FROM Categories").all();
+          const cleanCat = categoryParam.trim().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+          const matchedCat = allCats.find(c =>
+            (c.nombre && c.nombre.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "") === cleanCat) ||
+            (c.slug && c.slug.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "") === cleanCat)
+          );
 
-            const query = `SELECT p.*, c.nombre as categoria_nombre FROM Products p LEFT JOIN Categories c ON p.categoria_id = c.id WHERE ${whereClause} ORDER BY p.en_oferta DESC, p.id DESC LIMIT ? OFFSET ?`;
-            const { results: products } = await env.DB.prepare(query).bind(...queryParams, limit, offset).all();
+          if (matchedCat) {
+            whereConditions.push('(p.categoria_id = ? OR p.categorias_ids LIKE ?)');
+            queryParams.push(matchedCat.id, `%${matchedCat.id}%`);
+          } else {
+            whereConditions.push('1 = 0');
+          }
+        }
+        const whereClause = whereConditions.join(' AND ');
 
-            let variants = [];
-            if (products.length > 0) {
-                const ids = products.map(p => p.id);
-                const placeholders = ids.map(() => '?').join(',');
-                try {
-                    variants = (await env.DB.prepare(
-                        `SELECT id, product_id, color_name, color_hex, tallas, stock, imagen_1,
+        const totalRow = await env.DB.prepare(
+          `SELECT COUNT(*) AS total FROM Products p LEFT JOIN Categories c ON p.categoria_id = c.id WHERE ${whereClause}`
+        ).bind(...queryParams).first();
+        const total = totalRow?.total || 0;
+
+        const query = `SELECT p.*, c.nombre as categoria_nombre FROM Products p LEFT JOIN Categories c ON p.categoria_id = c.id WHERE ${whereClause} ORDER BY p.en_oferta DESC, p.id DESC LIMIT ? OFFSET ?`;
+        const { results: products } = await env.DB.prepare(query).bind(...queryParams, limit, offset).all();
+
+        let variants = [];
+        if (products.length > 0) {
+          const ids = products.map(p => p.id);
+          const placeholders = ids.map(() => '?').join(',');
+          try {
+            variants = (await env.DB.prepare(
+              `SELECT id, product_id, color_name, color_hex, tallas, stock, imagen_1,
                          ((CASE WHEN imagen_1 IS NOT NULL AND imagen_1 != '' THEN 1 ELSE 0 END) +
                           (CASE WHEN imagen_2 IS NOT NULL AND imagen_2 != '' THEN 1 ELSE 0 END) +
                           (CASE WHEN imagen_3 IS NOT NULL AND imagen_3 != '' THEN 1 ELSE 0 END) +
                           (CASE WHEN imagen_4 IS NOT NULL AND imagen_4 != '' THEN 1 ELSE 0 END) +
                           (CASE WHEN imagen_5 IS NOT NULL AND imagen_5 != '' THEN 1 ELSE 0 END)) as imagen_count
                          FROM ProductVariants WHERE product_id IN (${placeholders})`
-                    ).bind(...ids).all()).results;
-                } catch (e) {}
-            }
-            products.forEach(p => {
-                p.categorias_ids = parseCategorias(p.categorias_ids);
-                p.variantes = variants.filter(v => v.product_id === p.id);
-                if(p.variantes.length === 0 && p.imagen_url) p.variantes = [{ color_name: 'Único', color_hex: '#cccccc', tallas: p.tallas || '', stock: p.stock || 0, imagen_1: p.imagen_url }];
-            });
+            ).bind(...ids).all()).results;
+          } catch (e) { }
+        }
+        products.forEach(p => {
+          p.categorias_ids = parseCategorias(p.categorias_ids);
+          p.variantes = variants.filter(v => v.product_id === p.id);
+          if (p.variantes.length === 0 && p.imagen_url) p.variantes = [{ color_name: 'Único', color_hex: '#cccccc', tallas: p.tallas || '', stock: p.stock || 0, imagen_1: p.imagen_url }];
+        });
 
-            const totalPages = Math.max(1, Math.ceil(total / limit));
-            // Sin caché cuando hay búsqueda activa para no contaminar la caché de la vitrina general
-            const cacheHeader = search
-                ? "no-store"
-                : "public, max-age=60, s-maxage=60";
-            return Response.json({
-                success: true,
-                data: products,
-                pagination: { total, page, limit, totalPages }
-            }, {
-                headers: { ...corsHeaders, "Cache-Control": cacheHeader }
-            });
-        } catch (error) { return Response.json({ success: false, error: error.message }, { status: 500, headers: corsHeaders }); }
+        const totalPages = Math.max(1, Math.ceil(total / limit));
+        // Sin caché cuando hay búsqueda activa para no contaminar la caché de la vitrina general
+        const cacheHeader = search
+          ? "no-store"
+          : "public, max-age=60, s-maxage=60";
+        return Response.json({
+          success: true,
+          data: products,
+          pagination: { total, page, limit, totalPages }
+        }, {
+          headers: { ...corsHeaders, "Cache-Control": cacheHeader }
+        });
+      } catch (error) { return Response.json({ success: false, error: error.message }, { status: 500, headers: corsHeaders }); }
     }
 
     // DETALLE: producto único con TODAS las imágenes (1-5) de cada variante
     const publicProductMatch = url.pathname.match(/^\/api\/products\/(\d+)$/);
     if (publicProductMatch && request.method === "GET") {
-        try {
-            const pId = parseInt(publicProductMatch[1], 10);
-            const product = await env.DB.prepare(
-                `SELECT p.*, c.nombre as categoria_nombre FROM Products p LEFT JOIN Categories c ON p.categoria_id = c.id WHERE p.id = ? AND p.visible = 1`
-            ).bind(pId).first();
-            if (!product) return Response.json({ success: false, error: "Producto no encontrado" }, { status: 404, headers: corsHeaders });
+      try {
+        const pId = parseInt(publicProductMatch[1], 10);
+        const product = await env.DB.prepare(
+          `SELECT p.*, c.nombre as categoria_nombre FROM Products p LEFT JOIN Categories c ON p.categoria_id = c.id WHERE p.id = ? AND p.visible = 1`
+        ).bind(pId).first();
+        if (!product) return Response.json({ success: false, error: "Producto no encontrado" }, { status: 404, headers: corsHeaders });
 
-            let variants = [];
-            try {
-                variants = (await env.DB.prepare(
-                    "SELECT * FROM ProductVariants WHERE product_id = ?"
-                ).bind(pId).all()).results;
-            } catch (e) {}
-            product.categorias_ids = parseCategorias(product.categorias_ids);
-            product.variantes = variants;
-            if (product.variantes.length === 0 && product.imagen_url) {
-                product.variantes = [{ color_name: 'Único', color_hex: '#cccccc', tallas: product.tallas || '', stock: product.stock || 0, imagen_1: product.imagen_url }];
-            }
-            return Response.json({ success: true, data: product }, {
-                headers: { ...corsHeaders, "Cache-Control": "public, max-age=60, s-maxage=60" }
-            });
-        } catch (error) { return Response.json({ success: false, error: error.message }, { status: 500, headers: corsHeaders }); }
+        let variants = [];
+        try {
+          variants = (await env.DB.prepare(
+            "SELECT * FROM ProductVariants WHERE product_id = ?"
+          ).bind(pId).all()).results;
+        } catch (e) { }
+        product.categorias_ids = parseCategorias(product.categorias_ids);
+        product.variantes = variants;
+        if (product.variantes.length === 0 && product.imagen_url) {
+          product.variantes = [{ color_name: 'Único', color_hex: '#cccccc', tallas: product.tallas || '', stock: product.stock || 0, imagen_1: product.imagen_url }];
+        }
+        return Response.json({ success: true, data: product }, {
+          headers: { ...corsHeaders, "Cache-Control": "public, max-age=60, s-maxage=60" }
+        });
+      } catch (error) { return Response.json({ success: false, error: error.message }, { status: 500, headers: corsHeaders }); }
     }
 
     if (url.pathname === "/api/categories" && request.method === "GET") {
-        try {
-            const { results } = await env.DB.prepare("SELECT * FROM Categories").all();
-            return Response.json({ success: true, data: results }, { headers: corsHeaders });
-        } catch (error) { return Response.json({ success: false, error: error.message }, { status: 500, headers: corsHeaders }); }
+      try {
+        const { results } = await env.DB.prepare("SELECT * FROM Categories").all();
+        return Response.json({ success: true, data: results }, { headers: corsHeaders });
+      } catch (error) { return Response.json({ success: false, error: error.message }, { status: 500, headers: corsHeaders }); }
     }
 
     const custOrderMatch = url.pathname.match(/^\/api\/orders\/customer\/(.+)$/);
     if (custOrderMatch && request.method === "GET") {
-        try {
-            const emailDecoded = decodeURIComponent(custOrderMatch[1]);
-            const query = `SELECT o.*, c.nombre as cliente_nombre, c.email as cliente_email FROM Orders o JOIN Customers c ON o.customer_id = c.id WHERE c.email = ? ORDER BY o.fecha_creacion DESC`;
-            const { results } = await env.DB.prepare(query).bind(emailDecoded).all();
-            return Response.json({ success: true, data: results }, { headers: corsHeaders });
-        } catch(e) { console.error("[Orders Customer] D1 error:", e.message); return Response.json({ success: false, error: e.message }, { status: 500, headers: corsHeaders }); }
+      try {
+        const emailDecoded = decodeURIComponent(custOrderMatch[1]);
+        const query = `SELECT o.*, c.nombre as cliente_nombre, c.email as cliente_email FROM Orders o JOIN Customers c ON o.customer_id = c.id WHERE c.email = ? ORDER BY o.fecha_creacion DESC`;
+        const { results } = await env.DB.prepare(query).bind(emailDecoded).all();
+        return Response.json({ success: true, data: results }, { headers: corsHeaders });
+      } catch (e) { console.error("[Orders Customer] D1 error:", e.message); return Response.json({ success: false, error: e.message }, { status: 500, headers: corsHeaders }); }
     }
 
     // ── GET /api/orders/:id ────────────────────────────────────────────────────
@@ -979,25 +1048,25 @@ export default {
     // webhook de pago (Paso 3) para calcular la disponibilidad real por talla.
     const orderDetailMatch = url.pathname.match(/^\/api\/orders\/(\d+)$/);
     if (orderDetailMatch && request.method === "GET") {
-        try {
-            const orderId = parseInt(orderDetailMatch[1], 10);
-            const email = (url.searchParams.get('email') || '').toLowerCase().trim();
-            if (!orderId) return Response.json({ success: false, error: 'ID de pedido inválido' }, { status: 400, headers: corsHeaders });
+      try {
+        const orderId = parseInt(orderDetailMatch[1], 10);
+        const email = (url.searchParams.get('email') || '').toLowerCase().trim();
+        if (!orderId) return Response.json({ success: false, error: 'ID de pedido inválido' }, { status: 400, headers: corsHeaders });
 
-            const order = await env.DB.prepare(
-                `SELECT o.*, c.nombre AS cliente_nombre, c.email AS cliente_email
+        const order = await env.DB.prepare(
+          `SELECT o.*, c.nombre AS cliente_nombre, c.email AS cliente_email
                  FROM Orders o JOIN Customers c ON o.customer_id = c.id
                  WHERE o.id = ?`
-            ).bind(orderId).first();
-            if (!order) return Response.json({ success: false, error: 'Pedido no encontrado' }, { status: 404, headers: corsHeaders });
+        ).bind(orderId).first();
+        if (!order) return Response.json({ success: false, error: 'Pedido no encontrado' }, { status: 404, headers: corsHeaders });
 
-            // Validación de propiedad: el email debe coincidir con el dueño de la orden.
-            if (email && (order.cliente_email || '').toLowerCase() !== email) {
-                return Response.json({ success: false, error: 'No autorizado para ver este pedido' }, { status: 403, headers: corsHeaders });
-            }
+        // Validación de propiedad: el email debe coincidir con el dueño de la orden.
+        if (email && (order.cliente_email || '').toLowerCase() !== email) {
+          return Response.json({ success: false, error: 'No autorizado para ver este pedido' }, { status: 403, headers: corsHeaders });
+        }
 
-            const { results: rawItems } = await env.DB.prepare(
-                `SELECT oi.product_id, oi.variant_id, oi.product_name, oi.variant_details,
+        const { results: rawItems } = await env.DB.prepare(
+          `SELECT oi.product_id, oi.variant_id, oi.product_name, oi.variant_details,
                         oi.cantidad, oi.precio_unitario,
                         oi.imagen_url AS oi_imagen_url,
                         pv.imagen_1   AS pv_imagen_1,
@@ -1009,72 +1078,72 @@ export default {
                  LEFT JOIN ProductVariants pv ON oi.variant_id = pv.id
                  LEFT JOIN Products p ON oi.product_id = p.id
                  WHERE oi.order_id = ?`
-            ).bind(orderId).all();
+        ).bind(orderId).all();
 
-            // Calcula el stock disponible ACTUAL de un ítem según su formato:
-            //   · Kit    → variant_details '{"bata":"M",...}' → mínimo entre componentes
-            //   · Normal → "Talla: X" → stock de esa talla en el JSON de la variante
-            //   · Estándar → stock de la variante o, en su defecto, del producto
-            const computeStock = (it) => {
-                const vd = it.variant_details || '';
-                let tallas = null;
-                if (it.variant_tallas) { try { tallas = JSON.parse(it.variant_tallas); } catch (_) {} }
+        // Calcula el stock disponible ACTUAL de un ítem según su formato:
+        //   · Kit    → variant_details '{"bata":"M",...}' → mínimo entre componentes
+        //   · Normal → "Talla: X" → stock de esa talla en el JSON de la variante
+        //   · Estándar → stock de la variante o, en su defecto, del producto
+        const computeStock = (it) => {
+          const vd = it.variant_details || '';
+          let tallas = null;
+          if (it.variant_tallas) { try { tallas = JSON.parse(it.variant_tallas); } catch (_) { } }
 
-                if (vd.startsWith('{')) {
-                    let kitSizes = null;
-                    try { kitSizes = JSON.parse(vd); } catch (_) {}
-                    if (!kitSizes || !tallas || Array.isArray(tallas)) return it.variant_stock ?? it.product_stock ?? 0;
-                    let min = Infinity;
-                    for (const [comp, size] of Object.entries(kitSizes)) {
-                        const arr = tallas[comp];
-                        if (!Array.isArray(arr)) { min = 0; continue; }
-                        const found = arr.find(t => t.size === size);
-                        min = Math.min(min, found ? (found.stock ?? 0) : 0);
-                    }
-                    return min === Infinity ? 0 : min;
-                }
+          if (vd.startsWith('{')) {
+            let kitSizes = null;
+            try { kitSizes = JSON.parse(vd); } catch (_) { }
+            if (!kitSizes || !tallas || Array.isArray(tallas)) return it.variant_stock ?? it.product_stock ?? 0;
+            let min = Infinity;
+            for (const [comp, size] of Object.entries(kitSizes)) {
+              const arr = tallas[comp];
+              if (!Array.isArray(arr)) { min = 0; continue; }
+              const found = arr.find(t => t.size === size);
+              min = Math.min(min, found ? (found.stock ?? 0) : 0);
+            }
+            return min === Infinity ? 0 : min;
+          }
 
-                const m = vd.match(/^Talla:\s*(.+)$/);
-                if (m && Array.isArray(tallas)) {
-                    const found = tallas.find(t => t.size === m[1].trim());
-                    return found ? (found.stock ?? 0) : 0;
-                }
+          const m = vd.match(/^Talla:\s*(.+)$/);
+          if (m && Array.isArray(tallas)) {
+            const found = tallas.find(t => t.size === m[1].trim());
+            return found ? (found.stock ?? 0) : 0;
+          }
 
-                return it.variant_stock ?? it.product_stock ?? 0;
-            };
+          return it.variant_stock ?? it.product_stock ?? 0;
+        };
 
-            const items = (rawItems || []).map(it => {
-                const stockDisponible = computeStock(it);
-                return {
-                    product_id:       it.product_id,
-                    variant_id:       it.variant_id,
-                    product_name:     it.product_name,
-                    variant_details:  it.variant_details,
-                    cantidad:         it.cantidad,
-                    precio_unitario:  it.precio_unitario,
-                    imagen_url:       it.oi_imagen_url || it.pv_imagen_1 || null,
-                    weight:           it.product_weight || 0,
-                    stock_disponible: stockDisponible,
-                    disponible:       stockDisponible >= it.cantidad
-                };
-            });
+        const items = (rawItems || []).map(it => {
+          const stockDisponible = computeStock(it);
+          return {
+            product_id: it.product_id,
+            variant_id: it.variant_id,
+            product_name: it.product_name,
+            variant_details: it.variant_details,
+            cantidad: it.cantidad,
+            precio_unitario: it.precio_unitario,
+            imagen_url: it.oi_imagen_url || it.pv_imagen_1 || null,
+            weight: it.product_weight || 0,
+            stock_disponible: stockDisponible,
+            disponible: stockDisponible >= it.cantidad
+          };
+        });
 
-            return Response.json({
-                success: true,
-                data: {
-                    id:             order.id,
-                    estado:         order.estado,
-                    total:          order.total,
-                    shipping_cost:  order.shipping_cost,
-                    cliente_nombre: order.cliente_nombre,
-                    cliente_email:  order.cliente_email,
-                    items
-                }
-            }, { headers: corsHeaders });
-        } catch (e) {
-            console.error('[OrderDetail]', e.message);
-            return Response.json({ success: false, error: e.message }, { status: 500, headers: corsHeaders });
-        }
+        return Response.json({
+          success: true,
+          data: {
+            id: order.id,
+            estado: order.estado,
+            total: order.total,
+            shipping_cost: order.shipping_cost,
+            cliente_nombre: order.cliente_nombre,
+            cliente_email: order.cliente_email,
+            items
+          }
+        }, { headers: corsHeaders });
+      } catch (e) {
+        console.error('[OrderDetail]', e.message);
+        return Response.json({ success: false, error: e.message }, { status: 500, headers: corsHeaders });
+      }
     }
 
     // ── PUT /api/orders/:id/cancel ─────────────────────────────────────────────
@@ -1084,41 +1153,41 @@ export default {
     // tuvieron stock descontado, por lo que no es necesario revertirlo.
     const cancelOrderMatch = url.pathname.match(/^\/api\/orders\/(\d+)\/cancel$/);
     if (cancelOrderMatch && request.method === "PUT") {
-        try {
-            const orderId = parseInt(cancelOrderMatch[1], 10);
-            if (!orderId) return Response.json({ success: false, error: 'ID de pedido inválido' }, { status: 400, headers: corsHeaders });
+      try {
+        const orderId = parseInt(cancelOrderMatch[1], 10);
+        if (!orderId) return Response.json({ success: false, error: 'ID de pedido inválido' }, { status: 400, headers: corsHeaders });
 
-            let body;
-            try { body = await request.json(); } catch (_) { body = {}; }
-            const email = (body.email || '').toLowerCase().trim();
-            if (!email) return Response.json({ success: false, error: 'Email del cliente requerido' }, { status: 400, headers: corsHeaders });
+        let body;
+        try { body = await request.json(); } catch (_) { body = {}; }
+        const email = (body.email || '').toLowerCase().trim();
+        if (!email) return Response.json({ success: false, error: 'Email del cliente requerido' }, { status: 400, headers: corsHeaders });
 
-            // Verificar que la orden existe y pertenece al cliente que solicita
-            const order = await env.DB.prepare(
-                `SELECT o.id, o.estado FROM Orders o
+        // Verificar que la orden existe y pertenece al cliente que solicita
+        const order = await env.DB.prepare(
+          `SELECT o.id, o.estado FROM Orders o
                  JOIN Customers c ON o.customer_id = c.id
                  WHERE o.id = ? AND LOWER(c.email) = ?`
-            ).bind(orderId, email).first();
+        ).bind(orderId, email).first();
 
-            if (!order) return Response.json({ success: false, error: 'Pedido no encontrado o no pertenece a esta cuenta' }, { status: 404, headers: corsHeaders });
+        if (!order) return Response.json({ success: false, error: 'Pedido no encontrado o no pertenece a esta cuenta' }, { status: 404, headers: corsHeaders });
 
-            const estadoActual = (order.estado || '').toLowerCase();
-            // Solo se pueden cancelar órdenes pendientes de pago
-            if (!estadoActual.includes('pendiente') && !estadoActual.includes('sin pagar')) {
-                return Response.json({
-                    success: false,
-                    error: `No se puede cancelar una orden con estado "${order.estado}". Solo se permiten cancelar órdenes pendientes de pago.`
-                }, { status: 409, headers: corsHeaders });
-            }
-
-            await env.DB.prepare("UPDATE Orders SET estado = 'Cancelado' WHERE id = ?").bind(orderId).run();
-            console.log(`[CancelOrder] Orden #${orderId} cancelada por cliente ${email}`);
-
-            return Response.json({ success: true, message: 'Pedido cancelado correctamente' }, { headers: corsHeaders });
-        } catch (e) {
-            console.error('[CancelOrder]', e.message);
-            return Response.json({ success: false, error: e.message }, { status: 500, headers: corsHeaders });
+        const estadoActual = (order.estado || '').toLowerCase();
+        // Solo se pueden cancelar órdenes pendientes de pago
+        if (!estadoActual.includes('pendiente') && !estadoActual.includes('sin pagar')) {
+          return Response.json({
+            success: false,
+            error: `No se puede cancelar una orden con estado "${order.estado}". Solo se permiten cancelar órdenes pendientes de pago.`
+          }, { status: 409, headers: corsHeaders });
         }
+
+        await env.DB.prepare("UPDATE Orders SET estado = 'Cancelado' WHERE id = ?").bind(orderId).run();
+        console.log(`[CancelOrder] Orden #${orderId} cancelada por cliente ${email}`);
+
+        return Response.json({ success: true, message: 'Pedido cancelado correctamente' }, { headers: corsHeaders });
+      } catch (e) {
+        console.error('[CancelOrder]', e.message);
+        return Response.json({ success: false, error: e.message }, { status: 500, headers: corsHeaders });
+      }
     }
 
     // ========================================================================
@@ -1295,7 +1364,7 @@ export default {
           for (const v of pending) {
             const variant = await env.DB.prepare("SELECT * FROM ProductVariants WHERE id = ?").bind(v.id).first();
             const updates = {};
-            for (const col of ['imagen_1','imagen_2','imagen_3','imagen_4','imagen_5']) {
+            for (const col of ['imagen_1', 'imagen_2', 'imagen_3', 'imagen_4', 'imagen_5']) {
               const val = variant[col];
               if (val && typeof val === 'string' && val.startsWith('data:')) {
                 try {
@@ -1340,12 +1409,12 @@ export default {
 
       if (url.pathname === "/api/admin/products" && request.method === "GET") {
         try {
-          const page  = Math.max(1, parseInt(url.searchParams.get('page')  || '1',  10) || 1);
+          const page = Math.max(1, parseInt(url.searchParams.get('page') || '1', 10) || 1);
           const limit = Math.min(200, Math.max(1, parseInt(url.searchParams.get('limit') || '20', 10) || 20));
           const offset = (page - 1) * limit;
           const search = (url.searchParams.get('search') || url.searchParams.get('q') || '').trim();
           const searchTerm = search ? `%${search}%` : null;
-          const kitFilter    = url.searchParams.get('kit');
+          const kitFilter = url.searchParams.get('kit');
           const ofertaFilter = url.searchParams.get('oferta');
           const isPackFilter = url.searchParams.get('is_pack');
 
@@ -1356,7 +1425,7 @@ export default {
             whereConditions.push('(p.nombre LIKE ? OR p.sku LIKE ? OR p.etiquetas LIKE ?)');
             queryParams.push(searchTerm, searchTerm, searchTerm);
           }
-          if (kitFilter === '1')    { whereConditions.push('p.es_kit = 1'); }
+          if (kitFilter === '1') { whereConditions.push('p.es_kit = 1'); }
           if (ofertaFilter === '1') { whereConditions.push('p.en_oferta = 1'); }
           if (isPackFilter === '1') { whereConditions.push('p.is_pack = 1'); }
           const whereClause = whereConditions.length ? `WHERE ${whereConditions.join(' AND ')}` : '';
@@ -1375,12 +1444,12 @@ export default {
             const placeholders = ids.map(() => '?').join(',');
             try {
               variants = (await env.DB.prepare(`SELECT * FROM ProductVariants WHERE product_id IN (${placeholders})`).bind(...ids).all()).results;
-            } catch (e) {}
+            } catch (e) { }
           }
           products.forEach(p => {
             p.categorias_ids = parseCategorias(p.categorias_ids);
             p.variantes = variants.filter(v => v.product_id === p.id);
-            if(p.variantes.length === 0 && p.imagen_url) p.variantes = [{ color_name: 'Único', color_hex: '#cccccc', tallas: p.tallas || '', stock: p.stock || 0, imagen_1: p.imagen_url }];
+            if (p.variantes.length === 0 && p.imagen_url) p.variantes = [{ color_name: 'Único', color_hex: '#cccccc', tallas: p.tallas || '', stock: p.stock || 0, imagen_1: p.imagen_url }];
           });
 
           const totalPages = Math.max(1, Math.ceil(total / limit));
@@ -1397,19 +1466,19 @@ export default {
           const body = await request.json();
           const categoriasStr = serializeCategorias(body.categorias_ids);
           const categoriaIdPrimary = Array.isArray(body.categorias_ids) && body.categorias_ids.length > 0 ? body.categorias_ids[0] : (body.categoria_id || 1);
-          const _descP  = body.description  || body.descripcion || "";
-          const _tagsP  = body.tags         || body.etiquetas   || null;
-          const _isoP   = body.isOffer      || body.en_oferta   || 0;
-          const _ofpP   = body.offerPrice   || body.precio_oferta || null;
+          const _descP = body.description || body.descripcion || "";
+          const _tagsP = body.tags || body.etiquetas || null;
+          const _isoP = body.isOffer || body.en_oferta || 0;
+          const _ofpP = body.offerPrice || body.precio_oferta || null;
           const _isPackP = body.is_pack === 1 || body.is_pack === '1' ? 1 : 0;
-          const info = await env.DB.prepare(`INSERT INTO Products (sku, nombre, descripcion, precio_normal, precio_oferta, en_oferta, oferta_limitada, fecha_fin_oferta, stock, categoria_id, etiquetas, weight, is_pack) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`)
-            .bind(body.sku || null, body.nombre, _descP, body.precio_normal, _ofpP, _isoP, body.oferta_limitada || 0, body.fecha_fin_oferta || null, body.stock || 0, categoriaIdPrimary, _tagsP, body.weight || 0, _isPackP).run();
+          const info = await env.DB.prepare(`INSERT INTO Products (sku, nombre, descripcion, precio_normal, precio_oferta, en_oferta, oferta_limitada, fecha_fin_oferta, stock, categoria_id, categorias_ids, etiquetas, weight, is_pack) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`)
+            .bind(body.sku || null, body.nombre, _descP, body.precio_normal, _ofpP, _isoP, body.oferta_limitada || 0, body.fecha_fin_oferta || null, body.stock || 0, categoriaIdPrimary, categoriasStr, _tagsP, body.weight || 0, _isPackP).run();
 
           const newProductId = info.meta.last_row_id;
           if (body.variantes && body.variantes.length > 0) {
-              const variantStmts = body.variantes.map(v => env.DB.prepare(`INSERT INTO ProductVariants (product_id, color_name, color_hex, tallas, stock, imagen_1, imagen_2, imagen_3, imagen_4, imagen_5) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`)
-                .bind(newProductId, v.color_name, v.color_hex, v.tallas, v.stock || 0, v.images[0] || null, v.images[1] || null, v.images[2] || null, v.images[3] || null, v.images[4] || null));
-              await env.DB.batch(variantStmts);
+            const variantStmts = body.variantes.map(v => env.DB.prepare(`INSERT INTO ProductVariants (product_id, color_name, color_hex, tallas, stock, imagen_1, imagen_2, imagen_3, imagen_4, imagen_5) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`)
+              .bind(newProductId, v.color_name, v.color_hex, v.tallas, v.stock || 0, v.images[0] || null, v.images[1] || null, v.images[2] || null, v.images[3] || null, v.images[4] || null));
+            await env.DB.batch(variantStmts);
           }
           ctx.waitUntil(logActivity(env, adminName, 'CREAR', 'Producto', newProductId, body.nombre));
           return Response.json({ success: true, message: "Producto creado" }, { status: 201, headers: corsHeaders });
@@ -1432,18 +1501,18 @@ export default {
             const body = await request.json();
             const categoriasStr = serializeCategorias(body.categorias_ids);
             const categoriaIdPrimary = Array.isArray(body.categorias_ids) && body.categorias_ids.length > 0 ? body.categorias_ids[0] : (body.categoria_id || null);
-            const _descU  = body.description  || body.descripcion || null;
-            const _tagsU  = body.tags         || body.etiquetas   || null;
-            const _isoU   = body.isOffer      || body.en_oferta   || 0;
-            const _ofpU   = body.offerPrice   || body.precio_oferta || null;
+            const _descU = body.description || body.descripcion || null;
+            const _tagsU = body.tags || body.etiquetas || null;
+            const _isoU = body.isOffer || body.en_oferta || 0;
+            const _ofpU = body.offerPrice || body.precio_oferta || null;
             const _isPackU = body.is_pack === 1 || body.is_pack === '1' ? 1 : 0;
-            await env.DB.prepare(`UPDATE Products SET sku = ?, nombre = ?, descripcion = ?, precio_normal = ?, precio_oferta = ?, en_oferta = ?, oferta_limitada = ?, fecha_fin_oferta = ?, stock = ?, categoria_id = ?, visible = ?, etiquetas = ?, weight = ?, is_pack = ? WHERE id = ?`)
-              .bind(body.sku || null, body.nombre, _descU, body.precio_normal, _ofpU, _isoU, body.oferta_limitada || 0, body.fecha_fin_oferta || null, body.stock || 0, categoriaIdPrimary, body.visible !== undefined ? body.visible : 1, _tagsU, body.weight || 0, _isPackU, pId).run();
+            await env.DB.prepare(`UPDATE Products SET sku = ?, nombre = ?, descripcion = ?, precio_normal = ?, precio_oferta = ?, en_oferta = ?, oferta_limitada = ?, fecha_fin_oferta = ?, stock = ?, categoria_id = ?, categorias_ids = ?, visible = ?, etiquetas = ?, weight = ?, is_pack = ? WHERE id = ?`)
+              .bind(body.sku || null, body.nombre, _descU, body.precio_normal, _ofpU, _isoU, body.oferta_limitada || 0, body.fecha_fin_oferta || null, body.stock || 0, categoriaIdPrimary, categoriasStr, body.visible !== undefined ? body.visible : 1, _tagsU, body.weight || 0, _isPackU, pId).run();
             await env.DB.prepare("DELETE FROM ProductVariants WHERE product_id = ?").bind(pId).run();
             if (body.variantes && body.variantes.length > 0) {
-                const variantStmts = body.variantes.map(v => env.DB.prepare(`INSERT INTO ProductVariants (product_id, color_name, color_hex, tallas, stock, imagen_1, imagen_2, imagen_3, imagen_4, imagen_5) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`)
-                  .bind(pId, v.color_name, v.color_hex, v.tallas, v.stock || 0, v.images[0] || null, v.images[1] || null, v.images[2] || null, v.images[3] || null, v.images[4] || null));
-                await env.DB.batch(variantStmts);
+              const variantStmts = body.variantes.map(v => env.DB.prepare(`INSERT INTO ProductVariants (product_id, color_name, color_hex, tallas, stock, imagen_1, imagen_2, imagen_3, imagen_4, imagen_5) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`)
+                .bind(pId, v.color_name, v.color_hex, v.tallas, v.stock || 0, v.images[0] || null, v.images[1] || null, v.images[2] || null, v.images[3] || null, v.images[4] || null));
+              await env.DB.batch(variantStmts);
             }
             ctx.waitUntil(logActivity(env, adminName, 'EDITAR', 'Producto', pId, body.nombre));
             return Response.json({ success: true, message: `Producto actualizado` }, { headers: corsHeaders });
@@ -1455,7 +1524,7 @@ export default {
       if (url.pathname === "/api/admin/activities" && request.method === "GET") {
         if (adminRol !== 'superadmin') return Response.json({ success: false, error: "Acceso restringido a superadmin" }, { status: 403, headers: corsHeaders });
         try {
-          const page  = Math.max(1, parseInt(url.searchParams.get('page')  || '1',  10) || 1);
+          const page = Math.max(1, parseInt(url.searchParams.get('page') || '1', 10) || 1);
           const limit = Math.min(200, Math.max(1, parseInt(url.searchParams.get('limit') || '20', 10) || 20));
           const offset = (page - 1) * limit;
           const search = (url.searchParams.get('search') || url.searchParams.get('q') || '').trim();
@@ -1489,7 +1558,7 @@ export default {
       // ---- CLIENTES ----
       if (url.pathname === "/api/admin/customers" && request.method === "GET") {
         try {
-          const page  = Math.max(1, parseInt(url.searchParams.get('page')  || '1',  10) || 1);
+          const page = Math.max(1, parseInt(url.searchParams.get('page') || '1', 10) || 1);
           const limit = Math.min(200, Math.max(1, parseInt(url.searchParams.get('limit') || '20', 10) || 20));
           const offset = (page - 1) * limit;
           const search = (url.searchParams.get('search') || url.searchParams.get('q') || '').trim();
@@ -1539,9 +1608,9 @@ export default {
           try {
             const ordersQuery = await env.DB.prepare("SELECT id FROM Orders WHERE customer_id = ?").bind(cId).all();
             if (ordersQuery && ordersQuery.results) {
-                for (const order of ordersQuery.results) {
-                    await env.DB.prepare("DELETE FROM OrderItems WHERE order_id = ?").bind(order.id).run();
-                }
+              for (const order of ordersQuery.results) {
+                await env.DB.prepare("DELETE FROM OrderItems WHERE order_id = ?").bind(order.id).run();
+              }
             }
             await env.DB.prepare("DELETE FROM Orders WHERE customer_id = ?").bind(cId).run();
             await env.DB.prepare("DELETE FROM Customers WHERE id = ?").bind(cId).run();
@@ -1567,10 +1636,10 @@ export default {
       // "ambiguous column name" y poder añadir WHERE post-JOIN para la búsqueda.
       if (url.pathname === "/api/admin/orders" && request.method === "GET") {
         try {
-          const fromQ  = url.searchParams.get('from');
-          const toQ    = url.searchParams.get('to');
-          const page   = Math.max(1, parseInt(url.searchParams.get('page')  || '1',  10) || 1);
-          const limit  = Math.min(10000, Math.max(1, parseInt(url.searchParams.get('limit') || '20', 10) || 20));
+          const fromQ = url.searchParams.get('from');
+          const toQ = url.searchParams.get('to');
+          const page = Math.max(1, parseInt(url.searchParams.get('page') || '1', 10) || 1);
+          const limit = Math.min(10000, Math.max(1, parseInt(url.searchParams.get('limit') || '20', 10) || 20));
           const offset = (page - 1) * limit;
           const search = (url.searchParams.get('search') || url.searchParams.get('q') || '').trim();
           const searchTerm = search ? `%${search}%` : null;
@@ -1586,7 +1655,7 @@ export default {
           const bindParams = [];
           const { utcFrom, utcTo } = getUtcBounds(fromQ, toQ);
           if (utcFrom) { conditions.push(`o.${fechaCol} >= ?`); bindParams.push(utcFrom); }
-          if (utcTo)   { conditions.push(`o.${fechaCol} <= ?`); bindParams.push(utcTo); }
+          if (utcTo) { conditions.push(`o.${fechaCol} <= ?`); bindParams.push(utcTo); }
           if (searchTerm) {
             conditions.push(`(CAST(o.id AS TEXT) LIKE ? OR c.nombre LIKE ? OR c.email LIKE ?)`);
             bindParams.push(searchTerm, searchTerm, searchTerm);
@@ -1635,7 +1704,7 @@ export default {
         if (request.method === "GET") {
           try {
             const order = await env.DB.prepare(`SELECT o.*, c.nombre, c.email, c.telefono, c.direccion, c.comuna, c.region FROM Orders o LEFT JOIN Customers c ON o.customer_id = c.id WHERE o.id = ?`).bind(oId).first();
-            if (!order) return Response.json({success: false, error: "Pedido no encontrado"}, {status: 404, headers: corsHeaders});
+            if (!order) return Response.json({ success: false, error: "Pedido no encontrado" }, { status: 404, headers: corsHeaders });
             try {
               const { results: rawItems } = await env.DB.prepare(
                 `SELECT oi.id, oi.order_id, oi.product_id, oi.variant_id,
@@ -1654,26 +1723,26 @@ export default {
               // imagen_url: prioridad oi → variante elegida (pv.imagen_1).
               // Products no tiene imagen_url en el schema de producción.
               order.items = (rawItems || []).map(it => ({
-                id:              it.id,
-                order_id:        it.order_id,
-                product_id:      it.product_id,
-                variant_id:      it.variant_id,
-                product_name:    it.product_name,
+                id: it.id,
+                order_id: it.order_id,
+                product_id: it.product_id,
+                variant_id: it.variant_id,
+                product_name: it.product_name,
                 variant_details: it.variant_details,
-                cantidad:        it.cantidad,
+                cantidad: it.cantidad,
                 precio_unitario: it.precio_unitario,
-                imagen_url:      it.oi_imagen_url || it.pv_imagen_1 || null,
-                sku:             it.sku,
-                color_name:      it.color_name,
-                color_hex:       it.color_hex,
-                variant_tallas:  it.variant_tallas,
+                imagen_url: it.oi_imagen_url || it.pv_imagen_1 || null,
+                sku: it.sku,
+                color_name: it.color_name,
+                color_hex: it.color_hex,
+                variant_tallas: it.variant_tallas,
               }));
-            } catch(e) {
+            } catch (e) {
               order.items = [];
               console.error('[OrderItems query error]', e.message);
             }
-            return Response.json({success: true, data: order}, {headers: corsHeaders});
-          } catch(err) { return Response.json({success: false, error: err.message}, {status:500, headers: corsHeaders}); }
+            return Response.json({ success: true, data: order }, { headers: corsHeaders });
+          } catch (err) { return Response.json({ success: false, error: err.message }, { status: 500, headers: corsHeaders }); }
         }
         if (request.method === "PUT") {
           try {
@@ -1699,8 +1768,8 @@ export default {
               }
             }
 
-            return Response.json({success: true, message: "Pedido actualizado"}, {headers: corsHeaders});
-          } catch(err) { return Response.json({success: false, error: err.message}, {status:500, headers: corsHeaders}); }
+            return Response.json({ success: true, message: "Pedido actualizado" }, { headers: corsHeaders });
+          } catch (err) { return Response.json({ success: false, error: err.message }, { status: 500, headers: corsHeaders }); }
         }
       }
 
@@ -1736,16 +1805,16 @@ export default {
           const audit = await Promise.all((items || []).map(async (it) => {
             const diag = [];
             const report = {
-              product_id:      it.product_id,
-              variant_id:      it.variant_id,
-              product_name:    it.product_name,
+              product_id: it.product_id,
+              variant_id: it.variant_id,
+              product_name: it.product_name,
               variant_details: it.variant_details,
               cantidad_vendida: it.cantidad,
-              level1_product:  null,
-              level2_variant:  null,
-              level3_talla:    null,
-              diagnosis:       diag,
-              status:          'unknown',
+              level1_product: null,
+              level2_variant: null,
+              level3_talla: null,
+              diagnosis: diag,
+              status: 'unknown',
             };
 
             // ── Nivel 1: Products.stock ──────────────────────────────────────
@@ -1798,7 +1867,7 @@ export default {
             }
 
             const isKitVariant = it.variant_details && it.variant_details.startsWith('{');
-            const tallaMatch   = isKitVariant ? null : (it.variant_details || '').match(/^Talla:\s*(.+)$/);
+            const tallaMatch = isKitVariant ? null : (it.variant_details || '').match(/^Talla:\s*(.+)$/);
 
             // Caso A: producto sin talla seleccionada ("Estándar")
             if (!tallaMatch && !isKitVariant) {
@@ -1811,7 +1880,7 @@ export default {
             // Caso B: kit (tallas es objeto)
             if (isKitVariant) {
               let kitSizes = null;
-              try { kitSizes = JSON.parse(it.variant_details); } catch (_) {}
+              try { kitSizes = JSON.parse(it.variant_details); } catch (_) { }
               const kitReport = { kind: 'kit', selected: kitSizes, components: {} };
 
               if (!kitSizes || typeof kitSizes !== 'object' || Array.isArray(kitSizes)) {
@@ -1906,7 +1975,7 @@ export default {
             return m ? `${m[3]}-${m[2]}-${m[1]}` : raw;       // → YYYY-MM-DD
           };
           const from = normDate(url.searchParams.get('from') || url.searchParams.get('startDate'));
-          const to   = normDate(url.searchParams.get('to')   || url.searchParams.get('endDate'));
+          const to = normDate(url.searchParams.get('to') || url.searchParams.get('endDate'));
           console.log(`[Metrics] Fechas recibidas → from="${url.searchParams.get('from') || url.searchParams.get('startDate')}" to="${url.searchParams.get('to') || url.searchParams.get('endDate')}" | Normalizadas → from="${from}" to="${to}"`);
 
           // ── Detección automática de nombres de columna de Orders ────────
@@ -1914,15 +1983,15 @@ export default {
           // (status / created_at). PRAGMA devuelve el esquema real de D1.
           // Prioridad: nombre confirmado por el usuario → fallback alternativo.
           const { results: ordersSchema } = await env.DB.prepare("PRAGMA table_info(Orders)").all();
-          const colNames  = (ordersSchema || []).map(c => c.name);
-          const estadoCol = colNames.includes('estado')     ? 'estado'     : 'status';
-          const fechaCol  = colNames.includes('created_at') ? 'created_at' : 'fecha_creacion';
+          const colNames = (ordersSchema || []).map(c => c.name);
+          const estadoCol = colNames.includes('estado') ? 'estado' : 'status';
+          const fechaCol = colNames.includes('created_at') ? 'created_at' : 'fecha_creacion';
 
           // ── Columnas de Products — nombres confirmados en schema.sql ───────
           // precio_normal: definida en schema.sql línea 29 (REAL NOT NULL)
           // visible: definida en schema.sql línea 34 (BOOLEAN DEFAULT 1)
           // stock: definida en schema.sql línea 31 (INTEGER DEFAULT 0)
-          const precioCol  = 'precio_normal';
+          const precioCol = 'precio_normal';
           const hasVisible = true;
 
           // ── Helper: sólo llama .bind() si hay parámetros ─────────────────
@@ -1939,7 +2008,7 @@ export default {
           // toda orden de ese día, sin importar la hora real guardada.
           // Mantengo los nombres sqlFrom/sqlTo solo para el log de debug.
           const sqlFrom = from || null;
-          const sqlTo   = to   || null;
+          const sqlTo = to || null;
 
           const { utcFrom, utcTo } = getUtcBounds(from, to);
 
@@ -1949,7 +2018,7 @@ export default {
           const buildFilter = (col) => {
             const conds = [], params = [];
             if (utcFrom) { conds.push(`${col} >= ?`); params.push(utcFrom); }
-            if (utcTo)   { conds.push(`${col} <= ?`); params.push(utcTo); }
+            if (utcTo) { conds.push(`${col} <= ?`); params.push(utcTo); }
             return { clause: conds.length ? 'AND ' + conds.join(' AND ') : '', params };
           };
 
@@ -1990,8 +2059,8 @@ export default {
             `SELECT COUNT(*) AS cantidad FROM Orders WHERE LOWER(${estadoCol}) IN ('recibido','entregado')`
           ).first();
 
-          const totalIngresos = Number(ingresosRow?.valor)    || 0;
-          const totalPagados  = Number(ingresosRow?.cantidad) || 0;
+          const totalIngresos = Number(ingresosRow?.valor) || 0;
+          const totalPagados = Number(ingresosRow?.cantidad) || 0;
           const aov = totalPagados > 0 ? Math.round(totalIngresos / totalPagados) : 0;
 
           // ── Comparación con el período anterior ─────────────────────────
@@ -2000,10 +2069,10 @@ export default {
           let comparison = { has_comparison: false };
           if (from && to) {
             const d1 = new Date(from + 'T00:00:00');
-            const d2 = new Date(to   + 'T00:00:00');
+            const d2 = new Date(to + 'T00:00:00');
             const days = Math.round((d2 - d1) / 86400000) + 1;
             if (days > 0 && !isNaN(days)) {
-              const prevTo   = new Date(d1.getTime() - 86400000);
+              const prevTo = new Date(d1.getTime() - 86400000);
               const prevFrom = new Date(prevTo.getTime() - (days - 1) * 86400000);
               const pf = prevFrom.toISOString().slice(0, 10);
               const pt = prevTo.toISOString().slice(0, 10);
@@ -2028,10 +2097,10 @@ export default {
               const pPag = prevIngresos?.count || 0;
               comparison = {
                 has_comparison: true,
-                period:        { from: pf, to: pt },
+                period: { from: pf, to: pt },
                 prev_ingresos: pIng,
-                prev_ordenes:  prevTotales?.c || 0,
-                prev_aov:      pPag > 0 ? Math.round(pIng / pPag) : 0,
+                prev_ordenes: prevTotales?.c || 0,
+                prev_aov: pPag > 0 ? Math.round(pIng / pPag) : 0,
               };
             }
           }
@@ -2146,11 +2215,11 @@ export default {
 
           console.log('[Metrics] Debug fechas →',
             JSON.stringify({
-              schema:     { estadoCol, fechaCol },
-              params:     { from: sqlFrom, to: sqlTo, utcFrom, utcTo },
-              bd:         { total_rows: dateRangeDebug?.total_rows, oldest: dateRangeDebug?.oldest, newest: dateRangeDebug?.newest, null_dates: dateRangeDebug?.null_dates },
-              filtered:   inRangeRow?.n,
-              samples:    dateSamples,
+              schema: { estadoCol, fechaCol },
+              params: { from: sqlFrom, to: sqlTo, utcFrom, utcTo },
+              bd: { total_rows: dateRangeDebug?.total_rows, oldest: dateRangeDebug?.oldest, newest: dateRangeDebug?.newest, null_dates: dateRangeDebug?.null_dates },
+              filtered: inRangeRow?.n,
+              samples: dateSamples,
             })
           );
 
@@ -2158,31 +2227,31 @@ export default {
             success: true,
             data: {
               _schema: { estadoCol, fechaCol, precioCol, hasVisible },
-              _debug:  {
-                sql_from:        sqlFrom,
-                sql_to:          sqlTo,
-                utc_from:        utcFrom,
-                utc_to:          utcTo,
-                date_range_bd:   dateRangeDebug,
-                date_samples:    dateSamples || [],
-                rows_in_range:   inRangeRow?.n ?? 0,
+              _debug: {
+                sql_from: sqlFrom,
+                sql_to: sqlTo,
+                utc_from: utcFrom,
+                utc_to: utcTo,
+                date_range_bd: dateRangeDebug,
+                date_samples: dateSamples || [],
+                rows_in_range: inRangeRow?.n ?? 0,
               },
               debug_status_counts_all: allStatusDebug || [],
-              ingresos:   Number(ingresosRow?.valor)       || 0,
-              pendientes: Number(pendientesRow?.cantidad)  || 0,
-              enviados:   Number(enviadosRow?.cantidad)    || 0,
-              recibidos:  Number(recibidosRow?.cantidad)   || 0,
-              ordenes:    Number(totalesRow?.cantidad)     || 0,
-              ticket:     aov,
-              shipping:   Number(shippingRow?.valor)       || 0,
+              ingresos: Number(ingresosRow?.valor) || 0,
+              pendientes: Number(pendientesRow?.cantidad) || 0,
+              enviados: Number(enviadosRow?.cantidad) || 0,
+              recibidos: Number(recibidosRow?.cantidad) || 0,
+              ordenes: Number(totalesRow?.cantidad) || 0,
+              ticket: aov,
+              shipping: Number(shippingRow?.valor) || 0,
               comparison,
-              sales_by_day:          salesByDay          || [],
-              top_products:          topProducts          || [],
+              sales_by_day: salesByDay || [],
+              top_products: topProducts || [],
               category_distribution: categoryDistribution || [],
-              status_distribution:   statusDistribution   || [],
-              total_stock_value:     inventoryRow?.stock_value  || 0,
-              low_stock_items:       inventoryRow?.low_stock    || 0,
-              out_of_stock_count:    inventoryRow?.out_of_stock || 0,
+              status_distribution: statusDistribution || [],
+              total_stock_value: inventoryRow?.stock_value || 0,
+              low_stock_items: inventoryRow?.low_stock || 0,
+              out_of_stock_count: inventoryRow?.out_of_stock || 0,
             }
           }, { headers: corsHeaders });
         } catch (error) {
@@ -2236,10 +2305,10 @@ export default {
           try {
             const body = await request.json();
             if (body.password) {
-                const hashedPass = await hashPassword(body.password);
-                await env.DB.prepare("UPDATE Admins SET nombre = ?, email = ?, rol = ?, password_hash = ? WHERE id = ?").bind(body.nombre, body.email, body.rol, hashedPass, uId).run();
+              const hashedPass = await hashPassword(body.password);
+              await env.DB.prepare("UPDATE Admins SET nombre = ?, email = ?, rol = ?, password_hash = ? WHERE id = ?").bind(body.nombre, body.email, body.rol, hashedPass, uId).run();
             } else {
-                await env.DB.prepare("UPDATE Admins SET nombre = ?, email = ?, rol = ? WHERE id = ?").bind(body.nombre, body.email, body.rol, uId).run();
+              await env.DB.prepare("UPDATE Admins SET nombre = ?, email = ?, rol = ? WHERE id = ?").bind(body.nombre, body.email, body.rol, uId).run();
             }
             return Response.json({ success: true, message: "Usuario actualizado" }, { headers: corsHeaders });
           } catch (error) { return Response.json({ success: false, error: error.message }, { status: 500, headers: corsHeaders }); }
@@ -2253,7 +2322,7 @@ export default {
       }
     }
 
-    return new Response(JSON.stringify({success: false, error: "Ruta en construcción o no encontrada."}), { status: 404, headers: corsHeaders });
+    return new Response(JSON.stringify({ success: false, error: "Ruta en construcción o no encontrada." }), { status: 404, headers: corsHeaders });
   }
 };
 
