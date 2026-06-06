@@ -7,6 +7,19 @@
     <title>Mathsoluis | Ropa de Bebé Premium</title>
     <!-- Favicon -->
     <link rel="icon" href="./logo.jpg" type="image/jpeg">
+
+    <!-- ============================================================
+         GOOGLE ANALYTICS 4 / GOOGLE ADS — ETIQUETA GLOBAL DEL SITIO
+         Pega aquí tu snippet de Google Tag (gtag.js) con tu ID G-XXXXXXX
+         Ejemplo:
+         <script async src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXX"></script>
+         <script>
+           window.dataLayer = window.dataLayer || [];
+           function gtag(){dataLayer.push(arguments);}
+           gtag('js', new Date());
+           gtag('config', 'G-XXXXXXX');
+         </script>
+    ============================================================ -->
     <!-- Tipografía Corporativa -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -2678,8 +2691,23 @@
                     <span>Total estimado:</span><span id="cartTotalEst">$0</span>
                 </div>
             </div>
-            <button class="btn-checkout" id="btnInitCheckout" onclick="window.location.href='checkout.html'">Ir a Pagar
-                Seguro</button>
+            <button class="btn-checkout" id="btnInitCheckout" onclick="
+                // ── GA4: begin_checkout ──────────────────────────────────────
+                if (typeof gtag === 'function' && cart.length > 0) {
+                    const cartValue = cart.reduce((sum, i) => sum + (i.price * i.quantity), 0);
+                    gtag('event', 'begin_checkout', {
+                        currency: 'CLP',
+                        value: cartValue,
+                        items: cart.map(i => ({
+                            item_id:   String(i.id),
+                            item_name: i.name,
+                            price:     i.price,
+                            quantity:  i.quantity
+                        }))
+                    });
+                }
+                window.location.href='checkout.html';
+            ">Ir a Pagar Seguro</button>
         </div>
     </aside>
 

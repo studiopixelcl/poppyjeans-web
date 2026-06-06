@@ -470,7 +470,7 @@
                                 <input type="number" id="prodWeight" placeholder="Ej: 870" min="0">
                             </div>
                             <div class="input-group" style="margin-bottom: 0;">
-                                <label>Categorías (selecciona una o más) *</label>
+                                <label>Categorías <span style="color: var(--danger-color);">*</span> <span style="font-weight: 300; font-size: 0.75rem;">(al menos una)</span></label>
                                 <div id="prodCategorias" style="display: flex; gap: 0.4rem; flex-wrap: wrap; margin-top: 0.3rem;">
                                     <button type="button" class="cat-pill" data-id="1">Mamás</button>
                                     <button type="button" class="cat-pill" data-id="2">Bebés</button>
@@ -478,6 +478,7 @@
                                     <button type="button" class="cat-pill" data-id="4">Niñas</button>
                                     <button type="button" class="cat-pill" data-id="5">Unisex</button>
                                 </div>
+                                <small id="catRequiredMsg" style="color: var(--danger-color); font-size: 0.75rem; display: none; margin-top: 4px;">⚠️ Selecciona al menos una categoría.</small>
                             </div>
                         </div>
 
@@ -1461,7 +1462,17 @@
         // --- HELPERS DE CATEGORÍAS MÚLTIPLES ---
         document.getElementById('prodCategorias').addEventListener('click', (e) => {
             const pill = e.target.closest('.cat-pill');
-            if (pill) { pill.classList.toggle('selected'); }
+            if (pill) {
+                pill.classList.toggle('selected');
+                // Ocultar error de validación en cuanto seleccionen algo
+                const anySelected = getCategoriaIds().length > 0;
+                const prodCategoriasEl = document.getElementById('prodCategorias');
+                const msgEl = document.getElementById('catRequiredMsg');
+                if (anySelected) {
+                    prodCategoriasEl.style.outline = '';
+                    if (msgEl) msgEl.style.display = 'none';
+                }
+            }
         });
 
         function getCategoriaIds() {
@@ -1493,6 +1504,11 @@
             setCategoriaIds([]);
             currentTags = []; renderTags();
             document.getElementById('modalProductNameMirror').textContent = '';
+            // Limpiar estado de validación de categoría
+            const _catEl = document.getElementById('prodCategorias');
+            const _catMsg = document.getElementById('catRequiredMsg');
+            if (_catEl) { _catEl.style.outline = ''; _catEl.style.padding = ''; }
+            if (_catMsg) _catMsg.style.display = 'none';
             variantsWrapper.innerHTML = ''; productVariants = [];
             addVariantUI();
             productModal.classList.add('active');
@@ -1516,9 +1532,16 @@
             document.getElementById('prodSku').value = p.sku || '';
             document.getElementById('prodWeight').value = p.weight || 0;
             document.getElementById('prodPrecio').value = p.precio_normal;
-            const editCats = Array.isArray(p.categorias_ids) ? p.categorias_ids : (p.categoria_id ? [p.categoria_id] : [1]);
+            const editCats = Array.isArray(p.categorias_ids) && p.categorias_ids.length > 0
+                ? p.categorias_ids
+                : (p.categoria_id ? [p.categoria_id] : []);
             setCategoriaIds(editCats.map(Number));
             document.getElementById('prodDesc').value = p.description || p.descripcion || '';
+            // Limpiar estado de validación de categoría al editar
+            const _editCatEl = document.getElementById('prodCategorias');
+            const _editCatMsg = document.getElementById('catRequiredMsg');
+            if (_editCatEl) { _editCatEl.style.outline = ''; _editCatEl.style.padding = ''; }
+            if (_editCatMsg) _editCatMsg.style.display = 'none';
 
             const isKit = p.es_kit === 1;
             document.getElementById('prodEsKit').checked = isKit;
@@ -1560,9 +1583,16 @@
             document.getElementById('prodSku').value = p.sku ? p.sku + '-COPY' : '';
             document.getElementById('prodWeight').value = p.weight || 0;
             document.getElementById('prodPrecio').value = p.precio_normal;
-            const dupCats = Array.isArray(p.categorias_ids) ? p.categorias_ids : (p.categoria_id ? [p.categoria_id] : [1]);
+            const dupCats = Array.isArray(p.categorias_ids) && p.categorias_ids.length > 0
+                ? p.categorias_ids
+                : (p.categoria_id ? [p.categoria_id] : []);
             setCategoriaIds(dupCats.map(Number));
             document.getElementById('prodDesc').value = p.description || p.descripcion || '';
+            // Limpiar estado de validación de categoría al duplicar
+            const _dupCatEl = document.getElementById('prodCategorias');
+            const _dupCatMsg = document.getElementById('catRequiredMsg');
+            if (_dupCatEl) { _dupCatEl.style.outline = ''; _dupCatEl.style.padding = ''; }
+            if (_dupCatMsg) _dupCatMsg.style.display = 'none';
 
             const isKit = p.es_kit === 1;
             document.getElementById('prodEsKit').checked = isKit;
@@ -1599,6 +1629,19 @@
             const cleanVariants = [];
             const variantCards = document.querySelectorAll('.variant-card');
             if(variantCards.length === 0) return alert("Debes agregar al menos una variante.");
+
+            // ── Validación estricta de categoría ──────────────────────────────
+            const selectedCats = getCategoriaIds();
+            if (selectedCats.length === 0) {
+                const prodCategoriasEl = document.getElementById('prodCategorias');
+                const msgEl = document.getElementById('catRequiredMsg');
+                prodCategoriasEl.style.outline = '2px solid var(--danger-color)';
+                prodCategoriasEl.style.borderRadius = '8px';
+                prodCategoriasEl.style.padding = '4px';
+                if (msgEl) msgEl.style.display = 'block';
+                prodCategoriasEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                return;
+            }
             
             const isKit = document.getElementById('prodEsKit').checked;
 

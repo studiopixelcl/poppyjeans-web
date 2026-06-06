@@ -5,7 +5,20 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Finalizar Compra | Mathsoluis</title>
     <link rel="icon" href="./ico.jpg" type="image/jpeg">
-    
+
+    <!-- ============================================================
+         GOOGLE ANALYTICS 4 / GOOGLE ADS — ETIQUETA GLOBAL DEL SITIO
+         Pega aquí tu snippet de Google Tag (gtag.js) con tu ID G-XXXXXXX
+         Ejemplo:
+         <script async src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXX"></script>
+         <script>
+           window.dataLayer = window.dataLayer || [];
+           function gtag(){dataLayer.push(arguments);}
+           gtag('js', new Date());
+           gtag('config', 'G-XXXXXXX');
+         </script>
+    ============================================================ -->
+
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;1,600&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -412,6 +425,25 @@
         function renderSuccessScreen(orderId, email) {
             const main = document.querySelector('.checkout-main');
             if (!main) return;
+
+            // ── GA4: purchase (evento más crítico del e-commerce) ───────────────
+            if (typeof gtag === 'function') {
+                const purchaseValue = cartTotal + shippingCost;
+                gtag('event', 'purchase', {
+                    transaction_id: String(orderId),   // ID real de la orden del backend
+                    value:          purchaseValue,      // Monto total pagado (productos + envío)
+                    currency:       'CLP',
+                    shipping:       shippingCost,
+                    items:          cart.map(item => ({
+                        item_id:   String(item.id),
+                        item_name: item.name,
+                        price:     item.price,
+                        quantity:  item.quantity
+                    }))
+                });
+            }
+            // ────────────────────────────────────────────────────────────────
+
             main.innerHTML = `
                 <div style="text-align:center; padding: 4rem 2rem;">
                     <div style="font-size: 5rem; margin-bottom:1rem; animation: fadeInUp 0.5s ease;">🎉</div>
@@ -518,6 +550,22 @@
                 if (!addr || !comuna) return showToast('La dirección y la comuna son obligatorias.', 'error');
                 if (!region) return showToast('Por favor, selecciona tu Región en la lista.', 'error');
             }
+
+            // ── GA4: begin_checkout al llegar al paso 3 (Pago) ─────────────
+            if (stepNumber === 3 && typeof gtag === 'function' && cart.length > 0) {
+                const checkoutValue = cartTotal + shippingCost;
+                gtag('event', 'begin_checkout', {
+                    currency: 'CLP',
+                    value:    checkoutValue,
+                    items:    cart.map(item => ({
+                        item_id:   String(item.id),
+                        item_name: item.name,
+                        price:     item.price,
+                        quantity:  item.quantity
+                    }))
+                });
+            }
+            // ─────────────────────────────────────────────────────────
 
             // Cambiar UI Activa
             document.querySelectorAll('.step-container').forEach((el, index) => {

@@ -5,7 +5,20 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mathsoluis | Detalle del Producto</title>
     <link rel="icon" href="./logo.jpg" type="image/jpeg">
-    
+
+    <!-- ============================================================
+         GOOGLE ANALYTICS 4 / GOOGLE ADS — ETIQUETA GLOBAL DEL SITIO
+         Pega aquí tu snippet de Google Tag (gtag.js) con tu ID G-XXXXXXX
+         Ejemplo:
+         <script async src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXX"></script>
+         <script>
+           window.dataLayer = window.dataLayer || [];
+           function gtag(){dataLayer.push(arguments);}
+           gtag('js', new Date());
+           gtag('config', 'G-XXXXXXX');
+         </script>
+    ============================================================ -->
+
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;0,700;0,800;1,600;1,700;1,800&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -1201,6 +1214,25 @@
             }
             
             localStorage.setItem('mathsoluis_cart', JSON.stringify(cart));
+
+            // ── GA4: add_to_cart ───────────────────────────────────────────
+            if (typeof gtag === 'function') {
+                const productPrice = currentProduct.en_oferta === 1
+                    ? currentProduct.precio_oferta
+                    : currentProduct.precio_normal;
+                gtag('event', 'add_to_cart', {
+                    currency: 'CLP',
+                    value:    productPrice,
+                    items: [{
+                        item_id:   String(itemObj.id),
+                        item_name: itemObj.name,
+                        price:     productPrice,
+                        quantity:  1
+                    }]
+                });
+            }
+            // ──────────────────────────────────────────────────────
+
             renderCartUI();
             
             const originalText = e.target.textContent;
