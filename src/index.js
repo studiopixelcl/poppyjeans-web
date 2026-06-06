@@ -2044,9 +2044,9 @@ export default {
             `SELECT COUNT(*) AS cantidad FROM Orders WHERE LOWER(${estadoCol}) IN ('pagado','preparando')`
           ).first();
 
-          // Total órdenes en el rango (todos los estados)
+          // Total órdenes en el rango (excluyendo abandonados y rechazados)
           const totalesRow = await exec(
-            env.DB.prepare(`SELECT COUNT(*) AS cantidad FROM Orders WHERE 1=1 ${f.clause}`),
+            env.DB.prepare(`SELECT COUNT(*) AS cantidad FROM Orders WHERE LOWER(${estadoCol}) IN ('pagado','preparando','enviado','recibido','entregado') ${f.clause}`),
             f.params
           ).first();
 
@@ -2089,7 +2089,8 @@ export default {
 
               const prevTotales = await env.DB.prepare(
                 `SELECT COUNT(*) AS c FROM Orders
-                 WHERE ${fechaCol} >= ?
+                 WHERE LOWER(${estadoCol}) IN ('pagado','preparando','enviado','recibido','entregado')
+                 AND ${fechaCol} >= ?
                  AND ${fechaCol} <= ?`
               ).bind(prevUtcFrom, prevUtcTo).first();
 
