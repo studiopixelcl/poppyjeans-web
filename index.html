@@ -2929,7 +2929,8 @@
                 if (search) params.set('search', search);
                 params.set('is_pack', currentIsPack);
                 if (currentIsSale === 1) params.set('is_sale', '1');
-                if (currentCategory) params.set('category', encodeURIComponent(currentCategory));
+                const categoryToSend = currentCategory || new URLSearchParams(window.location.search).get('category') || '';
+                if (categoryToSend) params.set('category', categoryToSend);
                 
                 const finalUrl = `${API_URL}?${params}`;
                 console.log('[DEBUG] URL a consultar:', finalUrl);
