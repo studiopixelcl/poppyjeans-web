@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PoppyJeans | Gestión de Descuentos</title>
+    <!-- Favicon -->
+    <link rel="icon" href="../favicon.png" type="image/png">
+    
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=Plus+Jakarta+Sans:ital,wght@0,200..800;1,200..800&display=swap" rel="stylesheet">
+    <script src="layout.js"></script>
+    
+    <style>
+        /* --- STUDIO PIXEL TOKENS --- */
+        :root {
+            --blanco-puro: #FFFFFF;
+            --fondo-claro: #fcf9f9; 
+            --teal-studio: #8a4d4e; 
+            --teal-claro: #ffdad9;  
+            --dark-studio: #211a19; 
+            --gris-claro: #eedfdd;
+            --danger-color: #ba1a1a;
+            --danger-light: #ffdad6;
+            
+            --font-main: 'Plus Jakarta Sans', sans-serif;
+            --font-display: 'Playfair Display', serif;
+            
+            --radius-md: 12px;
+            --radius-lg: 24px;
+            --radius-pill: 50px;
+            
+            --shadow-subtle: 0 10px 30px rgba(30, 30, 36, 0.08);
+            --transition-smooth: all 0.3s ease;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body { 
+            font-family: var(--font-main); 
+            background-color: var(--fondo-claro); 
+            color: var(--dark-studio); 
+        }
+
+        /* --- DASHBOARD VIEW --- */
+        #dashboardView { display: none; min-height: 100vh; }
+        .sidebar { width: 250px; background: var(--dark-studio); color: var(--blanco-puro); position: fixed; height: 100vh; top: 0; left: 0; padding: 2rem 1.5rem; }
+        .sidebar-logo { font-family: var(--font-display); font-size: 1.5rem; font-weight: 800; margin-bottom: 3rem; }
+        .sidebar-logo span { color: var(--teal-studio); }
+        .nav-menu { list-style: none; }
+        .nav-item { margin-bottom: 0.5rem; }
+        
+        .nav-link { display: block; color: #aaa; text-decoration: none; padding: 0.8rem 1rem; border-radius: 8px; font-weight: 500; transition: var(--transition-smooth); }
+        .nav-link:hover, .nav-link.active { background: rgba(255,255,255,0.1); color: var(--teal-studio); }
+
+        .main-content { margin-left: 250px; padding: 2rem 3rem; }
+        .topbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 3rem; }
+        .topbar h2 { font-family: var(--font-display); font-size: 1.8rem; font-weight: 700; }
+        .user-info { display: flex; align-items: center; gap: 1rem; font-weight: 600; }
+        .logout-btn { background: var(--danger-light); color: var(--danger-color); border: none; padding: 0.5rem 1rem; border-radius: 6px; cursor: pointer; font-weight: 600; }
+
+        /* --- DATA TABLE --- */
+        .card { background: var(--blanco-puro); border-radius: var(--radius-md); padding: 1.5rem; box-shadow: var(--shadow-subtle); }
+        .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; }
+        .card-header h3 { font-family: var(--font-display); font-size: 1.2rem; }
+        
+        .btn-primary {
+            background: var(--teal-studio) !important;
+            color: white !important;
+            border: none;
+            padding: 0.6rem 1.5rem;
+            border-radius: 50px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition-smooth);
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            text-decoration: none;
+        }
+        .btn-primary:hover {
+            background: #6e3637 !important;
+            transform: translateY(-2px);
+        }
+
+        table { width: 100%; border-collapse: collapse; text-align: left; }
+        th { padding: 1rem; border-bottom: 2px solid var(--gris-claro); color: #888; font-weight: 600; font-size: 0.85rem; text-transform: uppercase; }
+        td { padding: 1rem; border-bottom: 1px solid var(--gris-claro); font-size: 0.95rem; vertical-align: middle; }
+        tbody tr:hover { background: var(--fondo-claro); }
+        
+        .badge { padding: 0.3rem 0.8rem; border-radius: 50px; font-size: 0.75rem; font-weight: 600; display: inline-block; }
+        .badge-active { background: #E8FAF1; color: #27AE60; border: 1px solid #D4EFDF; }
+        .badge-inactive { background: #FDEDEC; color: #E74C3C; border: 1px solid #FADBD8; }
+        .badge-banner { background: #E8F0FE; color: #2980B9; border: 1px solid #D4E6F1; }
+        .badge-nobanner { background: var(--fondo-claro); color: #888; border: 1px solid var(--gris-claro); }
+        
+        .action-btn { background: none; border: none; cursor: pointer; font-size: 1.2rem; margin-right: 0.5rem; color: #888; transition: var(--transition-smooth); display: inline-flex; align-items: center; justify-content: center;}
+        .action-btn:hover { color: var(--teal-studio); }
+        .action-btn-danger:hover { color: var(--danger-color); }
+        
+        /* Toggle Switch */
+        .switch { position: relative; display: inline-block; width: 44px; height: 22px; }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .4s; border-radius: 34px; }
+        .slider:before { position: absolute; content: ""; height: 16px; width: 16px; left: 3px; bottom: 3px; background-color: white; transition: .4s; border-radius: 50%; }
+        input:checked + .slider { background-color: var(--teal-studio); }
+        input:focus + .slider { box-shadow: 0 0 1px var(--teal-studio); }
+        input:checked + .slider:before { transform: translateX(22px); }
+
+        body.dark-theme .slider { background-color: #4a3d3c; }
+        body.dark-theme input:checked + .slider { background-color: #8a4d4e; }
+        
+        .controls-row { display: flex; gap: 1rem; align-items: center; }
+        .search-input { padding: 0.6rem 1.2rem; border: 1px solid var(--gris-claro); border-radius: var(--radius-pill); font-family: var(--font-main); font-size: 0.9rem; outline: none; width: 300px; transition: var(--transition-smooth); background: var(--fondo-claro); }
+        .search-input:focus { border-color: var(--teal-studio); box-shadow: 0 0 0 3px var(--teal-claro); background: var(--blanco-puro); }
+    </style>
+</head>
+<body>
+
+    <div id="dashboardView">
+        <aside class="sidebar"></aside>
+
+        <main class="main-content">
+            <header class="topbar">
+                <h2>Gestión de Descuentos y Cupones</h2>
+                <div class="user-info">
+                    <span id="adminName">Cargando...</span>
+                    <button class="logout-btn" onclick="logout()">Salir</button>
+                </div>
+            </header>
+
+            <section class="card">
+                <div class="card-header">
+                    <h3>Listado de Cupones</h3>
+                    <div class="controls-row">
+                        <input type="text" id="searchInput" class="search-input" placeholder="🔍 Buscar cupón por código...">
+                        <a href="cupon.html" class="btn-primary">+ Nuevo Cupón</a>
+                    </div>
+                </div>
+                
+                <div style="overflow-x: auto;">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Código</th>
+                                <th>Descuento (%)</th>
+                                <th>Banner E-commerce</th>
+                                <th>Estado (Activo)</th>
+                                <th>Vigencia (Temporizador)</th>
+                                <th>Fecha Creación</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="couponsTableBody">
+                            <tr><td colspan="7" style="text-align: center; padding: 2rem;">Cargando cupones...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script>
+        let allCoupons = [];
+        let filteredCoupons = [];
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const token = localStorage.getItem('admin_token');
+            if (token) {
+                document.getElementById('dashboardView').style.display = 'block';
+                loadCoupons();
+            }
+
+            // Buscador
+            document.getElementById('searchInput').addEventListener('input', (e) => {
+                const term = e.target.value.toLowerCase().trim();
+                filteredCoupons = allCoupons.filter(c => c.codigo.toLowerCase().includes(term));
+                renderCoupons(filteredCoupons);
+            });
+        });
+
+        async function loadCoupons() {
+            try {
+                const response = await adminFetch('/api/admin/coupons');
+                if (!response) return;
+                const result = await response.json();
+                
+                if (result.success) {
+                    allCoupons = result.data || [];
+                    filteredCoupons = [...allCoupons];
+                    renderCoupons(filteredCoupons);
+                } else {
+                    showToast('Error al cargar cupones: ' + result.error, 'error');
+                }
+            } catch (error) {
+                console.error(error);
+                showToast('Error de red al cargar cupones.', 'error');
+            }
+        }
+
+        function formatDateTime(isoString) {
+            if (!isoString) return '-';
+            const d = new Date(isoString);
+            if (isNaN(d.getTime())) return isoString;
+            return d.toLocaleString('es-CL', {
+                day: '2-digit',
+                month: '2-digit',
+                year: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        }
+
+        function renderCoupons(coupons) {
+            const tbody = document.getElementById('couponsTableBody');
+            tbody.innerHTML = '';
+
+            if (coupons.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="7" style="text-align: center; padding: 2rem; color: #888;">No se encontraron cupones.</td></tr>`;
+                return;
+            }
+
+            const now = new Date();
+
+            coupons.forEach(c => {
+                // Determinar vigencia en base a temporizador
+                let vigenciaText = 'Siempre activo';
+                let vigenciaClass = 'color: #27AE60; font-weight: 600;';
+
+                if (c.fecha_inicio || c.fecha_fin) {
+                    const start = c.fecha_inicio ? new Date(c.fecha_inicio) : null;
+                    const end = c.fecha_fin ? new Date(c.fecha_fin) : null;
+                    
+                    if (start && now < start) {
+                        vigenciaText = `Programado (Inicia: ${formatDateTime(c.fecha_inicio)})`;
+                        vigenciaClass = 'color: #D4AC0D;';
+                    } else if (end && now > end) {
+                        vigenciaText = `Expirado (${formatDateTime(c.fecha_fin)})`;
+                        vigenciaClass = 'color: #E74C3C;';
+                    } else if (start && end) {
+                        vigenciaText = `Activo hasta: ${formatDateTime(c.fecha_fin)}`;
+                    } else if (end) {
+                        vigenciaText = `Expira: ${formatDateTime(c.fecha_fin)}`;
+                    } else if (start) {
+                        vigenciaText = `Desde: ${formatDateTime(c.fecha_inicio)}`;
+                    }
+                }
+
+                const scopeText = c.productos_ids ? '📦 Restringido' : '🌍 Todo';
+                const scopeTitle = c.productos_ids ? 'Aplica a productos seleccionados' : 'Aplica a todos los productos';
+
+                tbody.insertAdjacentHTML('beforeend', `
+                    <tr>
+                        <td style="font-weight: 800; font-family: monospace; font-size: 1.1rem; letter-spacing: 0.5px; color: var(--teal-studio);">
+                            ${c.codigo}
+                            <div style="font-size: 0.7rem; color: #888; font-weight: normal; font-family: var(--font-main);" title="${scopeTitle}">
+                                ${scopeText}
+                            </div>
+                        </td>
+                        <td style="font-weight: 700; font-size: 1rem;">${c.descuento_porcentaje}%</td>
+                        <td>
+                            <label class="switch">
+                                <input type="checkbox" ${c.mostrar_en_banner === 1 ? 'checked' : ''} onchange="toggleBanner(${c.id}, this.checked)">
+                                <span class="slider"></span>
+                            </label>
+                        </td>
+                        <td>
+                            <label class="switch">
+                                <input type="checkbox" ${c.activo === 1 ? 'checked' : ''} onchange="toggleActivo(${c.id}, this.checked)">
+                                <span class="slider"></span>
+                            </label>
+                        </td>
+                        <td style="font-size: 0.8rem; ${vigenciaClass}">
+                            ${vigenciaText}
+                        </td>
+                        <td style="font-size: 0.85rem; color: #888;">
+                            ${formatDateTime(c.fecha_creacion)}
+                        </td>
+                        <td>
+                            <button class="action-btn" onclick="location.href='cupon.html?id=${c.id}'" title="Editar Cupón">✏️</button>
+                            <button class="action-btn action-btn-danger" onclick="deleteCoupon(${c.id}, '${c.codigo}')" title="Eliminar Cupón">🗑️</button>
+                        </td>
+                    </tr>
+                `);
+            });
+        }
+
+        async function toggleBanner(id, checked) {
+            try {
+                const response = await adminFetch(`/api/admin/coupons/${id}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ mostrar_en_banner: checked ? 1 : 0 })
+                });
+                
+                if (!response) return;
+                const result = await response.json();
+                
+                if (result.success) {
+                    showToast('Preferencia de banner actualizada', 'success');
+                } else {
+                    showToast('Error al actualizar banner: ' + result.error, 'error');
+                    loadCoupons();
+                }
+            } catch (e) {
+                showToast('Error de red al actualizar banner.', 'error');
+                loadCoupons();
+            }
+        }
+
+        async function toggleActivo(id, checked) {
+            try {
+                const response = await adminFetch(`/api/admin/coupons/${id}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ activo: checked ? 1 : 0 })
+                });
+                
+                if (!response) return;
+                const result = await response.json();
+                
+                if (result.success) {
+                    showToast('Estado del cupón actualizado', 'success');
+                } else {
+                    showToast('Error al actualizar estado: ' + result.error, 'error');
+                    loadCoupons();
+                }
+            } catch (e) {
+                showToast('Error de red al actualizar estado.', 'error');
+                loadCoupons();
+            }
+        }
+
+        async function deleteCoupon(id, codigo) {
+            if (!confirm(`¿Estás seguro de que deseas eliminar permanentemente el cupón ${codigo}?`)) return;
+
+            try {
+                const response = await adminFetch(`/api/admin/coupons/${id}`, { method: 'DELETE' });
+                if (!response) return;
+                const result = await response.json();
+                
+                if (result.success) {
+                    showToast(`Cupón ${codigo} eliminado con éxito`, 'success');
+                    loadCoupons();
+                } else {
+                    showToast('Error al eliminar cupón: ' + result.error, 'error');
+                }
+            } catch (e) {
+                showToast('Error de red al intentar eliminar el cupón.', 'error');
+            }
+        }
+    </script>
+</body>
+</html>

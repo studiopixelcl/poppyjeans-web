@@ -3,23 +3,26 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mathsoluis | Migración de Imágenes a R2</title>
+    <title>PoppyJeans | Migración de Imágenes a R2</title>
+    <!-- Favicon -->
+    <link rel="icon" href="../favicon.png" type="image/png">
 
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;600;700;800&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=Plus+Jakarta+Sans:ital,wght@0,200..800;1,200..800&display=swap" rel="stylesheet">
+    <script src="layout.js"></script>
 
     <style>
         :root {
             --blanco-puro: #FFFFFF;
-            --fondo-claro: #F4F7F6;
-            --teal-studio: #13C2B3;
-            --teal-claro: #E0F6F5;
-            --dark-studio: #1E1E24;
-            --gris-claro: #E8ECEB;
-            --danger-color: #E74C3C;
-            --warning-color: #F39C12;
+            --fondo-claro: #fcf9f9;
+            --teal-studio: #8a4d4e;
+            --teal-claro: #ffdad9;
+            --dark-studio: #211a19;
+            --gris-claro: #eedfdd;
+            --danger-color: #ba1a1a;
+            --warning-color: #B7950B;
 
-            --font-main: 'Poppins', sans-serif;
-            --font-display: 'Montserrat', sans-serif;
+            --font-main: 'Plus Jakarta Sans', sans-serif;
+            --font-display: 'Playfair Display', serif;
             --radius-md: 12px;
             --radius-lg: 24px;
             --shadow-subtle: 0 10px 30px rgba(30, 30, 36, 0.08);
@@ -81,22 +84,12 @@
             <div style="font-size: 4rem; color: var(--danger-color); margin-bottom: 1rem;">🔒</div>
             <h2 style="font-family: var(--font-display); font-size: 1.8rem; margin-bottom: 1rem;">Acceso Restringido</h2>
             <p style="color: #666; margin-bottom: 2rem;">Esta herramienta es exclusiva para Super Administradores.</p>
-            <a href="index.html" class="btn-primary" style="text-decoration: none; display: inline-block;">Volver al Inventario</a>
+            <a href="inventario.html" class="btn-primary" style="text-decoration: none; display: inline-block;">Volver al Inventario</a>
         </div>
     </div>
 
     <div id="dashboardView">
-        <aside class="sidebar">
-            <div class="sidebar-logo">MATHSO<span>LUIS</span></div>
-            <ul class="nav-menu">
-                <li class="nav-item"><a href="index.html" class="nav-link">📦 Inventario</a></li>
-                <li class="nav-item"><a href="pedidos.html" class="nav-link">🛒 Pedidos</a></li>
-                <li class="nav-item"><a href="clientes.html" class="nav-link">👥 Clientes</a></li>
-                <li class="nav-item"><a href="configuracion.html" class="nav-link">⚙️ Configuración</a></li>
-                <li class="nav-item" style="margin-top: 2rem;"><a href="actividades.html" class="nav-link">📊 Actividades (Admin)</a></li>
-                <li class="nav-item"><a href="migracion.html" class="nav-link active">☁️ Migración R2</a></li>
-            </ul>
-        </aside>
+        <aside class="sidebar"></aside>
 
         <main class="main-content">
             <header class="topbar">
@@ -110,7 +103,7 @@
             <section class="card">
                 <h3>¿Qué hace esta herramienta?</h3>
                 <div class="info-banner">
-                    Mueve todas las imágenes de productos que están guardadas como <strong>Base64 dentro de la base de datos</strong> al bucket <strong>mathsoluis-images</strong> en Cloudflare R2. La base de datos queda con solo URLs (~80 bytes en lugar de ~800 KB por imagen). El catálogo carga muchísimo más rápido y la calidad de las imágenes <strong>no se altera</strong>.
+                    Mueve todas las imágenes de productos que están guardadas como <strong>Base64 dentro de la base de datos</strong> al bucket <strong>poppyjeans-images</strong> en Cloudflare R2. La base de datos queda con solo URLs (~80 bytes en lugar de ~800 KB por imagen). El catálogo carga muchísimo más rápido y la calidad de las imágenes <strong>no se altera</strong>.
                 </div>
                 <div class="warn-banner">
                     Es seguro ejecutar esto varias veces — solo procesa imágenes que aún sean Base64. Las que ya están en R2 se omiten. Procesa <strong>5 variantes a la vez</strong> y se llama en bucle hasta terminar.
@@ -156,7 +149,7 @@
             const token = localStorage.getItem('admin_token');
             const rol = localStorage.getItem('admin_rol');
 
-            if (!token) { window.location.href = 'configuracion.html'; return; }
+            if (!token) { window.location.href = 'index.html'; return; }
             if (rol !== 'superadmin') {
                 document.getElementById('accessDeniedView').style.display = 'flex';
                 return;
@@ -266,35 +259,6 @@
         }
     </script>
 
-    <!-- AUTH HELPER -->
-    <script>
-        const API_BASE_URL = 'https://mathsoluis-api.studiopixelchile.workers.dev';
 
-        function getAuthHeaders() {
-            const token = localStorage.getItem('admin_token');
-            return { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` };
-        }
-
-        async function adminFetch(endpoint, options = {}) {
-            const response = await fetch(`${API_BASE_URL}${endpoint}`, {
-                ...options,
-                headers: { ...getAuthHeaders(), ...(options.headers || {}) }
-            });
-            if (response.status === 401) {
-                localStorage.clear();
-                alert('Tu sesión ha expirado. Por favor inicia sesión nuevamente.');
-                window.location.href = 'configuracion.html';
-                return null;
-            }
-            return response;
-        }
-
-        async function logout() {
-            try {
-                await fetch(`${API_BASE_URL}/api/admin/logout`, { method: 'POST', headers: getAuthHeaders() });
-            } catch (e) {}
-            finally { localStorage.clear(); window.location.href = 'configuracion.html'; }
-        }
-    </script>
 </body>
 </html>

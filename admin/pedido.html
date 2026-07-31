@@ -1,0 +1,969 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PoppyJeans | Gestión de Pedido</title>
+    <!-- Favicon -->
+    <link rel="icon" href="../favicon.png" type="image/png">
+
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=Plus+Jakarta+Sans:ital,wght@0,200..800;1,200..800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../pagination.css">
+    <script src="layout.js"></script>
+
+    <style>
+        :root {
+            --blanco-puro: #FFFFFF;
+            --fondo-claro: #fcf9f9;
+            --teal-studio: #8a4d4e;
+            --teal-claro: #ffdad9;
+            --dark-studio: #211a19;
+            --gris-claro: #eedfdd;
+            --gris-oscuro: #555555;
+            --danger-color: #ba1a1a;
+            --danger-light: #ffdad6;
+
+            --font-main: 'Plus Jakarta Sans', sans-serif;
+            --font-display: 'Playfair Display', serif;
+
+            --radius-md: 12px;
+            --radius-lg: 24px;
+            --radius-pill: 50px;
+
+            --shadow-subtle: 0 10px 30px rgba(30, 30, 36, 0.08);
+            --transition-smooth: all 0.3s ease;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: var(--font-main);
+            background-color: var(--fondo-claro);
+            color: var(--dark-studio);
+            min-height: 100vh;
+        }
+
+        .main-content {
+            margin-left: 250px;
+            padding: 2rem 3rem;
+            max-width: 1300px;
+        }
+
+        /* --- BREADCRUMB & HEADER --- */
+        .breadcrumb {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.85rem;
+            color: #888;
+            margin-bottom: 1rem;
+        }
+        .breadcrumb a {
+            color: var(--teal-studio);
+            text-decoration: none;
+            font-weight: 600;
+        }
+        .breadcrumb a:hover { text-decoration: underline; }
+
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            background: var(--blanco-puro);
+            padding: 1.5rem 2rem;
+            border-radius: var(--radius-md);
+            box-shadow: var(--shadow-subtle);
+            border: 1px solid var(--gris-claro);
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .header-title-group {
+            display: flex;
+            align-items: center;
+            gap: 1.2rem;
+        }
+
+        .order-title {
+            font-family: var(--font-display);
+            font-size: 2rem;
+            font-weight: 800;
+            color: var(--dark-studio);
+        }
+
+        .order-date-badge {
+            font-size: 0.85rem;
+            color: #777;
+            font-weight: 500;
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+        }
+
+        .btn-back {
+            background: var(--fondo-claro);
+            border: 1px solid var(--gris-claro);
+            color: var(--dark-studio);
+            padding: 0.7rem 1.2rem;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            cursor: pointer;
+            text-decoration: none;
+            transition: var(--transition-smooth);
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .btn-back:hover {
+            background: var(--gris-claro);
+        }
+
+        .btn-save {
+            background: var(--teal-studio);
+            color: var(--blanco-puro);
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            font-weight: 700;
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: var(--transition-smooth);
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 4px 14px rgba(138, 77, 78, 0.3);
+        }
+        .btn-save:hover {
+            opacity: 0.92;
+            transform: translateY(-1px);
+        }
+
+        .btn-audit {
+            background: #F4ECF7;
+            color: #8E44AD;
+            border: 1px solid #E8DAEF;
+            padding: 0.7rem 1.2rem;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: var(--transition-smooth);
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .btn-audit:hover {
+            background: #E8DAEF;
+        }
+
+        /* --- GRID LAYOUT --- */
+        .order-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 2rem;
+        }
+
+        @media (max-width: 992px) {
+            .order-grid { grid-template-columns: 1fr; }
+            .main-content { margin-left: 0; padding: 1.5rem; }
+        }
+
+        .card {
+            background: var(--blanco-puro);
+            border-radius: var(--radius-md);
+            padding: 1.8rem;
+            box-shadow: var(--shadow-subtle);
+            border: 1px solid var(--gris-claro);
+            margin-bottom: 2rem;
+        }
+
+        .card-title {
+            font-family: var(--font-display);
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--dark-studio);
+            margin-bottom: 1.2rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid var(--gris-claro);
+            padding-bottom: 0.75rem;
+        }
+
+        /* --- CUSTOMER INFO --- */
+        .info-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.2rem;
+        }
+
+        @media (max-width: 600px) {
+            .info-grid { grid-template-columns: 1fr; }
+        }
+
+        .info-box {
+            background: var(--fondo-claro);
+            padding: 1.2rem;
+            border-radius: 10px;
+            border: 1px solid var(--gris-claro);
+        }
+
+        .info-label {
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #888;
+            margin-bottom: 0.5rem;
+        }
+
+        .info-value {
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: var(--dark-studio);
+            line-height: 1.5;
+        }
+
+        .action-link {
+            color: var(--teal-studio);
+            text-decoration: none;
+            font-weight: 700;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 0.88rem;
+            margin-top: 4px;
+            transition: var(--transition-smooth);
+        }
+        .action-link:hover { text-decoration: underline; }
+
+        /* --- PRODUCTS TABLE --- */
+        .items-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 0.5rem;
+        }
+
+        .items-table th {
+            text-align: left;
+            padding: 0.8rem 1rem;
+            background: var(--fondo-claro);
+            font-size: 0.78rem;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            color: #888;
+            border-bottom: 1px solid var(--gris-claro);
+        }
+
+        .items-table td {
+            padding: 1rem;
+            border-bottom: 1px solid var(--gris-claro);
+            vertical-align: middle;
+            font-size: 0.92rem;
+        }
+
+        .items-table tr:last-child td { border-bottom: none; }
+
+        .prod-cell {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .prod-thumb {
+            width: 56px;
+            height: 74px; /* Aspect Ratio 3:4 */
+            object-fit: cover;
+            border-radius: 6px;
+            border: 1px solid var(--gris-claro);
+            background: #eee;
+        }
+
+        .prod-name {
+            font-weight: 700;
+            color: var(--dark-studio);
+            text-decoration: none;
+            font-size: 0.95rem;
+            display: block;
+        }
+        .prod-name:hover { color: var(--teal-studio); }
+
+        .prod-meta {
+            font-size: 0.82rem;
+            color: #777;
+            margin-top: 3px;
+        }
+
+        .sku-tag {
+            font-family: monospace;
+            font-size: 0.75rem;
+            background: var(--gris-claro);
+            padding: 2px 6px;
+            border-radius: 4px;
+            color: #555;
+            display: inline-block;
+            margin-top: 4px;
+        }
+
+        /* --- FINANCIAL SUMMARY --- */
+        .financial-list {
+            margin-top: 1rem;
+            border-top: 2px dashed var(--gris-claro);
+            padding-top: 1rem;
+        }
+
+        .fin-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.5rem 0;
+            font-size: 0.95rem;
+            color: #666;
+        }
+
+        .fin-row.total-row {
+            border-top: 2px solid var(--dark-studio);
+            margin-top: 0.8rem;
+            padding-top: 1rem;
+            font-size: 1.3rem;
+            font-weight: 800;
+            color: var(--dark-studio);
+        }
+
+        .fin-row.total-row .total-val {
+            color: var(--teal-studio);
+        }
+
+        /* --- FULFILLMENT FORM --- */
+        .form-group {
+            margin-bottom: 1.4rem;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: var(--dark-studio);
+            margin-bottom: 0.5rem;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 0.8rem 1rem;
+            border: 1px solid var(--gris-claro);
+            border-radius: 8px;
+            font-family: var(--font-main);
+            font-size: 0.95rem;
+            outline: none;
+            background: var(--fondo-claro);
+            transition: var(--transition-smooth);
+        }
+
+        .form-control:focus {
+            border-color: var(--teal-studio);
+            background: var(--blanco-puro);
+            box-shadow: 0 0 0 3px var(--teal-claro);
+        }
+
+        textarea.form-control {
+            resize: vertical;
+            min-height: 90px;
+        }
+
+        .checkbox-label {
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--dark-studio);
+            cursor: pointer;
+            background: #FEF9E7;
+            border: 1px solid #F9E79F;
+            padding: 0.8rem 1rem;
+            border-radius: 8px;
+            user-select: none;
+        }
+
+        .checkbox-label input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            accent-color: var(--teal-studio);
+            cursor: pointer;
+        }
+
+        /* Status Badge Styling */
+        .status-badge {
+            padding: 0.4rem 1.1rem;
+            border-radius: var(--radius-pill);
+            font-weight: 700;
+            font-size: 0.85rem;
+            letter-spacing: 0.5px;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        /* --- AUDIT MODAL --- */
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(4px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+            padding: 1rem;
+        }
+        .modal-overlay.active { display: flex; }
+
+        .modal-box {
+            background: var(--blanco-puro);
+            width: 100%;
+            max-width: 700px;
+            border-radius: var(--radius-lg);
+            padding: 2rem;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.3);
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--gris-claro);
+            padding-bottom: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #888;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Sidebar inyectado dinámicamente por layout.js -->
+    <aside class="sidebar"></aside>
+
+    <div class="main-content">
+        <!-- BREADCRUMB -->
+        <div class="breadcrumb">
+            <a href="index.html">Dashboard</a>
+            <span>/</span>
+            <a href="pedidos.html">Pedidos</a>
+            <span>/</span>
+            <span id="breadcrumbId">Pedido #...</span>
+        </div>
+
+        <!-- HEADER -->
+        <div class="page-header">
+            <div class="header-title-group">
+                <a href="pedidos.html" class="btn-back">← Volver</a>
+                <div>
+                    <div style="display: flex; align-items: center; gap: 1rem;">
+                        <h1 class="order-title" id="orderTitle">Pedido #...</h1>
+                        <span id="orderBadge" class="status-badge">Cargando...</span>
+                    </div>
+                    <div class="order-date-badge" id="orderDate">Cargando fecha...</div>
+                </div>
+            </div>
+
+            <div class="header-actions">
+                <button type="button" class="btn-audit" onclick="openAuditModal()">🔍 Auditar Stock</button>
+                <button type="button" class="btn-save" onclick="saveOrderDetails()">💾 Guardar Cambios</button>
+            </div>
+        </div>
+
+        <form id="orderMainForm" onsubmit="event.preventDefault(); saveOrderDetails();">
+            <div class="order-grid">
+
+                <!-- COLUMNA IZQUIERDA: CLIENTE Y PRODUCTOS -->
+                <div>
+                    <!-- TARJETA: CLIENTE Y DESPACHO -->
+                    <div class="card">
+                        <div class="card-title">
+                            <span>👤 Datos del Cliente & Despacho</span>
+                        </div>
+                        <div class="info-grid">
+                            <div class="info-box">
+                                <div class="info-label">Nombre del Cliente</div>
+                                <div class="info-value" id="custName">—</div>
+                                <a id="custEmailLink" href="#" class="action-link">✉️ Enviar correo</a>
+                            </div>
+
+                            <div class="info-box">
+                                <div class="info-label">Teléfono de Contacto</div>
+                                <div class="info-value" id="custPhone">—</div>
+                                <a id="custWspLink" href="#" target="_blank" class="action-link" style="color: #25D366;">💬 Escribir por WhatsApp</a>
+                            </div>
+
+                            <div class="info-box" style="grid-column: 1 / -1;">
+                                <div class="info-label">Dirección de Despacho</div>
+                                <div class="info-value" id="custAddress">—</div>
+                                <a id="custMapLink" href="#" target="_blank" class="action-link" style="color: #2980B9;">📍 Ver ubicación en Mapa</a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- TARJETA: PRENDAS DEL PEDIDO -->
+                    <div class="card">
+                        <div class="card-title">
+                            <span>🛍️ Prendas del Pedido</span>
+                            <span id="itemCountBadge" style="font-size: 0.85rem; color: #888; font-family: var(--font-main);">0 artículos</span>
+                        </div>
+
+                        <table class="items-table">
+                            <thead>
+                                <tr>
+                                    <th>Producto</th>
+                                    <th>SKU</th>
+                                    <th style="text-align: center;">Cant.</th>
+                                    <th style="text-align: right;">Precio U.</th>
+                                    <th style="text-align: right;">Subtotal</th>
+                                </tr>
+                            </thead>
+                            <tbody id="itemsTableBody">
+                                <tr>
+                                    <td colspan="5" style="text-align: center; color: #888; padding: 2rem;">Cargando lista de prendas...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+
+                        <!-- DESGLOSE FINANCIERO -->
+                        <div class="financial-list">
+                            <div class="fin-row">
+                                <span>Subtotal Prendas</span>
+                                <span id="finSubtotal" style="font-weight: 600;">$0</span>
+                            </div>
+                            <div class="fin-row">
+                                <span>Costo de Envío</span>
+                                <span id="finShipping" style="font-weight: 600;">$0</span>
+                            </div>
+                            <div class="fin-row total-row">
+                                <span>Total del Pedido</span>
+                                <span id="finTotal" class="total-val">$0</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- COLUMNA DERECHA: GESTIÓN OPERATIVA & NOTAS -->
+                <div>
+                    <!-- TARJETA: ESTADO Y FULFILLMENT -->
+                    <div class="card">
+                        <div class="card-title">
+                            <span>🚚 Gestión Operativa</span>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="orderStatus">Estado del Pedido</label>
+                            <select id="orderStatus" class="form-control" onchange="updateBadgePreview()">
+                                <option value="Pendiente">🟡 Sin Pagar / Pendiente</option>
+                                <option value="Pagado">🔵 Pagado</option>
+                                <option value="Preparando">🟣 Preparando</option>
+                                <option value="En Tránsito">🚛 En Tránsito (¡Nuevo!)</option>
+                                <option value="Enviado">🟢 Enviado / Despachado</option>
+                                <option value="Entregado">✅ Entregado</option>
+                                <option value="Cancelado">🔴 Cancelado</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="orderCourier">Courier / Transportista</label>
+                            <select id="orderCourier" class="form-control" onchange="toggleCourierOther()">
+                                <option value="">— Sin asignar —</option>
+                                <option value="Blue Express">Blue Express</option>
+                                <option value="Starken">Starken</option>
+                                <option value="Chilexpress">Chilexpress</option>
+                                <option value="Correos de Chile">Correos de Chile</option>
+                                <option value="Otro">Otro transportista</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group" id="courierOtherBlock" style="display: none;">
+                            <label for="orderCourierOther">Especificar Nombre de Transportista / Medio *</label>
+                            <input type="text" id="orderCourierOther" class="form-control" placeholder="Ej: Motoboy, Repartidor Propio, Retiro Presencial, etc.">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="orderTracking">Código / N° de Seguimiento</label>
+                            <input type="text" id="orderTracking" class="form-control" placeholder="Ej: BLX-987654321">
+                        </div>
+
+                        <div id="trackingDirectLinkBlock" style="display: none; margin-bottom: 1.2rem;">
+                            <a id="trackingDirectLink" href="#" target="_blank" class="action-link" style="background: #E8F8F5; color: #1ABC9C; padding: 0.6rem 1rem; border-radius: 8px; border: 1px solid #A3E4D7; width: 100%; justify-content: center;">
+                                🔍 Abrir Rexistro de Seguimiento ↗
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- TARJETA: COMUNICACIÓN & NOTAS -->
+                    <div class="card">
+                        <div class="card-title">
+                            <span>✉️ Notificación y Notas</span>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="customerNote">Nota para el Cliente (Se envía por correo)</label>
+                            <textarea id="customerNote" class="form-control" placeholder="Escribe un mensaje personalizado para el comprador... (Ej: Tu pedido fue enviado con Starken orden N° 45892)"></textarea>
+                            <span style="font-size: 0.78rem; color: #888; display: block; margin-top: 4px;">
+                                Esta nota aparecerá destacada en el e-mail enviado al cliente.
+                            </span>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="checkbox-label">
+                                <input type="checkbox" id="notifyCustomer" checked>
+                                Notificar al cliente por correo electrónico
+                            </label>
+                        </div>
+
+                        <div class="form-group" style="margin-bottom: 0;">
+                            <label for="internalNotes">Notas Internas (Privado para el Equipo)</label>
+                            <textarea id="internalNotes" class="form-control" placeholder="Notas sobre empaque, auditorías o gestión interna..."></textarea>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </form>
+    </div>
+
+    <!-- MODAL AUDITORÍA DE STOCK -->
+    <div class="modal-overlay" id="auditModal">
+        <div class="modal-box">
+            <div class="modal-header">
+                <h3 style="font-family: var(--font-display); font-size: 1.4rem;">🔍 Auditoría de Stock de Inv.</h3>
+                <button type="button" class="modal-close" onclick="closeAuditModal()">&times;</button>
+            </div>
+            <div id="auditContent">
+                <p style="color: #888;">Cargando informe de auditoría de inventario...</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        const orderId = parseInt(urlParams.get('id'), 10);
+
+        if (!orderId) {
+            alert('No se ha especificado un ID de pedido válido.');
+            window.location.href = 'pedidos.html';
+        }
+
+        let currentOrderData = null;
+
+        function formatCurrency(val) {
+            const num = Number(val) || 0;
+            return '$' + Math.round(num).toLocaleString('es-CL');
+        }
+
+        function getStatusBadgeStyle(estado) {
+            const s = (estado || 'Pendiente').toLowerCase();
+            if (s.includes('pendiente')) return { bg: '#FEF9E7', color: '#D4AC0D', border: '#F9E79F', label: '🟡 Sin Pagar' };
+            if (s.includes('pagado')) return { bg: '#E0F6F5', color: '#0E8A7E', border: '#A3E4D7', label: '🔵 Pagado' };
+            if (s.includes('preparan')) return { bg: '#F4ECF7', color: '#7D3C98', border: '#E8DAEF', label: '🟣 Preparando' };
+            if (s.includes('tránsito') || s.includes('transito')) return { bg: '#EBF5FB', color: '#2980B9', border: '#AED6F1', label: '🚛 En Tránsito' };
+            if (s.includes('envia') || s.includes('despach')) return { bg: '#E8F8F5', color: '#1ABC9C', border: '#A3E4D7', label: '🟢 Enviado' };
+            if (s.includes('entrega')) return { bg: '#EAFAF1', color: '#27AE60', border: '#D1F2EB', label: '✅ Entregado' };
+            if (s.includes('cancel')) return { bg: '#FDEDEC', color: '#E74C3C', border: '#F5B7B1', label: '🔴 Cancelado' };
+            return { bg: '#f4f4f4', color: '#666', border: '#ddd', label: estado };
+        }
+
+        function toggleCourierOther() {
+            const select = document.getElementById('orderCourier');
+            const otherBlock = document.getElementById('courierOtherBlock');
+            if (select.value === 'Otro') {
+                otherBlock.style.display = 'block';
+            } else {
+                otherBlock.style.display = 'none';
+            }
+        }
+
+        function updateBadgePreview() {
+            const select = document.getElementById('orderStatus');
+            const bs = getStatusBadgeStyle(select.value);
+            const badgeEl = document.getElementById('orderBadge');
+            badgeEl.textContent = bs.label;
+            badgeEl.style.cssText = `background:${bs.bg}; color:${bs.color}; border:1px solid ${bs.border};`;
+        }
+
+        async function loadOrderDetails() {
+            try {
+                const response = await adminFetch(`/api/admin/orders/${orderId}`);
+                if (!response) return;
+                const result = await response.json();
+
+                if (!result.success || !result.data) {
+                    alert('Error al cargar datos del pedido: ' + (result.error || 'Pedido no existe'));
+                    window.location.href = 'pedidos.html';
+                    return;
+                }
+
+                currentOrderData = result.data;
+                const o = currentOrderData;
+
+                // Títulos y Encabezado
+                document.getElementById('breadcrumbId').textContent = `Pedido #${o.id}`;
+                document.getElementById('orderTitle').textContent = `Pedido #${o.id}`;
+                
+                const rawDate = o.created_at || o.fecha_creacion || '';
+                const fechaDisplay = typeof toChileDate === 'function' 
+                    ? toChileDate(rawDate, { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' })
+                    : rawDate;
+                document.getElementById('orderDate').textContent = fechaDisplay;
+
+                // Setear Selector y Badge
+                document.getElementById('orderStatus').value = o.estado || 'Pendiente';
+                updateBadgePreview();
+
+                // Datos de Cliente
+                document.getElementById('custName').textContent = o.nombre || 'Sin nombre';
+                document.getElementById('custEmailLink').textContent = `✉️ ${o.email || 'Sin correo'}`;
+                document.getElementById('custEmailLink').href = `mailto:${o.email || ''}`;
+
+                const phoneStr = o.telefono || 'Sin teléfono';
+                document.getElementById('custPhone').textContent = phoneStr;
+                
+                const cleanPhone = phoneStr.replace(/\D/g, '');
+                if (cleanPhone) {
+                    const wspPhone = cleanPhone.startsWith('56') ? cleanPhone : '56' + cleanPhone;
+                    document.getElementById('custWspLink').href = `https://wa.me/${wspPhone}`;
+                } else {
+                    document.getElementById('custWspLink').style.display = 'none';
+                }
+
+                const fullAddress = [o.direccion, o.comuna, o.region].filter(Boolean).join(', ') || 'Sin dirección';
+                document.getElementById('custAddress').textContent = fullAddress;
+                document.getElementById('custMapLink').href = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(fullAddress)}`;
+
+                // Formulario Fulfillment (Courier / Transportista)
+                const knownCouriers = ['Blue Express', 'Starken', 'Chilexpress', 'Correos de Chile'];
+                const rawCourier = o.courier || '';
+
+                if (knownCouriers.includes(rawCourier)) {
+                    document.getElementById('orderCourier').value = rawCourier;
+                    document.getElementById('orderCourierOther').value = '';
+                    document.getElementById('courierOtherBlock').style.display = 'none';
+                } else if (rawCourier) {
+                    document.getElementById('orderCourier').value = 'Otro';
+                    document.getElementById('orderCourierOther').value = rawCourier;
+                    document.getElementById('courierOtherBlock').style.display = 'block';
+                } else {
+                    document.getElementById('orderCourier').value = '';
+                    document.getElementById('orderCourierOther').value = '';
+                    document.getElementById('courierOtherBlock').style.display = 'none';
+                }
+
+                document.getElementById('orderTracking').value = o.tracking_code || '';
+                document.getElementById('internalNotes').value = o.notas || '';
+
+                // Enlace directo de tracking si existe
+                if (o.tracking_code && o.courier) {
+                    const tc = o.tracking_code;
+                    const courierUrls = {
+                        'Blue Express': `https://www.blue.cl/seguimiento/?codigo=${tc}`,
+                        'Starken': `https://www.starken.cl/seguimiento?codigo=${tc}`,
+                        'Chilexpress': `https://www.chilexpress.cl/Views/Chilexpress/Estado-envio.aspx?DATA=${tc}`,
+                        'Correos de Chile': `https://www.correos.cl/web/guest/seguimiento-en-linea?tracking_number=${tc}`,
+                    };
+                    const trackUrl = courierUrls[o.courier];
+                    if (trackUrl) {
+                        document.getElementById('trackingDirectLinkBlock').style.display = 'block';
+                        document.getElementById('trackingDirectLink').href = trackUrl;
+                        document.getElementById('trackingDirectLink').innerHTML = `🔍 Rastrear envío con ${o.courier} ↗`;
+                    }
+                }
+
+                // Renderizar Ítems del Pedido
+                const items = o.items || [];
+                document.getElementById('itemCountBadge').textContent = `${items.length} artículo${items.length !== 1 ? 's' : ''}`;
+
+                const itemsBody = document.getElementById('itemsTableBody');
+                itemsBody.innerHTML = '';
+
+                let calcSubtotal = 0;
+
+                if (items.length === 0) {
+                    itemsBody.innerHTML = `<tr><td colspan="5" style="text-align:center; color:#888; padding:1.5rem;">Este pedido no registra ítems detallados.</td></tr>`;
+                } else {
+                    items.forEach(it => {
+                        const qty = Number(it.cantidad) || 1;
+                        const price = Number(it.precio_unitario) || 0;
+                        const subtotal = qty * price;
+                        calcSubtotal += subtotal;
+
+                        const imgUrl = it.imagen_url || '../logo.png';
+                        
+                        let variantText = it.variant_details || '';
+                        if (!variantText && (it.color_name || it.variant_tallas)) {
+                            variantText = [it.color_name, it.variant_tallas].filter(Boolean).join(' | ');
+                        }
+
+                        const tr = document.createElement('tr');
+                        tr.innerHTML = `
+                            <td>
+                                <div class="prod-cell">
+                                    <img src="${imgUrl}" alt="${it.product_name}" class="prod-thumb" onerror="this.src='../logo.png'">
+                                    <div>
+                                        <a href="producto.html?id=${it.product_id}" target="_blank" class="prod-name">${it.product_name}</a>
+                                        <div class="prod-meta">${variantText ? `<span>${variantText}</span>` : ''}</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td><span class="sku-tag">${it.sku || '—'}</span></td>
+                            <td style="text-align: center; font-weight: 700;">x${qty}</td>
+                            <td style="text-align: right;">${formatCurrency(price)}</td>
+                            <td style="text-align: right; font-weight: 700; color: var(--teal-studio);">${formatCurrency(subtotal)}</td>
+                        `;
+                        itemsBody.appendChild(tr);
+                    });
+                }
+
+                // Totales Financieros
+                const shippingCost = Number(o.shipping_cost) || 0;
+                const totalFinal = Number(o.total) || (calcSubtotal + shippingCost);
+
+                document.getElementById('finSubtotal').textContent = formatCurrency(calcSubtotal);
+                document.getElementById('finShipping').textContent = shippingCost > 0 ? formatCurrency(shippingCost) : 'Gratis / Sin registro';
+                document.getElementById('finTotal').textContent = formatCurrency(totalFinal);
+
+            } catch (error) {
+                console.error('Error cargando pedido:', error);
+                alert('Error de red al cargar el pedido.');
+            }
+        }
+
+        async function saveOrderDetails() {
+            const estado = document.getElementById('orderStatus').value;
+            const courierSelect = document.getElementById('orderCourier').value;
+            const courierOther = document.getElementById('orderCourierOther').value.trim();
+            
+            let courier = courierSelect;
+            if (courierSelect === 'Otro') {
+                if (!courierOther) {
+                    alert('Por favor especifica el nombre del transportista o medio de entrega.');
+                    document.getElementById('orderCourierOther').focus();
+                    return;
+                }
+                courier = courierOther;
+            }
+
+            const tracking_code = document.getElementById('orderTracking').value.trim();
+            const notas = document.getElementById('internalNotes').value.trim();
+            const nota_cliente = document.getElementById('customerNote').value.trim();
+            const notify_customer = document.getElementById('notifyCustomer').checked;
+
+            try {
+                const btnSave = document.querySelector('.btn-save');
+                btnSave.disabled = true;
+                btnSave.innerHTML = '⏳ Guardando...';
+
+                const response = await adminFetch(`/api/admin/orders/${orderId}`, {
+                    method: 'PUT',
+                    body: JSON.stringify({
+                        estado,
+                        courier,
+                        tracking_code,
+                        notas,
+                        nota_cliente,
+                        notify_customer
+                    })
+                });
+
+                btnSave.disabled = false;
+                btnSave.innerHTML = '💾 Guardar Cambios';
+
+                if (!response) return;
+                const result = await response.json();
+
+                if (result.success) {
+                    if (typeof showToast === 'function') {
+                        showToast('¡Pedido actualizado con éxito!', 'success');
+                    } else {
+                        alert('¡Pedido actualizado con éxito!');
+                    }
+                    loadOrderDetails();
+                } else {
+                    alert('Error al guardar cambios: ' + (result.error || 'No se pudo actualizar'));
+                }
+            } catch (err) {
+                console.error(err);
+                alert('Error de conexión al guardar los cambios.');
+                const btnSave = document.querySelector('.btn-save');
+                btnSave.disabled = false;
+                btnSave.innerHTML = '💾 Guardar Cambios';
+            }
+        }
+
+        /* AUDITORÍA DE STOCK */
+        async function openAuditModal() {
+            const modal = document.getElementById('auditModal');
+            const content = document.getElementById('auditContent');
+            modal.classList.add('active');
+            content.innerHTML = `<p style="color: #888; text-align: center; padding: 2rem;">🔍 Consultando estado del inventario para el pedido #${orderId}...</p>`;
+
+            try {
+                const res = await adminFetch(`/api/admin/stock-audit/${orderId}`);
+                if (!res) return;
+                const data = await res.json();
+
+                if (!data.success) {
+                    content.innerHTML = `<div style="color: red; padding: 1rem;">${data.error || 'Error al obtener auditoría.'}</div>`;
+                    return;
+                }
+
+                let html = `
+                    <div style="background: var(--fondo-claro); padding: 1rem; border-radius: 8px; margin-bottom: 1.5rem; border: 1px solid var(--gris-claro);">
+                        <p style="font-size: 0.9rem;"><strong>Estado de Orden:</strong> ${data.order?.estado || 'Desconocido'}</p>
+                        <p style="font-size: 0.9rem;"><strong>Total Pedido:</strong> ${formatCurrency(data.order?.total)}</p>
+                    </div>
+                    <h4 style="font-family: var(--font-display); margin-bottom: 0.8rem;">Verificación por Prenda:</h4>
+                `;
+
+                (data.audit || []).forEach(item => {
+                    const ok = item.stock_descontado_ok;
+                    const statusColor = ok ? '#27AE60' : '#E74C3C';
+                    const statusText = ok ? '✅ Stock Descontado Correctamente' : '⚠️ Revisar Descuento de Stock';
+
+                    html += `
+                        <div style="border: 1px solid var(--gris-claro); border-radius: 8px; padding: 1rem; margin-bottom: 1rem; background: #fff;">
+                            <div style="font-weight: 700; color: var(--dark-studio);">${item.product_name}</div>
+                            <div style="font-size: 0.85rem; color: #777;">${item.variant_details || 'Sin variante especificada'} | Vendidos: <strong>${item.cantidad_vendida}</strong></div>
+                            <div style="margin-top: 0.5rem; font-weight: 700; color: ${statusColor}; font-size: 0.88rem;">${statusText}</div>
+                            <div style="font-size: 0.8rem; color: #555; margin-top: 0.4rem; background: #f9f9f9; padding: 0.5rem; border-radius: 4px;">
+                                ${(item.diagnostico || []).join('<br>')}
+                            </div>
+                        </div>
+                    `;
+                });
+
+                content.innerHTML = html;
+            } catch (err) {
+                content.innerHTML = `<div style="color: red; padding: 1rem;">Error de red al consultar auditoría.</div>`;
+            }
+        }
+
+        function closeAuditModal() {
+            document.getElementById('auditModal').classList.remove('active');
+        }
+
+        // Cargar detalles al inicializar
+        window.addEventListener('DOMContentLoaded', loadOrderDetails);
+    </script>
+</body>
+
+</html>

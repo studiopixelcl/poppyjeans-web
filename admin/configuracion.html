@@ -3,24 +3,27 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mathsoluis | Configuración del Sistema</title>
+    <title>PoppyJeans | Configuración del Sistema</title>
+    <!-- Favicon -->
+    <link rel="icon" href="../favicon.png" type="image/png">
     
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;600;700;800&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=Plus+Jakarta+Sans:ital,wght@0,200..800;1,200..800&display=swap" rel="stylesheet">
+    <script src="layout.js"></script>
     
     <style>
         /* --- STUDIO PIXEL TOKENS --- */
         :root {
             --blanco-puro: #FFFFFF;
-            --fondo-claro: #F4F7F6; 
-            --teal-studio: #13C2B3; 
-            --teal-claro: #E0F6F5;  
-            --dark-studio: #1E1E24; 
-            --gris-claro: #E8ECEB;
-            --danger-color: #E74C3C;
-            --danger-light: #FDEDEC;
+            --fondo-claro: #fcf9f9; 
+            --teal-studio: #8a4d4e; 
+            --teal-claro: #ffdad9;  
+            --dark-studio: #211a19; 
+            --gris-claro: #eedfdd;
+            --danger-color: #ba1a1a;
+            --danger-light: #ffdad6;
             
-            --font-main: 'Poppins', sans-serif;
-            --font-display: 'Montserrat', sans-serif;
+            --font-main: 'Plus Jakarta Sans', sans-serif;
+            --font-display: 'Playfair Display', serif;
             
             --radius-md: 12px;
             --radius-lg: 24px;
@@ -45,35 +48,7 @@
         .denied-card { background: var(--blanco-puro); padding: 4rem; border-radius: var(--radius-md); box-shadow: var(--shadow-subtle); max-width: 500px;}
         .denied-icon { font-size: 4rem; color: var(--danger-color); margin-bottom: 1rem; }
 
-        /* --- LOGIN VIEW --- */
-        #loginView { 
-            min-height: 100vh; display: flex; align-items: center; justify-content: center; 
-            background: linear-gradient(135deg, var(--dark-studio) 0%, #2a2a35 100%); 
-        }
-        
-        .login-card { 
-            background: var(--blanco-puro); padding: 3rem; border-radius: var(--radius-md); 
-            box-shadow: 0 20px 40px rgba(0,0,0,0.2); width: 100%; max-width: 400px; text-align: center; 
-        }
-        
-        .login-logo { font-family: var(--font-display); font-size: 1.8rem; font-weight: 800; color: var(--dark-studio); margin-bottom: 2rem; }
-        .login-logo span { color: var(--teal-studio); }
 
-        .input-group { margin-bottom: 1.5rem; text-align: left; }
-        .input-group label { display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 0.5rem; color: #666; }
-        .input-group input, .input-group select, .input-group textarea { 
-            width: 100%; padding: 0.8rem 1rem; border: 1px solid var(--gris-claro); border-radius: 8px; 
-            font-family: var(--font-main); font-size: 0.95rem; outline: none; transition: var(--transition-smooth); background: var(--fondo-claro); 
-        }
-        .input-group input:focus, .input-group select:focus, .input-group textarea:focus { 
-            border-color: var(--teal-studio); background: var(--blanco-puro); box-shadow: 0 0 0 3px var(--teal-claro); 
-        }
-
-        .btn-primary { width: 100%; background: var(--teal-studio); color: var(--blanco-puro); border: none; padding: 1rem; border-radius: 8px; font-family: var(--font-main); font-size: 1rem; font-weight: 600; cursor: pointer; transition: var(--transition-smooth); text-decoration: none; display: inline-block;}
-        .btn-primary:hover { background: #10a89b; transform: translateY(-2px); }
-        .btn-secondary { background: var(--gris-claro); color: var(--dark-studio); border: none; padding: 0.8rem 1.5rem; border-radius: 8px; font-weight: 600; cursor: pointer; transition: var(--transition-smooth); }
-        .btn-secondary:hover { background: #d5dbda; }
-        .error-msg { color: var(--danger-color); font-size: 0.85rem; margin-top: 1rem; display: none; }
 
         /* --- DASHBOARD VIEW --- */
         #dashboardView { display: none; min-height: 100vh; }
@@ -152,51 +127,15 @@
             <div class="denied-icon">🔒</div>
             <h2 style="font-family: var(--font-display); font-size: 1.8rem; margin-bottom: 1rem;">Acceso Restringido</h2>
             <p style="color: #666; margin-bottom: 2rem;">La configuración del sistema es exclusiva para roles de Super Administrador. Tu cuenta actual no tiene los permisos suficientes para modificar usuarios o parámetros globales.</p>
-            <a href="index.html" class="btn-primary" style="width: auto;">Volver al Inventario</a>
+            <a href="inventario.html" class="btn-primary" style="width: auto;">Volver al Inventario</a>
         </div>
     </div>
 
-    <!-- VISTA INICIO SESIÓN -->
-    <div id="loginView">
-        <div class="login-card">
-            <div class="login-logo">MATHSO<span>LUIS</span></div>
-            <p style="color: #888; margin-bottom: 2rem; font-size: 0.9rem;">Ingresa tus credenciales para acceder al panel corporativo.</p>
-            <form id="loginForm">
-                <div class="input-group">
-                    <label>Correo Electrónico</label>
-                    <input type="email" id="loginEmail" required placeholder="admin@mathsoluis.cl" value="admin@mathsoluis.cl">
-                </div>
-                <div class="input-group">
-                    <label>Contraseña</label>
-                    <input type="password" id="loginPassword" required placeholder="Ingresa tu contraseña">
-                </div>
-                <button type="submit" class="btn-primary" id="loginBtnText">Iniciar Sesión</button>
-                <div id="loginError" class="error-msg">Credenciales incorrectas. Intenta nuevamente.</div>
-            </form>
-        </div>
-    </div>
+
 
     <!-- VISTA DASHBOARD -->
     <div id="dashboardView">
-        <aside class="sidebar">
-            <div class="sidebar-logo">MATHSO<span>LUIS</span></div>
-            <ul class="nav-menu">
-                <li class="nav-item"><a href="index.html" class="nav-link">📦 Inventario</a></li>
-                <li class="nav-item"><a href="pedidos.html" class="nav-link">📝 Pedidos</a></li>
-                <li class="nav-item"><a href="clientes.html" class="nav-link">👥 Clientes</a></li>
-                <li id="admin-only-nav" style="margin-top: 1.5rem;">
-                    <span style="display:block; font-size:0.65rem; font-weight:700; text-transform:uppercase; letter-spacing:1px; color:#555; padding:0 1rem 0.5rem;">Solo Admin</span>
-                    <ul style="list-style:none; padding:0; margin:0;">
-                        <li class="nav-item"><a href="metricas.html" class="nav-link">📈 Métricas</a></li>
-                        <li class="nav-item"><a href="actividades.html" class="nav-link">📜 Actividades</a></li>
-                        <li class="nav-item"><a href="configuracion.html" class="nav-link active">⚙️ Configuración</a></li>
-                    </ul>
-                </li>
-                <li class="nav-item" style="margin-top: 2rem; border-top: 1px solid rgba(255,255,255,0.08); padding-top: 1rem;">
-                    <a href="#" class="nav-link" onclick="logout(); return false;">🚪 Cerrar Sesión</a>
-                </li>
-            </ul>
-        </aside>
+        <aside class="sidebar"></aside>
 
         <main class="main-content">
             <header class="topbar">
@@ -243,7 +182,7 @@
                 <div class="form-grid">
                     <div class="input-group">
                         <label>Nombre Público de la Tienda</label>
-                        <input type="text" value="Mathsoluis SpA" disabled>
+                        <input type="text" value="PoppyJeans SpA" disabled>
                     </div>
                     <div class="input-group">
                         <label>Costo de Envío Base ($)</label>
@@ -288,7 +227,7 @@
                         
                         <div class="input-group" style="grid-column: span 2;">
                             <label>Correo Electrónico de Acceso *</label>
-                            <input type="email" id="admEmail" required placeholder="correo@mathsoluis.cl">
+                            <input type="email" id="admEmail" required placeholder="correo@poppyjeans.cl">
                         </div>
 
                         <div class="input-group">
@@ -341,7 +280,7 @@
                     </div>
                     <div class="input-group" style="grid-column: span 2;">
                         <label>System Prompt (Instrucciones del Agente) *</label>
-                        <textarea id="agentPrompt" rows="6" placeholder="Eres un asistente de ventas amable de Mathsoluis. Tu objetivo es ayudar a los clientes a encontrar los productos que necesitan..."></textarea>
+                        <textarea id="agentPrompt" rows="6" placeholder="Eres un asistente de ventas amable de PoppyJeans. Tu objetivo es ayudar a los clientes a encontrar los productos que necesitan..."></textarea>
                     </div>
                 </div>
             </div>
@@ -354,10 +293,8 @@
 
     <!-- LÓGICA JAVASCRIPT -->
     <script>
-                const loginView = document.getElementById('loginView');
         const dashboardView = document.getElementById('dashboardView');
         const accessDeniedView = document.getElementById('accessDeniedView');
-        const loginForm = document.getElementById('loginForm');
         const adminsTableBody = document.getElementById('adminsTableBody');
         
         let allAdmins = [];
@@ -366,65 +303,22 @@
 
         window.onload = () => {
             const token = localStorage.getItem('admin_token');
+            if (!token) {
+                window.location.href = 'index.html';
+                return;
+            }
             const rol = localStorage.getItem('admin_rol');
-
-            if (token) {
-                document.getElementById('adminName').textContent = localStorage.getItem('admin_name');
-                if (rol === 'superadmin') {
-                    showDashboard();
-                } else {
-                    // Es un Agente, no puede ver configuración
-                    loginView.style.display = 'none';
-                    dashboardView.style.display = 'none';
-                    accessDeniedView.style.display = 'flex';
-                }
+            document.getElementById('adminName').textContent = localStorage.getItem('admin_name');
+            if (rol === 'superadmin') {
+                showDashboard();
+            } else {
+                // Es un Agente, no puede ver configuración
+                dashboardView.style.display = 'none';
+                accessDeniedView.style.display = 'flex';
             }
         };
 
-        loginForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            document.getElementById('loginError').style.display = 'none';
-            document.getElementById('loginBtnText').textContent = 'Conectando...';
-
-            try {
-                const response = await fetch(`${API_BASE_URL}/api/admin/login`, {
-                    method: 'POST', 
-                    headers: { 'Content-Type': 'application/json' }, 
-                    body: JSON.stringify({ 
-                        email: document.getElementById('loginEmail').value, 
-                        password: document.getElementById('loginPassword').value 
-                    })
-                });
-                
-                const result = await response.json();
-
-                if (result.success) {
-                    localStorage.setItem('admin_token', result.token);
-                    localStorage.setItem('admin_name', result.admin_data.nombre);
-                    localStorage.setItem('admin_rol', result.admin_data.rol);
-                    document.getElementById('adminName').textContent = result.admin_data.nombre;
-                    
-                    if (result.admin_data.rol === 'superadmin') {
-                        showDashboard();
-                    } else {
-                        loginView.style.display = 'none';
-                        dashboardView.style.display = 'none';
-                        accessDeniedView.style.display = 'flex';
-                    }
-                } else {
-                    document.getElementById('loginError').textContent = result.error || 'Credenciales incorrectas.';
-                    document.getElementById('loginError').style.display = 'block';
-                }
-            } catch (error) {
-                document.getElementById('loginError').textContent = 'Error de conexión con el servidor.';
-                document.getElementById('loginError').style.display = 'block';
-            } finally {
-                document.getElementById('loginBtnText').textContent = 'Iniciar Sesión';
-            }
-        });
-
         function showDashboard() {
-            loginView.style.display = 'none';
             accessDeniedView.style.display = 'none';
             dashboardView.style.display = 'block';
             // Control de acceso visual: oculta sección Admin Only para agentes
@@ -436,11 +330,6 @@
             }
             loadAdmins();
             loadConfig();
-        }
-        
-        function logout() { 
-            localStorage.clear(); 
-            window.location.href = 'configuracion.html';
         }
 
         // ==========================================
@@ -719,48 +608,6 @@
         // ==========================================
         // TOAST DE NOTIFICACIONES (feedback claro)
         // ==========================================
-        let toastTimer = null;
-        window.showToast = (msg, type = 'success') => {
-            const t = document.getElementById('adminToast');
-            if (!t) { alert(msg); return; }
-            t.textContent = msg;
-            t.className = `show ${type}`;
-            clearTimeout(toastTimer);
-            toastTimer = setTimeout(() => { t.className = type; }, 3200);
-        };
-    </script>
-
-    <!-- ✅ AUTH HELPER v2.0 - Sesiones seguras con token UUID -->
-    <script>
-        const API_BASE_URL = 'https://mathsoluis-api.studiopixelchile.workers.dev';
-
-        function getAuthHeaders() {
-            const token = localStorage.getItem('admin_token');
-            return { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` };
-        }
-
-        async function adminFetch(endpoint, options = {}) {
-            const response = await fetch(`${API_BASE_URL}${endpoint}`, {
-                ...options,
-                headers: { ...getAuthHeaders(), ...(options.headers || {}) }
-            });
-            if (response.status === 401) {
-                localStorage.clear();
-                alert('Tu sesión ha expirado. Por favor inicia sesión nuevamente.');
-                window.location.href = 'configuracion.html';
-                return null;
-            }
-            return response;
-        }
-
-        async function logout() {
-            try {
-                await fetch(`${API_BASE_URL}/api/admin/logout`, {
-                    method: 'POST', headers: getAuthHeaders()
-                });
-            } catch (e) { console.warn('No se pudo notificar logout al servidor:', e); }
-            finally { localStorage.clear(); window.location.href = 'configuracion.html'; }
-        }
     </script>
 
 </body>

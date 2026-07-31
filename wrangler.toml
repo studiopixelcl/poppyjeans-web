@@ -1,15 +1,23 @@
-name = "mathsoluis-api"
+name = "poppyjeans-api"
 main = "src/index.js"
 compatibility_date = "2024-04-08"
 
+[dev]
+port = 8788
+
+
 [[d1_databases]]
 binding = "DB"
-database_name = "mathsoluis-db"
-database_id = "dd9c2e8b-cd4b-47a7-a682-ccb08ce8d880"
+database_name = "poppyjeans-db"
+database_id = "c203d4ec-5494-462f-9e79-81bf81d9e5bb"
 
 [[r2_buckets]]
 binding = "IMAGES"
-bucket_name = "mathsoluis-images"
+bucket_name = "poppyjeans-images"
 
 [vars]
-PUBLIC_IMAGES_URL = "https://images.mathsoluis.cl"
+PUBLIC_IMAGES_URL = "https://images.poppyjeans.cl"
+
+routes = [
+  { pattern = "api.poppyjeans.cl", custom_domain = true }
+]

@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+
+<html lang="es"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Poppy Jeans - Catálogo de Productos</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&amp;family=Plus+Jakarta+Sans:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-secondary-fixed": "#211a19",
+                        "inverse-surface": "#303031",
+                        "on-secondary": "#ffffff",
+                        "surface-dim": "#dcd9d9",
+                        "surface-container-highest": "#e4e2e2",
+                        "secondary-fixed-dim": "#d1c3c2",
+                        "on-tertiary": "#ffffff",
+                        "tertiary-fixed": "#f0dfde",
+                        "on-tertiary-fixed-variant": "#4f4444",
+                        "on-primary-fixed-variant": "#6e3637",
+                        "primary-fixed-dim": "#ffb3b3",
+                        "on-primary-fixed": "#380c0f",
+                        "surface-container-high": "#eae7e7",
+                        "secondary": "#665c5b",
+                        "on-tertiary-container": "#3e3434",
+                        "primary": "#8a4d4e",
+                        "surface-bright": "#fcf9f9",
+                        "surface": "#fcf9f9",
+                        "error-container": "#ffdad6",
+                        "surface-variant": "#e4e2e2",
+                        "tertiary": "#685b5b",
+                        "background": "#fcf9f9",
+                        "on-error-container": "#93000a",
+                        "on-surface": "#1b1b1c",
+                        "on-tertiary-fixed": "#221919",
+                        "on-secondary-container": "#6c6261",
+                        "secondary-container": "#eedfdd",
+                        "error": "#ba1a1a",
+                        "surface-tint": "#8a4d4e",
+                        "surface-container": "#f0eded",
+                        "inverse-primary": "#ffb3b3",
+                        "primary-fixed": "#ffdad9",
+                        "on-surface-variant": "#524343",
+                        "outline": "#857372",
+                        "inverse-on-surface": "#f3f0f0",
+                        "tertiary-container": "#ab9c9c",
+                        "surface-container-low": "#f6f3f3",
+                        "on-primary-container": "#592628",
+                        "on-primary": "#ffffff",
+                        "on-background": "#1b1b1c",
+                        "on-secondary-fixed-variant": "#4e4543",
+                        "outline-variant": "#d7c2c1",
+                        "secondary-fixed": "#eedfdd",
+                        "on-error": "#ffffff",
+                        "tertiary-fixed-dim": "#d3c3c2",
+                        "primary-container": "#d48c8c",
+                        "surface-container-lowest": "#ffffff"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "stack-md": "24px",
+                        "stack-lg": "48px",
+                        "margin-mobile": "20px",
+                        "base": "8px",
+                        "stack-sm": "12px",
+                        "margin-desktop": "64px",
+                        "gutter": "24px",
+                        "container-max": "1280px"
+                    },
+                    "fontFamily": {
+                        "label-md": ["Plus Jakarta Sans"],
+                        "headline-md": ["Playfair Display"],
+                        "label-sm": ["Plus Jakarta Sans"],
+                        "display-lg-mobile": ["Playfair Display"],
+                        "body-lg": ["Plus Jakarta Sans"],
+                        "headline-sm": ["Playfair Display"],
+                        "display-lg": ["Playfair Display"],
+                        "body-md": ["Plus Jakarta Sans"]
+                    },
+                    "fontSize": {
+                        "label-md": ["14px", { "lineHeight": "20px", "letterSpacing": "0.05em", "fontWeight": "600" }],
+                        "headline-md": ["32px", { "lineHeight": "40px", "fontWeight": "600" }],
+                        "label-sm": ["12px", { "lineHeight": "16px", "fontWeight": "500" }],
+                        "display-lg-mobile": ["36px", { "lineHeight": "44px", "letterSpacing": "-0.01em", "fontWeight": "700" }],
+                        "body-lg": ["18px", { "lineHeight": "28px", "fontWeight": "400" }],
+                        "headline-sm": ["24px", { "lineHeight": "32px", "fontWeight": "600" }],
+                        "display-lg": ["48px", { "lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+                        "body-md": ["16px", { "lineHeight": "24px", "fontWeight": "400" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        .bloom-reveal .overlay {
+            opacity: 0;
+            transition: opacity 0.4s ease-in-out;
+            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100"><circle cx="50" cy="50" r="40" fill="%23ffffff" opacity="0.1"/></svg>');
+        }
+        .bloom-reveal:hover .overlay {
+            opacity: 1;
+        }
+    </style>
+</head>
+<body class="bg-background text-on-background antialiased min-h-screen flex flex-col pt-20">
+<!-- TopNavBar -->
+<nav class="fixed top-0 left-0 w-full z-50 flex justify-between items-center px-margin-mobile md:px-margin-desktop h-20 bg-surface/80 dark:bg-surface/80 backdrop-blur-md shadow-sm dark:shadow-none border-b border-white/20">
+<div class="flex items-center gap-gutter">
+<a class="font-headline-sm text-headline-sm font-bold text-primary dark:text-inverse-primary tracking-tight" href="#">Poppy Jeans</a>
+<div class="hidden md:flex gap-stack-md">
+<a class="font-label-md text-label-md text-on-surface-variant dark:text-surface-variant hover:text-primary dark:hover:text-inverse-primary transition-colors duration-300" href="#">Home</a>
+<a class="font-label-md text-label-md text-primary dark:text-inverse-primary border-b-2 border-primary dark:border-inverse-primary pb-1" href="#">Shop</a>
+<a class="font-label-md text-label-md text-on-surface-variant dark:text-surface-variant hover:text-primary dark:hover:text-inverse-primary transition-colors duration-300" href="#">About</a>
+</div>
+</div>
+<div class="flex items-center gap-stack-sm text-primary dark:text-inverse-primary">
+<button class="scale-95 active:scale-90 transition-transform hover:text-primary dark:hover:text-inverse-primary">
+<span class="material-symbols-outlined">person</span>
+</button>
+<button class="scale-95 active:scale-90 transition-transform hover:text-primary dark:hover:text-inverse-primary">
+<span class="material-symbols-outlined">shopping_bag</span>
+</button>
+</div>
+</nav>
+<!-- Main Content -->
+<main class="flex-grow max-w-container-max mx-auto w-full px-margin-mobile md:px-margin-desktop py-stack-lg flex flex-col md:flex-row gap-gutter">
+<!-- Sidebar Filters -->
+<aside class="w-full md:w-1/4 flex flex-col gap-stack-md">
+<div class="flex justify-between items-center mb-base">
+<h2 class="font-headline-sm text-headline-sm text-on-surface">Filters</h2>
+<button class="font-label-sm text-label-sm text-primary underline underline-offset-4">Clear All</button>
+</div>
+<!-- Talla Filter -->
+<div class="border-b border-primary/10 pb-stack-sm">
+<h3 class="font-label-md text-label-md text-on-surface mb-base">Size</h3>
+<div class="flex flex-wrap gap-base">
+<button class="px-3 py-1 rounded-full bg-secondary-container text-on-secondary-container font-label-sm text-label-sm hover:bg-primary hover:text-on-primary transition-colors">24</button>
+<button class="px-3 py-1 rounded-full bg-primary text-on-primary font-label-sm text-label-sm">26</button>
+<button class="px-3 py-1 rounded-full bg-secondary-container text-on-secondary-container font-label-sm text-label-sm hover:bg-primary hover:text-on-primary transition-colors">28</button>
+<button class="px-3 py-1 rounded-full bg-secondary-container text-on-secondary-container font-label-sm text-label-sm hover:bg-primary hover:text-on-primary transition-colors">30</button>
+<button class="px-3 py-1 rounded-full bg-secondary-container text-on-secondary-container font-label-sm text-label-sm hover:bg-primary hover:text-on-primary transition-colors">32</button>
+</div>
+</div>
+<!-- Estilo Filter -->
+<div class="border-b border-primary/10 pb-stack-sm">
+<h3 class="font-label-md text-label-md text-on-surface mb-base">Style</h3>
+<div class="flex flex-col gap-base">
+<label class="flex items-center gap-2 cursor-pointer group">
+<input checked="" class="form-checkbox text-primary border-outline focus:ring-primary rounded-sm" type="checkbox"/>
+<span class="font-body-md text-body-md text-on-surface-variant group-hover:text-primary transition-colors">Skinny</span>
+</label>
+<label class="flex items-center gap-2 cursor-pointer group">
+<input class="form-checkbox text-primary border-outline focus:ring-primary rounded-sm" type="checkbox"/>
+<span class="font-body-md text-body-md text-on-surface-variant group-hover:text-primary transition-colors">Straight</span>
+</label>
+<label class="flex items-center gap-2 cursor-pointer group">
+<input class="form-checkbox text-primary border-outline focus:ring-primary rounded-sm" type="checkbox"/>
+<span class="font-body-md text-body-md text-on-surface-variant group-hover:text-primary transition-colors">Mom Jeans</span>
+</label>
+<label class="flex items-center gap-2 cursor-pointer group">
+<input class="form-checkbox text-primary border-outline focus:ring-primary rounded-sm" type="checkbox"/>
+<span class="font-body-md text-body-md text-on-surface-variant group-hover:text-primary transition-colors">Wide Leg</span>
+</label>
+</div>
+</div>
+<!-- Color Filter -->
+<div class="border-b border-primary/10 pb-stack-sm">
+<h3 class="font-label-md text-label-md text-on-surface mb-base">Color</h3>
+<div class="flex flex-wrap gap-base">
+<button aria-label="Dark Blue" class="w-8 h-8 rounded-full bg-blue-800 border-2 border-transparent focus:border-primary transition-colors"></button>
+<button aria-label="Light Blue" class="w-8 h-8 rounded-full bg-blue-500 border-2 border-primary focus:border-primary transition-colors"></button>
+<button aria-label="Black" class="w-8 h-8 rounded-full bg-black border-2 border-transparent focus:border-primary transition-colors"></button>
+<button aria-label="White" class="w-8 h-8 rounded-full bg-white border border-outline focus:border-primary transition-colors"></button>
+</div>
+</div>
+</aside>
+<!-- Product Grid -->
+<div class="w-full md:w-3/4 flex flex-col gap-stack-md">
+<!-- Sorting & Meta -->
+<div class="flex justify-between items-center bg-surface-container-low p-stack-sm rounded-lg backdrop-blur-md border border-white/20 shadow-sm">
+<span class="font-body-md text-body-md text-on-surface-variant">Showing 24 results</span>
+<div class="flex items-center gap-2">
+<span class="font-label-md text-label-md text-on-surface">Sort by:</span>
+<select class="form-select bg-transparent border-none font-body-md text-body-md text-primary focus:ring-0 cursor-pointer pr-8">
+<option>Newest Arrivals</option>
+<option>Price: Low to High</option>
+<option>Price: High to Low</option>
+<option>Best Sellers</option>
+</select>
+</div>
+</div>
+<!-- Grid -->
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-gutter">
+<!-- Product Card 1 -->
+<div class="group flex flex-col gap-base cursor-pointer">
+<div class="relative overflow-hidden rounded-xl bg-surface-container-low aspect-[3/4] bloom-reveal">
+<img alt="Jeans" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" data-alt="A pair of high-quality, modern light-blue skinny jeans styled in a bright, minimalist studio setting. The lighting is soft and high-key, highlighting the denim texture. A subtle floral motif is faintly visible in the background, adding a touch of poetic modernism." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAazRo0wJfSVhYzbprGpDX7vgWMPaLEA-SvgxCz3LlkEsjOnEBiw1uPSOwMIAcgRju8yo4qjvmk6xOhVb_j8lfKBETPnZX9909saCG4iIPR7e5mG3rfCC49Fl9aO2Q35CCTlcbXhnRJXgcS91-z0be70MFuiPtnxEMJYnwn6nFcz7dKa_PzuR5THmUBkyfcEQjX7qTLoY2sj8ibxMCug5OL6rxx2cEGrynR0l2c6A_Iy3i6-my-Hk0A_nce44HGqZ3H_hSrKInw96BM"/>
+<div class="overlay absolute inset-0 mix-blend-overlay"></div>
+</div>
+<div class="flex flex-col items-center text-center">
+<h4 class="font-label-md text-label-md text-on-surface group-hover:text-primary transition-colors">The Rose High Rise Skinny</h4>
+<span class="font-body-md text-body-md text-on-surface-variant">$128.00</span>
+</div>
+</div>
+<!-- Product Card 2 -->
+<div class="group flex flex-col gap-base cursor-pointer">
+<div class="relative overflow-hidden rounded-xl bg-surface-container-low aspect-[3/4] bloom-reveal">
+<img alt="Jeans" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" data-alt="Elegant wide-leg dark wash denim jeans showcased on a minimalist white backdrop. Soft, ambient lighting creates gentle tonal shadows, emphasizing the premium quality of the fabric. The overall aesthetic is clean, feminine, and subtly romantic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCXjS1t81TAtH0FD3CYJymuOXvnh5d2HsHLLGVz2LgAAP2gfJzwgpDX9HQOHEft5gbiN-q2tdVBFj8AxEc2si2IzrYrLR6HHgof3s1zpcxJlSIo_tj4SCS0eSNFvhqOMW2FyvIBGWIPCpTaPtfkL6sABlimkXGIa31iLlKG1vvptuY7AK-oqFWw8XKcbReKQ5qS1Tj8zCWdmJRwmqdNSHQjKzDuRJZ9x8S6Zq5LxfDQBAtEo9XIywD6To16vvCp6WRNL5cxwXL6zReU"/>
+<div class="overlay absolute inset-0 mix-blend-overlay"></div>
+</div>
+<div class="flex flex-col items-center text-center">
+<h4 class="font-label-md text-label-md text-on-surface group-hover:text-primary transition-colors">Lily Wide Leg Trouser</h4>
+<span class="font-body-md text-body-md text-on-surface-variant">$145.00</span>
+</div>
+</div>
+<!-- Product Card 3 -->
+<div class="group flex flex-col gap-base cursor-pointer">
+<div class="relative overflow-hidden rounded-xl bg-surface-container-low aspect-[3/4] bloom-reveal">
+<img alt="Jeans" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" data-alt="Classic straight-leg blue jeans presented with a glassmorphism overlay effect in a modern fashion editorial style. The scene is bright, with subtle pink and botanical undertones reflecting the Poppy Jeans brand identity. Crisp and luxurious." src="https://lh3.googleusercontent.com/aida-public/AB6AXuASPVcza_cBWivIaZUfb-5SxbIVLv0dyALSaKvwjrTx20M4Fqo9Uaz7DCZ_RHiSQk_da3kVp_aE7BdQp1j8-PrJJ7HRUAMGglTPSA2cB-D0RqVKmycBVC-Bw1q0tg1lk2mNiWnKIPXS7alwOxmKESYLTxHzF_vNBMAW-BiIcGyWYjW6xhC8dQxl_nEqbt46HSjCYTMTsnKpA1EwqvUtl5yVtLz3qzQOFDIrq17pNdM8M50Vq2OX2pBY-anlBlh8SfwxpxcBBsAc0xl6"/>
+<div class="overlay absolute inset-0 mix-blend-overlay"></div>
+</div>
+<div class="flex flex-col items-center text-center">
+<h4 class="font-label-md text-label-md text-on-surface group-hover:text-primary transition-colors">Peony Straight Vintage</h4>
+<span class="font-body-md text-body-md text-on-surface-variant">$115.00</span>
+</div>
+</div>
+<!-- Product Card 4 -->
+<div class="group flex flex-col gap-base cursor-pointer">
+<div class="relative overflow-hidden rounded-xl bg-surface-container-low aspect-[3/4] bloom-reveal">
+<img alt="Jeans" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" data-alt="A pair of high-quality, modern light-blue skinny jeans styled in a bright, minimalist studio setting. The lighting is soft and high-key, highlighting the denim texture. A subtle floral motif is faintly visible in the background, adding a touch of poetic modernism." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCQuRtwxXlA4COj4H1UVgxodsxFXGFy-MfI1C-eP8pSSs_qW0aPqSxxkeHqDeTAoD9dYl454__fwxkyVsmeaZ7ElFUvIkEN79tyI0A2g46tnPANtTHd8ojn7rPsMh6NhUdYHrTOeOHJ6LVEWVbHd8Ye2uVusdJkSqRdBN6wTvzQQKeXPKy7cHNChf9QaHoFYYAFjoC8Ew7oo1uqfvsf1jCdBh0HWHz5spAb-rgP2wSxrO11wtAW_tFHVJXi5Ld1U3vfXV6p1K6gTkNR"/>
+<div class="overlay absolute inset-0 mix-blend-overlay"></div>
+</div>
+<div class="flex flex-col items-center text-center">
+<h4 class="font-label-md text-label-md text-on-surface group-hover:text-primary transition-colors">The Rose High Rise Skinny</h4>
+<span class="font-body-md text-body-md text-on-surface-variant">$128.00</span>
+</div>
+</div>
+<!-- Product Card 5 -->
+<div class="group flex flex-col gap-base cursor-pointer">
+<div class="relative overflow-hidden rounded-xl bg-surface-container-low aspect-[3/4] bloom-reveal">
+<img alt="Jeans" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" data-alt="Elegant wide-leg dark wash denim jeans showcased on a minimalist white backdrop. Soft, ambient lighting creates gentle tonal shadows, emphasizing the premium quality of the fabric. The overall aesthetic is clean, feminine, and subtly romantic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAXGRdpEPmmmJ62OPSV806-p_ohgMNJmkKxTJKdFU3dAAugVQbWbjKGvg4B153d3nwvjsRXr5Fr3j8LG2hSogKIB7VGayNGFmhea-gxNpU3uATEwFv5FWyS5EFQgoidiQxsWRCvz8svdHkUktKT56hlja0m4_kF0iZ2JTQ_Hrh_b8Iggq75saj9vVWG_PF_prvzxPgrpKQnxemdDI-Ly_jTQ-vLoSvMdbGlo9GOnXwq6Sq_H4dxRfAjySVXUB6tzlTGkDYPjKmZq9pB"/>
+<div class="overlay absolute inset-0 mix-blend-overlay"></div>
+</div>
+<div class="flex flex-col items-center text-center">
+<h4 class="font-label-md text-label-md text-on-surface group-hover:text-primary transition-colors">Lily Wide Leg Trouser</h4>
+<span class="font-body-md text-body-md text-on-surface-variant">$145.00</span>
+</div>
+</div>
+<!-- Product Card 6 -->
+<div class="group flex flex-col gap-base cursor-pointer">
+<div class="relative overflow-hidden rounded-xl bg-surface-container-low aspect-[3/4] bloom-reveal">
+<img alt="Jeans" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" data-alt="Classic straight-leg blue jeans presented with a glassmorphism overlay effect in a modern fashion editorial style. The scene is bright, with subtle pink and botanical undertones reflecting the Poppy Jeans brand identity. Crisp and luxurious." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCu_AZhHE_2gCp6CefqgI1h4BZ4ehbPOExalIkTcSRUagoXNTpx0fP6NfPEoJk_uTzSnr5-lDR09-k-Fd6j56wQmKnFqa43D8wD6AuRKTia0i8YFOVYPGcTZOOdiSiFAP3hnhsOb75rMsDsil9kvMg4H-WUd6MhgS29CeKMfrF0SFmwzHFY3xXALKkHgcgMOUF9aHTzFbCHDwl1KYwvxP1SKd6v21mFxhNRgFoclAwTU8L4GzSNEI-FPehXvvc3JotbixjI0u8fS3e7"/>
+<div class="overlay absolute inset-0 mix-blend-overlay"></div>
+</div>
+<div class="flex flex-col items-center text-center">
+<h4 class="font-label-md text-label-md text-on-surface group-hover:text-primary transition-colors">Peony Straight Vintage</h4>
+<span class="font-body-md text-body-md text-on-surface-variant">$115.00</span>
+</div>
+</div>
+</div>
+<!-- Pagination -->
+<div class="flex justify-center mt-stack-md gap-2">
+<button class="w-10 h-10 flex items-center justify-center rounded-full border border-primary/20 text-on-surface hover:border-primary hover:text-primary transition-colors"><span class="material-symbols-outlined text-sm">chevron_left</span></button>
+<button class="w-10 h-10 flex items-center justify-center rounded-full bg-primary text-on-primary font-label-md text-label-md">1</button>
+<button class="w-10 h-10 flex items-center justify-center rounded-full border border-primary/20 text-on-surface hover:border-primary hover:text-primary font-label-md text-label-md transition-colors">2</button>
+<button class="w-10 h-10 flex items-center justify-center rounded-full border border-primary/20 text-on-surface hover:border-primary hover:text-primary font-label-md text-label-md transition-colors">3</button>
+<button class="w-10 h-10 flex items-center justify-center rounded-full border border-primary/20 text-on-surface hover:border-primary hover:text-primary transition-colors"><span class="material-symbols-outlined text-sm">chevron_right</span></button>
+</div>
+</div>
+</main>
+<!-- Footer -->
+<footer class="w-full py-stack-lg px-margin-mobile md:px-margin-desktop grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-gutter bg-surface-container-low dark:bg-inverse-surface border-t border-primary/10">
+<div class="flex flex-col gap-base">
+<span class="font-headline-sm text-headline-sm text-primary dark:text-inverse-primary">Poppy Jeans</span>
+<p class="font-body-md text-body-md text-on-surface-variant dark:text-surface-variant">© 2024 Poppy Jeans. Designed for the romantic modern soul.</p>
+</div>
+<div class="flex flex-col gap-base opacity-80 hover:opacity-100 transition-opacity">
+<a class="font-body-md text-body-md text-on-surface-variant dark:text-surface-variant hover:text-primary dark:hover:text-inverse-primary transition-all underline underline-offset-4" href="#">Help Center</a>
+<a class="font-body-md text-body-md text-on-surface-variant dark:text-surface-variant hover:text-primary dark:hover:text-inverse-primary transition-all underline underline-offset-4" href="#">Shipping &amp; Returns</a>
+</div>
+<div class="flex flex-col gap-base opacity-80 hover:opacity-100 transition-opacity">
+<a class="font-body-md text-body-md text-on-surface-variant dark:text-surface-variant hover:text-primary dark:hover:text-inverse-primary transition-all underline underline-offset-4" href="#">Sustainability</a>
+<a class="font-body-md text-body-md text-on-surface-variant dark:text-surface-variant hover:text-primary dark:hover:text-inverse-primary transition-all underline underline-offset-4" href="#">Contact Us</a>
+</div>
+<div class="flex flex-col gap-base opacity-80 hover:opacity-100 transition-opacity">
+<a class="font-body-md text-body-md text-on-surface-variant dark:text-surface-variant hover:text-primary dark:hover:text-inverse-primary transition-all underline underline-offset-4" href="#">Privacy Policy</a>
+</div>
+</footer>
+</body></html>

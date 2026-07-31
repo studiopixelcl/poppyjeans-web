@@ -3,27 +3,30 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mathsoluis | Gestión de Pedidos</title>
+    <title>PoppyJeans | Gestión de Pedidos</title>
+    <!-- Favicon -->
+    <link rel="icon" href="../favicon.png" type="image/png">
 
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;600;700;800&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=Plus+Jakarta+Sans:ital,wght@0,200..800;1,200..800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="../pagination.css">
+    <script src="layout.js"></script>
 
     <style>
         /* --- STUDIO PIXEL TOKENS --- */
         :root {
             --blanco-puro: #FFFFFF;
-            --fondo-claro: #F4F7F6;
-            --teal-studio: #13C2B3;
-            --teal-claro: #E0F6F5;
-            --dark-studio: #1E1E24;
-            --gris-claro: #E8ECEB;
-            --danger-color: #E74C3C;
-            --danger-light: #FDEDEC;
-            --blue-courier: #2980B9;
-            --blue-light: #EBF5FB;
+            --fondo-claro: #fcf9f9;
+            --teal-studio: #8a4d4e;
+            --teal-claro: #ffdad9;
+            --dark-studio: #211a19;
+            --gris-claro: #eedfdd;
+            --danger-color: #ba1a1a;
+            --danger-light: #ffdad6;
+            --blue-courier: #8a4d4e;
+            --blue-light: #ffdad9;
 
-            --font-main: 'Poppins', sans-serif;
-            --font-display: 'Montserrat', sans-serif;
+            --font-main: 'Plus Jakarta Sans', sans-serif;
+            --font-display: 'Playfair Display', serif;
 
             --radius-md: 12px;
             --radius-lg: 24px;
@@ -37,19 +40,7 @@
 
         body { font-family: var(--font-main); background-color: var(--fondo-claro); color: var(--dark-studio); }
 
-        /* --- LOGIN VIEW --- */
-        #loginView { min-height: 100vh; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, var(--dark-studio) 0%, #2a2a35 100%); }
-        .login-card { background: var(--blanco-puro); padding: 3rem; border-radius: var(--radius-md); box-shadow: 0 20px 40px rgba(0,0,0,0.2); width: 100%; max-width: 400px; text-align: center; }
-        .login-logo { font-family: var(--font-display); font-size: 1.8rem; font-weight: 800; color: var(--dark-studio); margin-bottom: 2rem; }
-        .login-logo span { color: var(--teal-studio); }
-        .input-group { margin-bottom: 1.5rem; text-align: left; }
-        .input-group label { display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 0.5rem; color: #666; }
-        .input-group input, .input-group select, .input-group textarea { width: 100%; padding: 0.8rem 1rem; border: 1px solid var(--gris-claro); border-radius: 8px; font-family: var(--font-main); font-size: 0.95rem; outline: none; transition: var(--transition-smooth); background: var(--fondo-claro); }
-        .input-group input:focus, .input-group select:focus, .input-group textarea:focus { border-color: var(--teal-studio); background: var(--blanco-puro); box-shadow: 0 0 0 3px var(--teal-claro); }
-        .btn-primary { width: 100%; background: var(--teal-studio); color: var(--blanco-puro); border: none; padding: 1rem; border-radius: 8px; font-family: var(--font-main); font-size: 1rem; font-weight: 600; cursor: pointer; transition: var(--transition-smooth); }
-        .btn-primary:hover { background: #10a89b; transform: translateY(-2px); }
-        .btn-secondary { background: var(--gris-claro); color: var(--dark-studio); border: none; padding: 0.8rem 1.5rem; border-radius: 8px; font-weight: 600; cursor: pointer; transition: var(--transition-smooth); }
-        .error-msg { color: var(--danger-color); font-size: 0.85rem; margin-top: 1rem; display: none; }
+
 
         /* --- DASHBOARD VIEW --- */
         #dashboardView { display: none; min-height: 100vh; }
@@ -90,6 +81,110 @@
         .sort-icon { font-size: 0.7rem; margin-left: 5px; opacity: 0.3; transition: opacity 0.2s; }
         th.sortable.active { color: var(--teal-studio); }
         th.sortable.active .sort-icon { opacity: 1; }
+
+        /* --- TARJETAS KPI Y FILTROS RÁPIDOS --- */
+        .kpi-card {
+            background: var(--blanco-puro);
+            padding: 1.2rem 1.5rem;
+            border-radius: var(--radius-md);
+            display: flex;
+            align-items: center;
+            gap: 1.2rem;
+            box-shadow: var(--shadow-subtle);
+            border: 1px solid var(--gris-claro);
+            transition: var(--transition-smooth);
+        }
+        .kpi-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.06);
+        }
+        .kpi-icon {
+            width: 46px;
+            height: 46px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.3rem;
+            flex-shrink: 0;
+        }
+        .kpi-data h4 {
+            font-size: 0.72rem;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            color: #888;
+            margin-bottom: 0.2rem;
+            font-weight: 700;
+        }
+        .kpi-data p {
+            font-family: var(--font-display);
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: var(--dark-studio);
+            line-height: 1.1;
+        }
+
+        .quick-filters {
+            display: flex;
+            gap: 0.6rem;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .filter-btn {
+            background: var(--blanco-puro);
+            border: 1.5px solid var(--gris-claro);
+            padding: 0.5rem 1.1rem;
+            border-radius: var(--radius-pill);
+            font-size: 0.82rem;
+            font-weight: 600;
+            color: #665c5b;
+            cursor: pointer;
+            transition: var(--transition-smooth);
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+        }
+
+        .filter-btn:hover {
+            border-color: var(--teal-studio);
+            color: var(--teal-studio);
+            background: #fdf8f8;
+            transform: translateY(-1px);
+        }
+
+        .filter-btn.active {
+            background: var(--teal-studio);
+            color: var(--blanco-puro);
+            border-color: var(--teal-studio);
+            box-shadow: 0 4px 12px rgba(138, 77, 78, 0.3);
+            font-weight: 700;
+        }
+
+        .btn-export-excel {
+            background: #1e7e34;
+            color: #ffffff;
+            border: none;
+            padding: 0.6rem 1.2rem;
+            border-radius: var(--radius-pill);
+            font-family: var(--font-main);
+            font-size: 0.85rem;
+            font-weight: 700;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            transition: var(--transition-smooth);
+            box-shadow: 0 2px 6px rgba(30, 126, 52, 0.25);
+        }
+
+        .btn-export-excel:hover {
+            background: #145a23;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 10px rgba(30, 126, 52, 0.35);
+        }
 
         /* Columna Envío en tabla principal */
         .col-shipping { color: var(--blue-courier); font-weight: 600; font-size: 0.88rem; }
@@ -164,47 +259,11 @@
 </head>
 <body>
 
-    <!-- VISTA INICIO SESIÓN -->
-    <div id="loginView">
-        <div class="login-card">
-            <div class="login-logo">MATHSO<span>LUIS</span></div>
-            <p style="color: #888; margin-bottom: 2rem; font-size: 0.9rem;">Ingresa tus credenciales para acceder al panel.</p>
-            <form id="loginForm">
-                <div class="input-group">
-                    <label>Correo Electrónico</label>
-                    <input type="email" id="loginEmail" required placeholder="admin@mathsoluis.cl" value="admin@mathsoluis.cl">
-                </div>
-                <div class="input-group">
-                    <label>Contraseña</label>
-                    <input type="password" id="loginPassword" required placeholder="Ingresa tu contraseña">
-                </div>
-                <button type="submit" class="btn-primary" id="loginBtnText">Iniciar Sesión</button>
-                <div id="loginError" class="error-msg">Credenciales incorrectas. Intenta nuevamente.</div>
-            </form>
-        </div>
-    </div>
+
 
     <!-- VISTA DASHBOARD -->
     <div id="dashboardView">
-        <aside class="sidebar">
-            <div class="sidebar-logo">MATHSO<span>LUIS</span></div>
-            <ul class="nav-menu">
-                <li class="nav-item"><a href="index.html" class="nav-link">📦 Inventario</a></li>
-                <li class="nav-item"><a href="pedidos.html" class="nav-link active">📝 Pedidos</a></li>
-                <li class="nav-item"><a href="clientes.html" class="nav-link">👥 Clientes</a></li>
-                <li id="admin-only-nav" style="margin-top: 1.5rem;">
-                    <span style="display:block; font-size:0.65rem; font-weight:700; text-transform:uppercase; letter-spacing:1px; color:#555; padding:0 1rem 0.5rem;">Solo Admin</span>
-                    <ul style="list-style:none; padding:0; margin:0;">
-                        <li class="nav-item"><a href="metricas.html" class="nav-link">📈 Métricas</a></li>
-                        <li class="nav-item"><a href="actividades.html" class="nav-link">📜 Actividades</a></li>
-                        <li class="nav-item"><a href="configuracion.html" class="nav-link">⚙️ Configuración</a></li>
-                    </ul>
-                </li>
-                <li class="nav-item" style="margin-top: 2rem; border-top: 1px solid rgba(255,255,255,0.08); padding-top: 1rem;">
-                    <a href="#" class="nav-link" onclick="logout(); return false;">🚪 Cerrar Sesión</a>
-                </li>
-            </ul>
-        </aside>
+        <aside class="sidebar"></aside>
 
         <main class="main-content">
             <header class="topbar">
@@ -215,12 +274,56 @@
                 </div>
             </header>
 
+            <!-- TARJETAS KPI RESUMEN -->
+            <div class="kpi-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 1.5rem;">
+                <div class="kpi-card">
+                    <div class="kpi-icon" style="background-color: rgba(26, 188, 156, 0.1); color: #1abc9c;">💰</div>
+                    <div class="kpi-data">
+                        <h4>Total Ventas</h4>
+                        <p id="kpiTotalSales">$0</p>
+                    </div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-icon" style="background-color: rgba(241, 196, 15, 0.1); color: #d4ac0d;">🟡</div>
+                    <div class="kpi-data">
+                        <h4>Sin Pagar</h4>
+                        <p id="kpiPendingOrders">0</p>
+                    </div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-icon" style="background-color: rgba(41, 128, 185, 0.1); color: #2980b9;">🚛</div>
+                    <div class="kpi-data">
+                        <h4>En Tránsito / Despacho</h4>
+                        <p id="kpiInTransitOrders">0</p>
+                    </div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-icon" style="background-color: rgba(39, 174, 96, 0.1); color: #27ae60;">✅</div>
+                    <div class="kpi-data">
+                        <h4>Entregados</h4>
+                        <p id="kpiCompletedOrders">0</p>
+                    </div>
+                </div>
+            </div>
+
             <section class="card">
                 <div class="card-header">
                     <h3>Registro de Pedidos</h3>
                     <div class="controls-row">
                         <input type="text" id="searchInput" class="search-input" placeholder="🔍 Buscar por ID, cliente o tracking...">
+                        <button class="btn-export-excel" onclick="exportOrdersToCSV()">📥 Exportar CSV</button>
                     </div>
+                </div>
+
+                <!-- FILTROS RÁPIDOS POR ESTADO -->
+                <div class="quick-filters">
+                    <button class="filter-btn active" id="btnFilterAll" onclick="setOrdersQuickFilter('all')">Todos</button>
+                    <button class="filter-btn" id="btnFilterPending" onclick="setOrdersQuickFilter('pendiente')">🟡 Sin Pagar</button>
+                    <button class="filter-btn" id="btnFilterPaid" onclick="setOrdersQuickFilter('pagado')">🔵 Pagados</button>
+                    <button class="filter-btn" id="btnFilterPreparing" onclick="setOrdersQuickFilter('preparando')">🟣 Preparando</button>
+                    <button class="filter-btn" id="btnFilterTransit" onclick="setOrdersQuickFilter('transito')">🚛 En Tránsito</button>
+                    <button class="filter-btn" id="btnFilterDelivered" onclick="setOrdersQuickFilter('entregado')">✅ Entregados</button>
+                    <button class="filter-btn" id="btnFilterCancelled" onclick="setOrdersQuickFilter('cancelado')">🔴 Cancelados</button>
                 </div>
 
                 <div id="ordersPaginationTop"></div>
@@ -232,16 +335,17 @@
                                 <th class="sortable" onclick="sortData('id')"># Pedido <span class="sort-icon" id="sort-id">↕️</span></th>
                                 <th class="sortable" onclick="sortData('fecha_creacion')">Fecha <span class="sort-icon" id="sort-fecha_creacion">↕️</span></th>
                                 <th class="sortable" onclick="sortData('cliente_nombre')">Cliente <span class="sort-icon" id="sort-cliente_nombre">↕️</span></th>
+                                <th>Método Envío</th>
                                 <th>Productos</th>
                                 <th class="sortable" onclick="sortData('total')">Monto Total <span class="sort-icon" id="sort-total">↕️</span></th>
-                                <th>Envío</th>
+                                <th>Costo Envío</th>
                                 <th class="sortable" onclick="sortData('estado')">Estado <span class="sort-icon" id="sort-estado">↕️</span></th>
                                 <th>Courier / Tracking</th>
                                 <th>Acciones</th>
                             </tr>
                         </thead>
                         <tbody id="ordersTableBody">
-                            <tr><td colspan="9" style="text-align: center; padding: 2rem;">Cargando registro de pedidos...</td></tr>
+                            <tr><td colspan="10" style="text-align: center; padding: 2rem;">Cargando registro de pedidos...</td></tr>
                         </tbody>
                     </table>
                 </div>
@@ -416,9 +520,7 @@
     <!-- LÓGICA JAVASCRIPT -->
     <script src="../pagination.js"></script>
     <script>
-        const loginView      = document.getElementById('loginView');
         const dashboardView  = document.getElementById('dashboardView');
-        const loginForm      = document.getElementById('loginForm');
         const ordersTableBody = document.getElementById('ordersTableBody');
 
         let allOrders        = [];
@@ -458,58 +560,73 @@
 
         window.onload = () => {
             const token = localStorage.getItem('admin_token');
-            if (token) {
-                document.getElementById('adminName').textContent = localStorage.getItem('admin_name');
-                showDashboard();
+            if (!token) {
+                window.location.href = 'index.html';
+                return;
             }
+            document.getElementById('adminName').textContent = localStorage.getItem('admin_name');
+            showDashboard();
         };
 
-        loginForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            document.getElementById('loginError').style.display = 'none';
-            document.getElementById('loginBtnText').textContent = 'Conectando...';
-            try {
-                const response = await fetch(`${API_BASE_URL}/api/admin/login`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        email: document.getElementById('loginEmail').value,
-                        password: document.getElementById('loginPassword').value
-                    })
-                });
-                const result = await response.json();
-                if (result.success) {
-                    localStorage.setItem('admin_token', result.token);
-                    localStorage.setItem('admin_name', result.admin_data.nombre);
-                    localStorage.setItem('admin_rol', result.admin_data.rol);
-                    document.getElementById('adminName').textContent = result.admin_data.nombre;
-                    showDashboard();
-                } else {
-                    document.getElementById('loginError').textContent = result.error || 'Credenciales incorrectas.';
-                    document.getElementById('loginError').style.display = 'block';
-                }
-            } catch (error) {
-                document.getElementById('loginError').textContent = 'Error de conexión con el servidor.';
-                document.getElementById('loginError').style.display = 'block';
-            } finally {
-                document.getElementById('loginBtnText').textContent = 'Iniciar Sesión';
-            }
-        });
+        let currentOrdersQuickFilter = 'all';
 
         function showDashboard() {
-            loginView.style.display = 'none';
             dashboardView.style.display = 'block';
             const adminOnlyNav = document.getElementById('admin-only-nav');
             if (adminOnlyNav && localStorage.getItem('admin_rol') !== 'superadmin') {
                 adminOnlyNav.style.display = 'none';
             }
             loadOrders();
+            loadOrdersSummaryStats();
         }
 
-        function logout() {
-            localStorage.clear();
-            dashboardView.style.display = 'none';
-            loginView.style.display = 'flex';
+        window.setOrdersQuickFilter = (filterType) => {
+            currentOrdersQuickFilter = filterType;
+            document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
+            if (filterType === 'all') document.getElementById('btnFilterAll').classList.add('active');
+            if (filterType === 'pendiente') document.getElementById('btnFilterPending').classList.add('active');
+            if (filterType === 'pagado') document.getElementById('btnFilterPaid').classList.add('active');
+            if (filterType === 'preparando') document.getElementById('btnFilterPreparing').classList.add('active');
+            if (filterType === 'transito') document.getElementById('btnFilterTransit').classList.add('active');
+            if (filterType === 'entregado') document.getElementById('btnFilterDelivered').classList.add('active');
+            if (filterType === 'cancelado') document.getElementById('btnFilterCancelled').classList.add('active');
+            loadOrders(1, ordersLimit, ordersSearch);
+        };
+
+        async function loadOrdersSummaryStats() {
+            try {
+                const response = await adminFetch('/api/admin/orders?limit=1000');
+                if (!response) return;
+                const result = await response.json();
+                if (result.success && Array.isArray(result.data)) {
+                    const orders = result.data;
+                    let totalSales = 0;
+                    let pendingCount = 0;
+                    let transitCount = 0;
+                    let completedCount = 0;
+
+                    orders.forEach(o => {
+                        const st = (o.estado || '').toLowerCase();
+                        if (st.includes('pagado') || st.includes('preparan') || st.includes('tránsito') || st.includes('transito') || st.includes('envia') || st.includes('entrega')) {
+                            totalSales += Number(o.total || 0);
+                        }
+                        if (st.includes('pendiente') || st.includes('sin pagar')) {
+                            pendingCount++;
+                        } else if (st.includes('tránsito') || st.includes('transito') || st.includes('preparan') || st.includes('envia')) {
+                            transitCount++;
+                        } else if (st.includes('entrega')) {
+                            completedCount++;
+                        }
+                    });
+
+                    document.getElementById('kpiTotalSales').textContent = formatCurrency(totalSales);
+                    document.getElementById('kpiPendingOrders').textContent = pendingCount;
+                    document.getElementById('kpiInTransitOrders').textContent = transitCount;
+                    document.getElementById('kpiCompletedOrders').textContent = completedCount;
+                }
+            } catch (e) {
+                console.error('Error calculando KPIs de pedidos:', e);
+            }
         }
 
         // ==========================================
@@ -525,6 +642,8 @@
             try {
                 const params = new URLSearchParams({ page, limit });
                 if (search) params.set('search', search);
+                if (currentOrdersQuickFilter !== 'all') params.set('estado', currentOrdersQuickFilter);
+
                 const response = await adminFetch(`/api/admin/orders?${params}`);
                 if (!response) return;
                 const result = await response.json();
@@ -540,21 +659,22 @@
                         );
                     }
                 } else {
-                    ordersTableBody.innerHTML = `<tr><td colspan="8" style="color:#888; text-align:center; padding: 2rem;">Esperando primer pedido.</td></tr>`;
+                    ordersTableBody.innerHTML = `<tr><td colspan="10" style="color:#888; text-align:center; padding: 2rem;">Esperando primer pedido.</td></tr>`;
                 }
             } catch (error) {
-                ordersTableBody.innerHTML = `<tr><td colspan="8" style="color:var(--danger-color); text-align:center; padding: 2rem;">Error de red. Verifica tu conexión a internet.</td></tr>`;
+                ordersTableBody.innerHTML = `<tr><td colspan="10" style="color:var(--danger-color); text-align:center; padding: 2rem;">Error de red. Verifica tu conexión a internet.</td></tr>`;
             }
         }
 
         function getStatusBadge(estado) {
             const s = (estado || 'Pendiente').toLowerCase();
-            if (s.includes('pendiente'))  return `<span class="badge" style="background:#FEF9E7; color:#D4AC0D; border:1px solid #F9E79F;">Sin Pagar</span>`;
-            if (s.includes('pagado'))     return `<span class="badge" style="background:#E0F6F5; color:#13C2B3; border:1px solid #A3E4D7;">Pagado</span>`;
-            if (s.includes('preparan'))   return `<span class="badge" style="background:#F4ECF7; color:#8E44AD; border:1px solid #E8DAEF;">Preparando</span>`;
-            if (s.includes('envia') || s.includes('despach')) return `<span class="badge" style="background:#E8F8F5; color:#1ABC9C; border:1px solid #A3E4D7;">Enviado</span>`;
-            if (s.includes('entrega'))    return `<span class="badge" style="background:#EAFAF1; color:#27AE60; border:1px solid #D1F2EB;">Entregado</span>`;
-            if (s.includes('cancel'))     return `<span class="badge" style="background:#FDEDEC; color:#E74C3C; border:1px solid #F5B7B1;">Cancelado</span>`;
+            if (s.includes('pendiente'))  return `<span class="badge" style="background:#FEF9E7; color:#D4AC0D; border:1px solid #F9E79F;">🟡 Sin Pagar</span>`;
+            if (s.includes('pagado'))     return `<span class="badge" style="background:#E0F6F5; color:#13C2B3; border:1px solid #A3E4D7;">🔵 Pagado</span>`;
+            if (s.includes('preparan'))   return `<span class="badge" style="background:#F4ECF7; color:#8E44AD; border:1px solid #E8DAEF;">🟣 Preparando</span>`;
+            if (s.includes('tránsito') || s.includes('transito')) return `<span class="badge" style="background:#EBF5FB; color:#2980B9; border:1px solid #AED6F1;">🚛 En Tránsito</span>`;
+            if (s.includes('envia') || s.includes('despach')) return `<span class="badge" style="background:#E8F8F5; color:#1ABC9C; border:1px solid #A3E4D7;">🟢 Enviado</span>`;
+            if (s.includes('entrega'))    return `<span class="badge" style="background:#EAFAF1; color:#27AE60; border:1px solid #D1F2EB;">✅ Entregado</span>`;
+            if (s.includes('cancel'))     return `<span class="badge" style="background:#FDEDEC; color:#E74C3C; border:1px solid #F5B7B1;">🔴 Cancelado</span>`;
             return `<span class="badge" style="background:#f4f4f4; color:#666; border:1px solid #ddd;">${estado}</span>`;
         }
 
@@ -564,6 +684,7 @@
             if (s.includes('pendiente'))  return { bg:'#FEF9E7', color:'#B7950B', text:'🟡 Sin Pagar' };
             if (s.includes('pagado'))     return { bg:'#E0F6F5', color:'#0E8A7E', text:'🔵 Pagado' };
             if (s.includes('preparan'))   return { bg:'#F4ECF7', color:'#7D3C98', text:'🟣 Preparando' };
+            if (s.includes('tránsito') || s.includes('transito')) return { bg:'#EBF5FB', color:'#2980B9', text:'🚛 En Tránsito' };
             if (s.includes('envia') || s.includes('despach')) return { bg:'#E8F8F5', color:'#148F77', text:'🟢 Enviado' };
             if (s.includes('entrega'))    return { bg:'#EAFAF1', color:'#1E8449', text:'✅ Entregado' };
             if (s.includes('cancel'))     return { bg:'#FDEDEC', color:'#C0392B', text:'🔴 Cancelado' };
@@ -573,7 +694,7 @@
         function renderOrders(orders) {
             ordersTableBody.innerHTML = '';
             if (orders.length === 0) {
-                ordersTableBody.innerHTML = `<tr><td colspan="9" style="text-align: center; padding: 3rem; color: #888;">No se encontraron resultados.</td></tr>`;
+                ordersTableBody.innerHTML = `<tr><td colspan="10" style="text-align: center; padding: 3rem; color: #888;">No se encontraron resultados.</td></tr>`;
                 return;
             }
             orders.forEach(order => {
@@ -583,7 +704,18 @@
                 const shipping = Number(order.shipping_cost);
                 const shippingCell = (!isNaN(shipping) && shipping > 0)
                     ? `<span class="col-shipping">${formatCurrency(shipping)}</span>`
-                    : `<span class="col-shipping-empty">—</span>`;
+                    : `<span class="col-shipping-empty">Gratis ($0)</span>`;
+
+                // Método de envío
+                const isPickup = (order.shipping_type === 'pickup' || (order.comuna || '').toLowerCase().includes('providencia') && (order.direccion || '').toLowerCase().includes('lyon')) || (order.shipping_method || '').toLowerCase().includes('retiro');
+                const shippingMethodBadge = isPickup 
+                    ? `<span style="background:#FEF3C7; color:#92400E; border:1px solid #FDE68A; font-size:0.72rem; font-weight:700; padding:3px 8px; border-radius:12px; display:inline-flex; align-items:center; gap:3px;">🏬 Retiro Providencia</span>` 
+                    : `<span style="background:#E0F2FE; color:#075985; border:1px solid #BAE6FD; font-size:0.72rem; font-weight:700; padding:3px 8px; border-radius:12px; display:inline-flex; align-items:center; gap:3px;">🚚 Despacho Domicilio</span>`;
+
+                // WhatsApp btn
+                const rawPhone = order.cliente_telefono || order.telefono || '';
+                const cleanPhone = rawPhone.replace(/\D/g, '');
+                const wsBtn = cleanPhone ? `<a href="https://wa.me/${cleanPhone}?text=Hola%20${encodeURIComponent(order.cliente_nombre || '')},%20sobre%20tu%20pedido%20%23${order.id}%20en%20Poppy%20Jeans..." target="_blank" title="Enviar WhatsApp a ${cleanPhone}" style="color:#25D366; text-decoration:none; margin-left:6px; font-size:0.95rem; display:inline-block;">💬</a>` : '';
 
                 // Columna Productos: pills con los nombres e items del pedido
                 let productsCell = '<span style="color:#ccc; font-size:0.8rem;">—</span>';
@@ -592,36 +724,44 @@
                     const maxShow = 2;
                     const shown = pills.slice(0, maxShow);
                     const rest  = pills.length - maxShow;
-                    // Separar "Nombre ×N" en texto y cantidad para el pill
                     const pillsHtml = shown.map(p => {
                         const m = p.match(/^(.+?) ×(\d+)$/);
                         const name = m ? m[1] : p;
                         const qty  = m ? m[2] : '1';
-                        const short = name.length > 28 ? name.slice(0, 26) + '…' : name;
+                        const short = name.length > 24 ? name.slice(0, 22) + '…' : name;
                         return `<span class="order-item-pill" title="${name}"><span>${short}</span><span class="pill-qty">×${qty}</span></span>`;
                     }).join('');
                     const moreHtml = rest > 0 ? `<span class="order-item-more">+${rest} más</span>` : '';
                     productsCell = pillsHtml + moreHtml;
                 }
 
+                // Courier / Tracking formatting
+                let trackingHtml = '<span style="color:#bbb;">—</span>';
+                if (order.courier || order.tracking_code) {
+                    const cName = order.courier ? `<span style="display:block; color:var(--teal-studio); font-weight:700; font-size:0.75rem; margin-bottom:2px;">${order.courier}</span>` : '';
+                    const tCode = order.tracking_code ? `<span style="background:var(--fondo-claro); border:1px solid var(--gris-claro); padding:2px 6px; border-radius:4px; font-family:monospace; font-weight:700; font-size:0.78rem; color:#333;">${order.tracking_code}</span>` : '<span style="color:#bbb;">Sin número</span>';
+                    trackingHtml = cName + tCode;
+                }
+
                 const tr = document.createElement('tr');
                 tr.innerHTML = `
-                    <td><strong style="color: var(--dark-studio); font-size: 1.05rem;">#${order.id}</strong></td>
-                    <td style="color: #666; font-size: 0.85rem;">${fecha}</td>
+                    <td><a href="pedido.html?id=${order.id}" style="text-decoration:none; color: var(--dark-studio); font-size: 1.05rem;"><strong>#${order.id}</strong></a></td>
+                    <td style="color: #666; font-size: 0.85rem; white-space:nowrap;">${fecha}</td>
                     <td>
-                        <span style="font-weight: 600; color: var(--dark-studio); display:block;">${order.cliente_nombre || 'Cliente Borrado'}</span>
-                        <span style="font-size: 0.8rem; color: #888;">${order.cliente_email || 'Sin correo'}</span>
+                        <div style="display:flex; align-items:center;">
+                            <span style="font-weight: 600; color: var(--dark-studio);">${order.cliente_nombre || 'Cliente Borrado'}</span>
+                            ${wsBtn}
+                        </div>
+                        <span style="font-size: 0.8rem; color: #888; display:block;">${order.cliente_email || 'Sin correo'}</span>
                     </td>
+                    <td>${shippingMethodBadge}</td>
                     <td style="max-width:240px;">${productsCell}</td>
                     <td><strong style="font-size:1.05rem; color: var(--teal-studio);">${formatCurrency(order.total)}</strong></td>
                     <td>${shippingCell}</td>
                     <td>${getStatusBadge(order.estado)}</td>
-                    <td style="font-size:0.85rem; font-weight:600; color:#888;">
-                        ${order.courier ? `<span style="display:block; color:var(--teal-studio); font-size:0.78rem; margin-bottom:2px;">${order.courier}</span>` : ''}
-                        ${order.tracking_code || '—'}
-                    </td>
+                    <td style="font-size:0.85rem;">${trackingHtml}</td>
                     <td>
-                        <button class="action-btn" onclick="openOrderModal(${order.id})">Ver Pedido ➔</button>
+                        <a href="pedido.html?id=${order.id}" class="action-btn" style="text-decoration:none; display:inline-block; font-weight:700; border-radius:20px; padding:6px 14px; background:rgba(186, 107, 107, 0.1); color:#8a4d4e;">Gestionar ➔</a>
                     </td>
                 `;
                 ordersTableBody.appendChild(tr);
@@ -1015,39 +1155,37 @@
                 btnSave.disabled = false;
             }
         });
-    </script>
-
-    <!-- ✅ AUTH HELPER v2.0 -->
-    <script>
-        const API_BASE_URL = 'https://mathsoluis-api.studiopixelchile.workers.dev';
-
-        function getAuthHeaders() {
-            const token = localStorage.getItem('admin_token');
-            return { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` };
-        }
-
-        async function adminFetch(endpoint, options = {}) {
-            const response = await fetch(`${API_BASE_URL}${endpoint}`, {
-                ...options,
-                headers: { ...getAuthHeaders(), ...(options.headers || {}) }
-            });
-            if (response.status === 401) {
-                localStorage.clear();
-                alert('Tu sesión ha expirado. Por favor inicia sesión nuevamente.');
-                window.location.href = 'configuracion.html';
-                return null;
-            }
-            return response;
-        }
-
-        async function logout() {
+        // --- EXPORTAR PEDIDOS A CSV ---
+        window.exportOrdersToCSV = async () => {
             try {
-                await fetch(`${API_BASE_URL}/api/admin/logout`, {
-                    method: 'POST', headers: getAuthHeaders()
-                });
-            } catch (e) { console.warn('No se pudo notificar logout al servidor:', e); }
-            finally { localStorage.clear(); window.location.href = 'configuracion.html'; }
-        }
+                const response = await adminFetch('/api/admin/orders?limit=5000');
+                if (!response) return;
+                const result = await response.json();
+                if (result.success && Array.isArray(result.data)) {
+                    let csv = '\uFEFF'; // UTF-8 BOM
+                    csv += 'ID Pedido;Fecha;Cliente;Email;Telefono;Metodo Envio;Direccion;Comuna;Region;Total;Costo Envio;Estado;Courier;Tracking\n';
+                    
+                    result.data.forEach(ord => {
+                        const isPickup = (ord.shipping_type === 'pickup' || (ord.comuna || '').toLowerCase().includes('providencia') && (ord.direccion || '').toLowerCase().includes('lyon')) || (ord.shipping_method || '').toLowerCase().includes('retiro');
+                        const mEnvio = isPickup ? 'Retiro en Tienda Providencia' : 'Despacho a Domicilio';
+                        csv += `${ord.id};"${ord.fecha_creacion || ord.created_at || ''}";"${ord.cliente_nombre || ''}";"${ord.cliente_email || ''}";"${ord.cliente_telefono || ord.telefono || ''}";"${mEnvio}";"${(ord.cliente_direccion || ord.direccion || '').replace(/"/g, '""')}";"${ord.cliente_comuna || ord.comuna || ''}";"${ord.cliente_region || ord.region || ''}";${ord.total || 0};${ord.shipping_cost || 0};"${ord.estado || ''}";"${ord.courier || ''}";"${ord.tracking_code || ''}"\n`;
+                    });
+                    
+                    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+                    const link = document.createElement('a');
+                    link.href = URL.createObjectURL(blob);
+                    link.setAttribute('download', `pedidos_poppyjeans_${new Date().toISOString().slice(0,10)}.csv`);
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                } else {
+                    alert('No se pudo cargar la lista completa de pedidos para exportar.');
+                }
+            } catch (e) {
+                console.error(e);
+                alert('Error al exportar pedidos.');
+            }
+        };
     </script>
 
 </body>

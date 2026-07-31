@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PoppyJeans | Crear / Editar Cupón</title>
+    <!-- Favicon -->
+    <link rel="icon" href="../favicon.png" type="image/png">
+    
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=Plus+Jakarta+Sans:ital,wght@0,200..800;1,200..800&display=swap" rel="stylesheet">
+    <script src="layout.js"></script>
+    
+    <style>
+        /* --- STUDIO PIXEL TOKENS --- */
+        :root {
+            --blanco-puro: #FFFFFF;
+            --fondo-claro: #fcf9f9; 
+            --teal-studio: #8a4d4e; 
+            --teal-claro: #ffdad9;  
+            --dark-studio: #211a19; 
+            --gris-claro: #eedfdd;
+            --danger-color: #ba1a1a;
+            --danger-light: #ffdad6;
+            
+            --font-main: 'Plus Jakarta Sans', sans-serif;
+            --font-display: 'Playfair Display', serif;
+            
+            --radius-md: 12px;
+            --radius-lg: 24px;
+            --radius-pill: 50px;
+            
+            --shadow-subtle: 0 10px 30px rgba(30, 30, 36, 0.08);
+            --transition-smooth: all 0.3s ease;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body { 
+            font-family: var(--font-main); 
+            background-color: var(--fondo-claro); 
+            color: var(--dark-studio); 
+        }
+
+        /* --- DASHBOARD VIEW --- */
+        #dashboardView { display: none; min-height: 100vh; }
+        .sidebar { width: 250px; background: var(--dark-studio); color: var(--blanco-puro); position: fixed; height: 100vh; top: 0; left: 0; padding: 2rem 1.5rem; }
+        .sidebar-logo { font-family: var(--font-display); font-size: 1.5rem; font-weight: 800; margin-bottom: 3rem; }
+        .sidebar-logo span { color: var(--teal-studio); }
+        
+        .main-content { margin-left: 250px; padding: 2rem 3rem; }
+        .topbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 3rem; }
+        .topbar h2 { font-family: var(--font-display); font-size: 1.8rem; font-weight: 700; }
+        .user-info { display: flex; align-items: center; gap: 1rem; font-weight: 600; }
+        .logout-btn { background: var(--danger-light); color: var(--danger-color); border: none; padding: 0.5rem 1rem; border-radius: 6px; cursor: pointer; font-weight: 600; }
+
+        /* --- CARD Y FORMULARIO --- */
+        .card { background: var(--blanco-puro); border-radius: var(--radius-md); padding: 2rem; box-shadow: var(--shadow-subtle); max-width: 900px; margin: 0 auto; }
+        .card-header { border-bottom: 1px solid var(--gris-claro); padding-bottom: 1rem; margin-bottom: 2rem; }
+        .card-header h3 { font-family: var(--font-display); font-size: 1.4rem; color: var(--teal-studio); }
+        
+        .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
+        .form-group { display: flex; flex-direction: column; gap: 0.5rem; }
+        .form-group-full { grid-column: span 2; display: flex; flex-direction: column; gap: 0.5rem; }
+        
+        label { font-size: 0.8rem; font-weight: 700; color: #665c5b; text-transform: uppercase; letter-spacing: 0.5px; }
+        body.dark-theme label { color: #bfa3a1; }
+
+        input, select {
+            padding: 0.75rem 1rem;
+            border: 1px solid var(--gris-claro);
+            border-radius: 8px;
+            font-family: var(--font-main);
+            font-size: 0.9rem;
+            outline: none;
+            transition: var(--transition-smooth);
+            background: var(--fondo-claro);
+            color: var(--dark-studio);
+        }
+        input:focus, select:focus {
+            border-color: var(--teal-studio);
+            box-shadow: 0 0 0 3px var(--teal-claro);
+            background: var(--blanco-puro);
+        }
+        
+        /* Botones */
+        .form-actions { display: flex; justify-content: flex-end; gap: 1rem; margin-top: 2rem; border-top: 1px solid var(--gris-claro); padding-top: 1.5rem; }
+        .btn {
+            padding: 0.75rem 2rem;
+            border-radius: var(--radius-pill);
+            font-size: 0.85rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: var(--transition-smooth);
+            border: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            text-decoration: none;
+        }
+        .btn-submit { background: var(--teal-studio); color: white; }
+        .btn-submit:hover { background: #6e3637; transform: translateY(-2px); }
+        .btn-cancel { background: #eedfdd; color: #8a4d4e; }
+        .btn-cancel:hover { background: #e4d1cf; }
+        
+        /* Listado de Productos Selector */
+        .products-box {
+            border: 1px solid var(--gris-claro);
+            border-radius: 12px;
+            padding: 1rem;
+            height: 250px;
+            overflow-y: auto;
+            background: var(--fondo-claro);
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+        body.dark-theme .products-box {
+            background-color: #1e1818;
+            border-color: #382c2b;
+        }
+        
+        .product-item {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 0.5rem;
+            border-radius: 8px;
+            background: var(--blanco-puro);
+            border: 1px solid transparent;
+            transition: var(--transition-smooth);
+            cursor: pointer;
+        }
+        body.dark-theme .product-item {
+            background-color: #2b2020;
+        }
+        .product-item:hover {
+            border-color: var(--teal-studio);
+        }
+        .product-item input[type="checkbox"] {
+            width: 16px;
+            height: 16px;
+            cursor: pointer;
+            accent-color: var(--teal-studio);
+        }
+        .product-img {
+            width: 40px;
+            height: 50px;
+            object-fit: cover;
+            border-radius: 4px;
+            background: #eee;
+        }
+        .product-info {
+            display: flex;
+            flex-direction: column;
+            font-size: 0.85rem;
+            flex: 1;
+            min-w: 0;
+        }
+        .product-name {
+            font-weight: 700;
+            color: var(--dark-studio);
+            truncate: true;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        body.dark-theme .product-name {
+            color: #ffffff;
+        }
+        .product-sku {
+            font-size: 0.7rem;
+            color: #888;
+        }
+        .product-price {
+            font-size: 0.8rem;
+            font-weight: bold;
+            color: var(--teal-studio);
+        }
+        
+        .badge-count {
+            background: var(--teal-claro);
+            color: var(--teal-studio);
+            padding: 0.2rem 0.6rem;
+            border-radius: 50px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            align-self: flex-start;
+        }
+        
+        /* Checkbox switch de formulario */
+        .checkbox-row {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-top: 0.5rem;
+        }
+        .checkbox-row input {
+            width: 18px;
+            height: 18px;
+            accent-color: var(--teal-studio);
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="dashboardView">
+        <aside class="sidebar"></aside>
+
+        <main class="main-content">
+            <header class="topbar">
+                <h2>Gestión de Descuentos</h2>
+                <div class="user-info">
+                    <span id="adminName">Cargando...</span>
+                    <button class="logout-btn" onclick="logout()">Salir</button>
+                </div>
+            </header>
+
+            <section class="card">
+                <div class="card-header">
+                    <h3 id="formTitle">Crear Nuevo Cupón de Descuento</h3>
+                </div>
+
+                <form id="couponForm">
+                    <div class="form-grid">
+                        
+                        <div class="form-group">
+                            <label for="couponCode">Código del Cupón *</label>
+                            <input type="text" id="couponCode" placeholder="Ej: POPPY15" required style="text-transform: uppercase;">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="couponDiscount">Porcentaje de Descuento (%) *</label>
+                            <input type="number" id="couponDiscount" min="1" max="100" placeholder="Ej: 15" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Configuración de Estado</label>
+                            <div class="checkbox-row">
+                                <input type="checkbox" id="couponActive" checked>
+                                <label for="couponActive" style="text-transform: none; font-weight: 500; cursor: pointer;">Cupón Activo (Permite su uso en checkout)</label>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Anuncio Especial</label>
+                            <div class="checkbox-row">
+                                <input type="checkbox" id="couponBanner">
+                                <label for="couponBanner" style="text-transform: none; font-weight: 500; cursor: pointer;">Activar en el Banner del E-commerce</label>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="dateStart">Fecha / Hora de Inicio (Opcional)</label>
+                            <input type="datetime-local" id="dateStart">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="dateEnd">Fecha / Hora de Término (Opcional - Urgencia/Timer)</label>
+                            <input type="datetime-local" id="dateEnd">
+                        </div>
+
+                        <div class="form-group-full">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.25rem;">
+                                <label>Restringir a Productos Seleccionados (Opcional)</label>
+                                <span class="badge-count" id="selectedProductsCount">Aplica a toda la tienda</span>
+                            </div>
+                            <input type="text" id="searchProductInput" class="search-input" placeholder="🔍 Buscar producto en inventario..." style="width: 100%; margin-bottom: 0.5rem;">
+                            
+                            <div class="products-box" id="productsSelectorContainer">
+                                <div style="text-align: center; padding: 2rem; color: #888; font-size: 0.9rem;">Cargando inventario de productos...</div>
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <div class="form-actions">
+                        <a href="descuentos.html" class="btn btn-cancel">Cancelar</a>
+                        <button type="submit" id="btnSubmit" class="btn btn-submit">Guardar Cupón</button>
+                    </div>
+                </form>
+            </section>
+        </main>
+    </div>
+
+    <script>
+        const couponId = new URLSearchParams(window.location.search).get('id');
+        let selectedProductIds = new Set();
+        let allProducts = [];
+        let searchTimeout;
+
+        const formatCurrency = (amount) => '$' + amount.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            const token = localStorage.getItem('admin_token');
+            if (token) {
+                document.getElementById('dashboardView').style.display = 'block';
+                
+                // 1. Cargar inventario de productos
+                await fetchProductsList();
+
+                // 2. Si hay un ID en la URL, cargar los datos para editar
+                if (couponId) {
+                    document.getElementById('formTitle').textContent = 'Editar Cupón de Descuento';
+                    document.getElementById('btnSubmit').textContent = 'Guardar Cambios';
+                    await loadCouponData(couponId);
+                }
+
+                // 3. Listener del buscador de productos con debounce
+                document.getElementById('searchProductInput').addEventListener('input', (e) => {
+                    clearTimeout(searchTimeout);
+                    searchTimeout = setTimeout(() => {
+                        filterProducts(e.target.value);
+                    }, 300);
+                });
+            }
+        });
+
+        async function fetchProductsList() {
+            try {
+                // Obtenemos los productos (limitado a 100 para la vista rápida)
+                const response = await adminFetch('/api/admin/products?limit=100');
+                if (!response) return;
+                const result = await response.json();
+                
+                if (result.success && Array.isArray(result.data)) {
+                    allProducts = result.data;
+                    renderProductSelector(allProducts);
+                }
+            } catch (e) {
+                console.error(e);
+                showToast('Error de conexión al cargar productos.', 'error');
+            }
+        }
+
+        function filterProducts(term) {
+            const query = term.toLowerCase().trim();
+            const filtered = allProducts.filter(p => 
+                p.nombre.toLowerCase().includes(query) || 
+                (p.sku && p.sku.toLowerCase().includes(query))
+            );
+            renderProductSelector(filtered);
+        }
+
+        function renderProductSelector(products) {
+            const container = document.getElementById('productsSelectorContainer');
+            container.innerHTML = '';
+
+            if (products.length === 0) {
+                container.innerHTML = `<div style="text-align: center; padding: 2rem; color: #888; font-size: 0.9rem;">No se encontraron productos coincidentes.</div>`;
+                return;
+            }
+
+            products.forEach(p => {
+                const isChecked = selectedProductIds.has(p.id);
+                // Buscar la primera imagen de sus variantes (si tiene) o poner fallback
+                let imgUrl = '../logo.png';
+                if (p.variantes && p.variantes.length > 0) {
+                    const v = p.variantes[0];
+                    imgUrl = v.imagen_1 || v.imagen_2 || '../logo.png';
+                } else if (p.imagen_url) {
+                    imgUrl = p.imagen_url;
+                }
+
+                const price = p.precio_oferta && p.en_oferta === 1 ? p.precio_oferta : p.precio_normal;
+
+                container.insertAdjacentHTML('beforeend', `
+                    <div class="product-item" onclick="toggleProductSelection(${p.id}, event)">
+                        <input type="checkbox" id="chk_prod_${p.id}" ${isChecked ? 'checked' : ''} onclick="event.stopPropagation(); handleCheckboxToggle(${p.id}, this.checked)">
+                        <img src="${imgUrl}" alt="Prenda" class="product-img">
+                        <div class="product-info">
+                            <span class="product-name" title="${p.nombre}">${p.nombre}</span>
+                            <span class="product-sku">SKU: ${p.sku || '-'}</span>
+                        </div>
+                        <span class="product-price">${formatCurrency(price)}</span>
+                    </div>
+                `);
+            });
+        }
+
+        function toggleProductSelection(id, event) {
+            const checkbox = document.getElementById(`chk_prod_${id}`);
+            if (checkbox) {
+                checkbox.checked = !checkbox.checked;
+                handleCheckboxToggle(id, checkbox.checked);
+            }
+        }
+
+        function handleCheckboxToggle(id, checked) {
+            if (checked) {
+                selectedProductIds.add(id);
+            } else {
+                selectedProductIds.delete(id);
+            }
+            updateSelectedBadge();
+        }
+
+        function updateSelectedBadge() {
+            const badge = document.getElementById('selectedProductsCount');
+            if (selectedProductIds.size === 0) {
+                badge.textContent = 'Aplica a toda la tienda';
+                badge.style.background = 'var(--teal-claro)';
+                badge.style.color = 'var(--teal-studio)';
+            } else {
+                badge.textContent = `${selectedProductIds.size} producto(s) seleccionado(s)`;
+                badge.style.background = '#E8F0FE';
+                badge.style.color = '#2980B9';
+            }
+        }
+
+        async function loadCouponData(id) {
+            try {
+                const response = await adminFetch(`/api/admin/coupons/${id}`);
+                if (!response) return;
+                const result = await response.json();
+                
+                if (result.success && result.data) {
+                    const c = result.data;
+                    document.getElementById('couponCode').value = c.codigo;
+                    document.getElementById('couponDiscount').value = c.descuento_porcentaje;
+                    document.getElementById('couponActive').checked = c.activo === 1;
+                    document.getElementById('couponBanner').checked = c.mostrar_en_banner === 1;
+                    
+                    // Fechas (SQLite almacena texto ISO, recortamos para input datetime-local que usa format YYYY-MM-DDTHH:MM)
+                    if (c.fecha_inicio) {
+                        document.getElementById('dateStart').value = c.fecha_inicio.substring(0, 16);
+                    }
+                    if (c.fecha_fin) {
+                        document.getElementById('dateEnd').value = c.fecha_fin.substring(0, 16);
+                    }
+
+                    // Cargar productos seleccionados
+                    if (c.productos_ids) {
+                        try {
+                            const ids = JSON.parse(c.productos_ids);
+                            if (Array.isArray(ids)) {
+                                ids.forEach(id => selectedProductIds.add(Number(id)));
+                            }
+                        } catch (e) {
+                            console.error('Error al parsear productos del cupón:', e);
+                        }
+                    }
+                    
+                    updateSelectedBadge();
+                    renderProductSelector(allProducts); // refrescar checks en el listado
+                }
+            } catch (e) {
+                console.error(e);
+                showToast('Error al cargar datos del cupón.', 'error');
+            }
+        }
+
+        // Form Submit
+        document.getElementById('couponForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const code = document.getElementById('couponCode').value.trim().toUpperCase();
+            const discount = document.getElementById('couponDiscount').value;
+            const active = document.getElementById('couponActive').checked ? 1 : 0;
+            const banner = document.getElementById('couponBanner').checked ? 1 : 0;
+            const start = document.getElementById('dateStart').value || null;
+            const end = document.getElementById('dateEnd').value || null;
+
+            if (!code || !discount) {
+                showToast('Ingresa código y porcentaje de descuento.', 'error');
+                return;
+            }
+
+            const btn = document.getElementById('btnSubmit');
+            btn.disabled = true;
+            btn.textContent = 'Guardando...';
+
+            const payload = {
+                codigo: code,
+                descuento_porcentaje: Number(discount),
+                activo: active,
+                mostrar_en_banner: banner,
+                fecha_inicio: start ? new Date(start).toISOString() : null,
+                fecha_fin: end ? new Date(end).toISOString() : null,
+                productos_ids: selectedProductIds.size > 0 ? Array.from(selectedProductIds) : null
+            };
+
+            const method = couponId ? 'PUT' : 'POST';
+            const url = couponId ? `/api/admin/coupons/${couponId}` : '/api/admin/coupons';
+
+            try {
+                const response = await adminFetch(url, {
+                    method: method,
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                
+                if (!response) {
+                    btn.disabled = false;
+                    btn.textContent = couponId ? 'Guardar Cambios' : 'Guardar Cupón';
+                    return;
+                }
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    showToast('Cupón guardado correctamente', 'success');
+                    setTimeout(() => {
+                        window.location.href = 'descuentos.html';
+                    }, 1000);
+                } else {
+                    showToast('Error: ' + result.error, 'error');
+                    btn.disabled = false;
+                    btn.textContent = couponId ? 'Guardar Cambios' : 'Guardar Cupón';
+                }
+            } catch (err) {
+                console.error(err);
+                showToast('Error de conexión al guardar.', 'error');
+                btn.disabled = false;
+                btn.textContent = couponId ? 'Guardar Cambios' : 'Guardar Cupón';
+            }
+        });
+    </script>
+</body>
+</html>

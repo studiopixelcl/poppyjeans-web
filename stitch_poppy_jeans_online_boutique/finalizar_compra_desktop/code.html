@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+
+<html lang="es"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Checkout - Poppy Jeans</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&amp;family=Playfair+Display:wght@600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        /* Custom scrollbar for order summary if needed */
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background-color: #d1c3c2;
+            border-radius: 20px;
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "on-secondary-fixed": "#211a19",
+                        "inverse-surface": "#303031",
+                        "on-secondary": "#ffffff",
+                        "surface-dim": "#dcd9d9",
+                        "surface-container-highest": "#e4e2e2",
+                        "secondary-fixed-dim": "#d1c3c2",
+                        "on-tertiary": "#ffffff",
+                        "tertiary-fixed": "#f0dfde",
+                        "on-tertiary-fixed-variant": "#4f4444",
+                        "on-primary-fixed-variant": "#6e3637",
+                        "primary-fixed-dim": "#ffb3b3",
+                        "on-primary-fixed": "#380c0f",
+                        "surface-container-high": "#eae7e7",
+                        "secondary": "#665c5b",
+                        "on-tertiary-container": "#3e3434",
+                        "primary": "#8a4d4e",
+                        "surface-bright": "#fcf9f9",
+                        "surface": "#fcf9f9",
+                        "error-container": "#ffdad6",
+                        "surface-variant": "#e4e2e2",
+                        "tertiary": "#685b5b",
+                        "background": "#fcf9f9",
+                        "on-error-container": "#93000a",
+                        "on-surface": "#1b1b1c",
+                        "on-tertiary-fixed": "#221919",
+                        "on-secondary-container": "#6c6261",
+                        "secondary-container": "#eedfdd",
+                        "error": "#ba1a1a",
+                        "surface-tint": "#8a4d4e",
+                        "surface-container": "#f0eded",
+                        "inverse-primary": "#ffb3b3",
+                        "primary-fixed": "#ffdad9",
+                        "on-surface-variant": "#524343",
+                        "outline": "#857372",
+                        "inverse-on-surface": "#f3f0f0",
+                        "tertiary-container": "#ab9c9c",
+                        "surface-container-low": "#f6f3f3",
+                        "on-primary-container": "#592628",
+                        "on-primary": "#ffffff",
+                        "on-background": "#1b1b1c",
+                        "on-secondary-fixed-variant": "#4e4543",
+                        "outline-variant": "#d7c2c1",
+                        "secondary-fixed": "#eedfdd",
+                        "on-error": "#ffffff",
+                        "tertiary-fixed-dim": "#d3c3c2",
+                        "primary-container": "#d48c8c",
+                        "surface-container-lowest": "#ffffff"
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    spacing: {
+                        "stack-md": "24px",
+                        "stack-lg": "48px",
+                        "margin-mobile": "20px",
+                        "base": "8px",
+                        "stack-sm": "12px",
+                        "margin-desktop": "64px",
+                        "gutter": "24px",
+                        "container-max": "1280px"
+                    },
+                    fontFamily: {
+                        "label-md": ["Plus Jakarta Sans"],
+                        "headline-md": ["Playfair Display"],
+                        "label-sm": ["Plus Jakarta Sans"],
+                        "display-lg-mobile": ["Playfair Display"],
+                        "body-lg": ["Plus Jakarta Sans"],
+                        "headline-sm": ["Playfair Display"],
+                        "display-lg": ["Playfair Display"],
+                        "body-md": ["Plus Jakarta Sans"]
+                    },
+                    fontSize: {
+                        "label-md": ["14px", { lineHeight: "20px", letterSpacing: "0.05em", fontWeight: "600" }],
+                        "headline-md": ["32px", { lineHeight: "40px", fontWeight: "600" }],
+                        "label-sm": ["12px", { lineHeight: "16px", fontWeight: "500" }],
+                        "display-lg-mobile": ["36px", { lineHeight: "44px", letterSpacing: "-0.01em", fontWeight: "700" }],
+                        "body-lg": ["18px", { lineHeight: "28px", fontWeight: "400" }],
+                        "headline-sm": ["24px", { lineHeight: "32px", fontWeight: "600" }],
+                        "display-lg": ["48px", { lineHeight: "56px", letterSpacing: "-0.02em", fontWeight: "700" }],
+                        "body-md": ["16px", { lineHeight: "24px", fontWeight: "400" }]
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-background text-on-background font-body-md min-h-screen flex flex-col">
+<!-- TopNavBar is suppressed on linear checkout flow -->
+<!-- Header for Checkout (Simplified to maintain focus) -->
+<header class="w-full py-stack-md px-margin-mobile md:px-margin-desktop bg-surface border-b border-outline-variant/30 flex justify-center items-center">
+<a class="font-headline-sm text-headline-sm font-bold text-primary tracking-tight" href="#">Poppy Jeans</a>
+</header>
+<main class="flex-grow w-full max-w-[container-max] mx-auto px-margin-mobile md:px-margin-desktop py-stack-lg">
+<!-- Progress Indicator -->
+<div class="w-full max-w-3xl mx-auto mb-stack-lg">
+<div class="flex items-center justify-between relative">
+<!-- Line background -->
+<div class="absolute left-0 top-1/2 -translate-y-1/2 w-full h-0.5 bg-surface-container-highest -z-10"></div>
+<!-- Active Line -->
+<div class="absolute left-0 top-1/2 -translate-y-1/2 w-1/2 h-0.5 bg-primary -z-10 transition-all duration-500"></div>
+<!-- Step 1: Cart (Completed) -->
+<div class="flex flex-col items-center gap-base bg-background px-2">
+<div class="w-8 h-8 rounded-full bg-primary text-on-primary flex items-center justify-center font-label-md text-label-md shadow-sm">
+<span class="material-symbols-outlined" style="font-size: 16px;">check</span>
+</div>
+<span class="font-label-sm text-label-sm text-primary">Cart</span>
+</div>
+<!-- Step 2: Details (Active) -->
+<div class="flex flex-col items-center gap-base bg-background px-2">
+<div class="w-8 h-8 rounded-full bg-primary text-on-primary flex items-center justify-center font-label-md text-label-md shadow-sm ring-4 ring-primary-container/30">
+                        2
+                    </div>
+<span class="font-label-sm text-label-sm text-primary font-bold">Details &amp; Payment</span>
+</div>
+<!-- Step 3: Confirmation (Pending) -->
+<div class="flex flex-col items-center gap-base bg-background px-2">
+<div class="w-8 h-8 rounded-full bg-surface-container-highest text-on-surface-variant flex items-center justify-center font-label-md text-label-md border border-outline-variant">
+                        3
+                    </div>
+<span class="font-label-sm text-label-sm text-on-surface-variant">Confirmation</span>
+</div>
+</div>
+</div>
+<!-- 2 Column Layout -->
+<div class="flex flex-col lg:flex-row gap-gutter relative">
+<!-- Left Column: Form (Scrollable) -->
+<div class="flex-1 flex flex-col gap-stack-md lg:pr-8">
+<!-- Contact Information -->
+<section class="bg-surface-container-low rounded-xl p-stack-md shadow-sm backdrop-blur-md border border-white/20">
+<div class="flex items-center gap-base mb-stack-sm">
+<span class="material-symbols-outlined text-primary">person</span>
+<h2 class="font-headline-sm text-headline-sm text-primary">Contact Information</h2>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-stack-sm">
+<div class="col-span-1 md:col-span-2">
+<label class="block font-label-sm text-label-sm text-on-surface-variant mb-1">Email Address</label>
+<input class="w-full bg-secondary-container/20 border-0 border-b border-outline-variant focus:border-primary focus:ring-0 px-4 py-3 rounded-t-md transition-colors text-on-surface" placeholder="you@example.com" type="email"/>
+</div>
+<div class="col-span-1 md:col-span-2 flex items-center gap-2 mt-2">
+<input class="rounded text-primary focus:ring-primary border-outline-variant bg-surface" id="newsletter" type="checkbox"/>
+<label class="font-body-md text-body-md text-on-surface-variant" for="newsletter">Keep me up to date on news and exclusive offers</label>
+</div>
+</div>
+</section>
+<!-- Shipping Address -->
+<section class="bg-surface-container-low rounded-xl p-stack-md shadow-sm backdrop-blur-md border border-white/20">
+<div class="flex items-center gap-base mb-stack-sm">
+<span class="material-symbols-outlined text-primary">local_shipping</span>
+<h2 class="font-headline-sm text-headline-sm text-primary">Shipping Address</h2>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-stack-sm">
+<div>
+<label class="block font-label-sm text-label-sm text-on-surface-variant mb-1">First Name</label>
+<input class="w-full bg-secondary-container/20 border-0 border-b border-outline-variant focus:border-primary focus:ring-0 px-4 py-3 rounded-t-md transition-colors text-on-surface" type="text"/>
+</div>
+<div>
+<label class="block font-label-sm text-label-sm text-on-surface-variant mb-1">Last Name</label>
+<input class="w-full bg-secondary-container/20 border-0 border-b border-outline-variant focus:border-primary focus:ring-0 px-4 py-3 rounded-t-md transition-colors text-on-surface" type="text"/>
+</div>
+<div class="col-span-1 md:col-span-2">
+<label class="block font-label-sm text-label-sm text-on-surface-variant mb-1">Address</label>
+<input class="w-full bg-secondary-container/20 border-0 border-b border-outline-variant focus:border-primary focus:ring-0 px-4 py-3 rounded-t-md transition-colors text-on-surface" placeholder="Street address or P.O. Box" type="text"/>
+</div>
+<div class="col-span-1 md:col-span-2">
+<label class="block font-label-sm text-label-sm text-on-surface-variant mb-1">Apartment, suite, etc. (optional)</label>
+<input class="w-full bg-secondary-container/20 border-0 border-b border-outline-variant focus:border-primary focus:ring-0 px-4 py-3 rounded-t-md transition-colors text-on-surface" type="text"/>
+</div>
+<div>
+<label class="block font-label-sm text-label-sm text-on-surface-variant mb-1">City</label>
+<input class="w-full bg-secondary-container/20 border-0 border-b border-outline-variant focus:border-primary focus:ring-0 px-4 py-3 rounded-t-md transition-colors text-on-surface" type="text"/>
+</div>
+<div class="grid grid-cols-2 gap-stack-sm">
+<div>
+<label class="block font-label-sm text-label-sm text-on-surface-variant mb-1">State/Province</label>
+<select class="w-full bg-secondary-container/20 border-0 border-b border-outline-variant focus:border-primary focus:ring-0 px-4 py-3 rounded-t-md transition-colors text-on-surface appearance-none">
+<option>Select</option>
+<option>NY</option>
+<option>CA</option>
+</select>
+</div>
+<div>
+<label class="block font-label-sm text-label-sm text-on-surface-variant mb-1">ZIP / Postal</label>
+<input class="w-full bg-secondary-container/20 border-0 border-b border-outline-variant focus:border-primary focus:ring-0 px-4 py-3 rounded-t-md transition-colors text-on-surface" type="text"/>
+</div>
+</div>
+<div class="col-span-1 md:col-span-2">
+<label class="block font-label-sm text-label-sm text-on-surface-variant mb-1">Phone</label>
+<input class="w-full bg-secondary-container/20 border-0 border-b border-outline-variant focus:border-primary focus:ring-0 px-4 py-3 rounded-t-md transition-colors text-on-surface" type="tel"/>
+</div>
+</div>
+</section>
+<!-- Payment Method -->
+<section class="bg-surface-container-low rounded-xl p-stack-md shadow-sm backdrop-blur-md border border-white/20">
+<div class="flex items-center gap-base mb-stack-sm">
+<span class="material-symbols-outlined text-primary">credit_card</span>
+<h2 class="font-headline-sm text-headline-sm text-primary">Payment</h2>
+</div>
+<div class="border border-outline-variant rounded-lg overflow-hidden bg-background">
+<!-- Credit Card Option -->
+<div class="p-4 border-b border-outline-variant/50 bg-secondary-container/10">
+<div class="flex items-center gap-3">
+<input checked="" class="text-primary focus:ring-primary border-outline-variant bg-surface" id="pay_card" name="payment_method" type="radio"/>
+<label class="font-label-md text-label-md text-on-surface flex-grow cursor-pointer" for="pay_card">Credit Card</label>
+<div class="flex gap-1 text-on-surface-variant opacity-70">
+<span class="material-symbols-outlined">payments</span>
+</div>
+</div>
+<!-- Card Details (Expanded by default) -->
+<div class="mt-4 grid grid-cols-1 md:grid-cols-2 gap-stack-sm">
+<div class="col-span-1 md:col-span-2">
+<input class="w-full bg-surface border-0 border-b border-outline-variant focus:border-primary focus:ring-0 px-4 py-3 rounded-t-md transition-colors text-on-surface" placeholder="Card Number" type="text"/>
+</div>
+<div>
+<input class="w-full bg-surface border-0 border-b border-outline-variant focus:border-primary focus:ring-0 px-4 py-3 rounded-t-md transition-colors text-on-surface" placeholder="MM / YY" type="text"/>
+</div>
+<div>
+<input class="w-full bg-surface border-0 border-b border-outline-variant focus:border-primary focus:ring-0 px-4 py-3 rounded-t-md transition-colors text-on-surface" placeholder="CVC" type="text"/>
+</div>
+</div>
+</div>
+<!-- PayPal Option -->
+<div class="p-4">
+<div class="flex items-center gap-3">
+<input class="text-primary focus:ring-primary border-outline-variant bg-surface" id="pay_paypal" name="payment_method" type="radio"/>
+<label class="font-label-md text-label-md text-on-surface flex-grow cursor-pointer" for="pay_paypal">PayPal</label>
+<span class="material-symbols-outlined text-on-surface-variant opacity-70">account_balance_wallet</span>
+</div>
+</div>
+</div>
+</section>
+<div class="mt-stack-sm flex items-center justify-between">
+<a class="font-label-md text-label-md text-primary flex items-center gap-1 hover:underline underline-offset-4" href="#">
+<span class="material-symbols-outlined" style="font-size: 18px;">arrow_back</span>
+                        Return to Cart
+                    </a>
+<button class="bg-primary text-on-primary font-label-md text-label-md px-8 py-4 rounded-full shadow-md hover:shadow-lg hover:-translate-y-[2px] transition-all duration-300">
+                        Place Order
+                    </button>
+</div>
+</div>
+<!-- Right Column: Order Summary (Persistent/Sticky) -->
+<div class="w-full lg:w-[400px] xl:w-[450px]">
+<div class="sticky top-stack-lg bg-surface-container-lowest rounded-xl p-stack-md shadow-sm border border-outline-variant/20 backdrop-blur-md">
+<h2 class="font-headline-sm text-headline-sm text-primary mb-stack-sm">Order Summary</h2>
+<!-- Items List -->
+<div class="flex flex-col gap-stack-sm mb-stack-md custom-scrollbar max-h-[409px] overflow-y-auto pr-2">
+<!-- Item 1 -->
+<div class="flex items-center gap-4 group">
+<div class="w-20 h-24 rounded-md overflow-hidden bg-surface-container relative flex-shrink-0">
+<img alt="A pair of light blue, vintage-wash straight leg women's jeans laid flat on a pristine white surface, bathed in soft, natural daylight. The denim texture is highly detailed, showing subtle distressing near the pockets. The overall lighting is bright and clean, reflecting a high-end, poetic modern aesthetic with a hint of ethereal glassmorphism in the subtle background styling." class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB3Utzkb6U7g2lvlnsbfMfMjO4-iSmlPmEDEa-kAAXmoRXktcbatWaVE8oId632uOFKbu1i_-W52H_8KMiccWqMXJTntl39ukoc_lOFINYgtJx4HpO78jlVK9MfgU5Y3EE0LO8FS_Ewn4JnMFDhfM3z72PW5NpykpJxRm_ZTk8sBNcfteusYbEy7I8lx_gVRn6YOfCb3-gv4_QtB_4G0yV6vySrIVgDz1qTyfrHxJrqKuwznaGluT6a0echA0k7W0KGfORz_0Pp3Acy"/>
+<div class="absolute -top-2 -right-2 bg-secondary text-on-secondary w-6 h-6 rounded-full flex items-center justify-center font-label-sm text-label-sm border-2 border-surface">1</div>
+</div>
+<div class="flex-grow">
+<h3 class="font-label-md text-label-md text-on-surface">The Juliet Straight</h3>
+<p class="font-body-md text-body-md text-on-surface-variant text-sm mt-1">Vintage Wash / Size 28</p>
+</div>
+<div class="font-label-md text-label-md text-on-surface">
+                                $148.00
+                            </div>
+</div>
+<!-- Item 2 -->
+<div class="flex items-center gap-4 group">
+<div class="w-20 h-24 rounded-md overflow-hidden bg-surface-container relative flex-shrink-0">
+<img alt="A close-up shot of a classic indigo denim jacket with elegant silver button hardware, draped casually over a soft blush-pink velvet chair. The lighting is soft and diffused, creating delicate shadows that highlight the garment's stitching. The mood is romantic and premium, perfectly aligned with a serene, modern fashion editorial." class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDr8UmU3zXoNz3tncNhl9392z-x6B22u8hWY7CaRAvewszfQGW9O3DfH6gV31nFR1cwRQxOGhQqJ2d6rEjT-I8B3Pc-OESdPJGT0vnjHoQkD0WaRopEj3Wz44bJEPiH9RPF5PStoLK0d6rRId37cV0ZADLQC_Em7hz3exeZaPByHXJ1fu_J6k-ptKSl6EtZoqhy_RbbQM9Zm2RyqsOOMwjDz241rbVODSQ4fPDQMG1coTiWiBRtRbKm0xmMS-K0p7HsxJfn3gti0S8-"/>
+<div class="absolute -top-2 -right-2 bg-secondary text-on-secondary w-6 h-6 rounded-full flex items-center justify-center font-label-sm text-label-sm border-2 border-surface">1</div>
+</div>
+<div class="flex-grow">
+<h3 class="font-label-md text-label-md text-on-surface">Midnight Denim Jacket</h3>
+<p class="font-body-md text-body-md text-on-surface-variant text-sm mt-1">Indigo / Size M</p>
+</div>
+<div class="font-label-md text-label-md text-on-surface">
+                                $195.00
+                            </div>
+</div>
+</div>
+<!-- Discount Code -->
+<div class="flex gap-2 mb-stack-md border-b border-outline-variant/30 pb-stack-md">
+<input class="flex-grow bg-surface-container-low border border-outline-variant focus:border-primary focus:ring-1 focus:ring-primary px-4 py-2 rounded-md transition-colors text-on-surface font-body-md" placeholder="Gift card or discount code" type="text"/>
+<button class="bg-secondary-container text-on-secondary-container font-label-md text-label-md px-6 py-2 rounded-md hover:bg-secondary-fixed transition-colors">
+                            Apply
+                        </button>
+</div>
+<!-- Totals -->
+<div class="flex flex-col gap-3 font-body-md text-body-md text-on-surface-variant mb-stack-md">
+<div class="flex justify-between">
+<span>Subtotal</span>
+<span class="text-on-surface font-medium">$343.00</span>
+</div>
+<div class="flex justify-between">
+<span>Shipping</span>
+<span class="text-on-surface font-medium">Calculated at next step</span>
+</div>
+<div class="flex justify-between">
+<span>Estimated taxes</span>
+<span class="text-on-surface font-medium">$27.44</span>
+</div>
+</div>
+<div class="flex justify-between items-end border-t border-outline-variant/30 pt-stack-sm">
+<span class="font-headline-sm text-headline-sm text-primary">Total</span>
+<div class="flex items-center gap-2">
+<span class="text-on-surface-variant text-sm">USD</span>
+<span class="font-headline-md text-headline-md text-on-surface">$370.44</span>
+</div>
+</div>
+<!-- Trust Badges (Subtle) -->
+<div class="mt-stack-md flex justify-center gap-4 text-on-surface-variant opacity-60">
+<span class="material-symbols-outlined" title="Secure Payment">lock</span>
+<span class="material-symbols-outlined" title="Fast Shipping">local_shipping</span>
+<span class="material-symbols-outlined" title="Easy Returns">assignment_return</span>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- Footer for Checkout (Simplified) -->
+<footer class="w-full py-stack-md px-margin-mobile md:px-margin-desktop bg-surface-container-low border-t border-primary/10 mt-auto">
+<div class="flex flex-col md:flex-row justify-between items-center gap-4 max-w-[container-max] mx-auto">
+<p class="font-body-md text-body-md text-on-surface-variant text-sm">© 2024 Poppy Jeans. Designed for the romantic modern soul.</p>
+<div class="flex gap-4 font-label-sm text-label-sm text-on-surface-variant">
+<a class="hover:text-primary transition-colors" href="#">Refund policy</a>
+<a class="hover:text-primary transition-colors" href="#">Privacy policy</a>
+<a class="hover:text-primary transition-colors" href="#">Terms of service</a>
+</div>
+</div>
+</footer>
+</body></html>

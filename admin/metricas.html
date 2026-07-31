@@ -3,27 +3,30 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mathsoluis | Analytics Dashboard</title>
+    <title>PoppyJeans | Analytics Dashboard</title>
+    <!-- Favicon -->
+    <link rel="icon" href="../favicon.png" type="image/png">
 
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;600;700;800&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=Plus+Jakarta+Sans:ital,wght@0,200..800;1,200..800&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="layout.js"></script>
 
     <style>
         :root {
             --blanco-puro:   #FFFFFF;
-            --fondo-claro:   #F4F7F6;
-            --teal-studio:   #13C2B3;
-            --teal-claro:    #E0F6F5;
-            --dark-studio:   #1E1E24;
-            --gris-claro:    #E8ECEB;
-            --danger-color:  #E74C3C;
-            --danger-light:  #FDEDEC;
-            --warn-color:    #F39C12;
+            --fondo-claro:   #fcf9f9;
+            --teal-studio:   #8a4d4e;
+            --teal-claro:    #ffdad9;
+            --dark-studio:   #211a19;
+            --gris-claro:    #eedfdd;
+            --danger-color:  #ba1a1a;
+            --danger-light:  --warn-light;
+            --warn-color:    #B7950B;
             --warn-light:    #FEF9E7;
 
-            --font-main:    'Poppins', sans-serif;
-            --font-display: 'Montserrat', sans-serif;
+            --font-main:    'Plus Jakarta Sans', sans-serif;
+            --font-display: 'Playfair Display', serif;
 
             --radius-md: 12px;
             --radius-lg: 20px;
@@ -34,18 +37,7 @@
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: var(--font-main); background: var(--fondo-claro); color: var(--dark-studio); }
 
-        /* ── LOGIN ───────────────────────────────────────────────── */
-        #loginView { min-height: 100vh; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, var(--dark-studio) 0%, #2a2a35 100%); }
-        .login-card { background: var(--blanco-puro); padding: 3rem; border-radius: var(--radius-md); box-shadow: 0 20px 40px rgba(0,0,0,0.2); width: 100%; max-width: 400px; text-align: center; }
-        .login-logo { font-family: var(--font-display); font-size: 1.8rem; font-weight: 800; color: var(--dark-studio); margin-bottom: 2rem; }
-        .login-logo span { color: var(--teal-studio); }
-        .input-group { margin-bottom: 1.5rem; text-align: left; }
-        .input-group label { display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 0.5rem; color: #666; }
-        .input-group input { width: 100%; padding: 0.8rem 1rem; border: 1px solid var(--gris-claro); border-radius: 8px; font-family: var(--font-main); font-size: 0.95rem; outline: none; transition: var(--transition); background: var(--fondo-claro); }
-        .input-group input:focus { border-color: var(--teal-studio); background: var(--blanco-puro); box-shadow: 0 0 0 3px var(--teal-claro); }
-        .btn-primary { width: 100%; background: var(--teal-studio); color: var(--blanco-puro); border: none; padding: 1rem; border-radius: 8px; font-family: var(--font-main); font-size: 1rem; font-weight: 600; cursor: pointer; transition: var(--transition); }
-        .btn-primary:hover { background: #10a89b; transform: translateY(-2px); }
-        .error-msg { color: var(--danger-color); font-size: 0.85rem; margin-top: 1rem; display: none; }
+
 
         /* ── SHELL ───────────────────────────────────────────────── */
         #dashboardView { display: none; min-height: 100vh; }
@@ -278,47 +270,11 @@
 </head>
 <body>
 
-<!-- ═══ LOGIN ════════════════════════════════════════════════════ -->
-<div id="loginView">
-    <div class="login-card">
-        <div class="login-logo">MATHSO<span>LUIS</span></div>
-        <p style="color:#888;margin-bottom:2rem;font-size:0.9rem;">Ingresa tus credenciales para acceder al panel corporativo.</p>
-        <form id="loginForm">
-            <div class="input-group">
-                <label>Correo Electrónico</label>
-                <input type="email" id="loginEmail" required placeholder="admin@mathsoluis.cl" value="admin@mathsoluis.cl">
-            </div>
-            <div class="input-group">
-                <label>Contraseña</label>
-                <input type="password" id="loginPassword" required placeholder="Ingresa tu contraseña">
-            </div>
-            <button type="submit" class="btn-primary" id="loginBtnText">Iniciar Sesión</button>
-            <div id="loginError" class="error-msg">Credenciales incorrectas. Intenta nuevamente.</div>
-        </form>
-    </div>
-</div>
+
 
 <!-- ═══ DASHBOARD ════════════════════════════════════════════════ -->
 <div id="dashboardView">
-    <aside class="sidebar">
-        <div class="sidebar-logo">MATHSO<span>LUIS</span></div>
-        <ul class="nav-menu">
-            <li class="nav-item"><a href="index.html" class="nav-link">📦 Inventario</a></li>
-            <li class="nav-item"><a href="pedidos.html" class="nav-link">📝 Pedidos</a></li>
-            <li class="nav-item"><a href="clientes.html" class="nav-link">👥 Clientes</a></li>
-            <li id="admin-only-nav" style="margin-top:1.5rem;">
-                <span style="display:block;font-size:0.65rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#555;padding:0 1rem 0.5rem;">Solo Admin</span>
-                <ul style="list-style:none;padding:0;margin:0;">
-                    <li class="nav-item"><a href="metricas.html" class="nav-link active">📈 Métricas</a></li>
-                    <li class="nav-item"><a href="actividades.html" class="nav-link">📜 Actividades</a></li>
-                    <li class="nav-item"><a href="configuracion.html" class="nav-link">⚙️ Configuración</a></li>
-                </ul>
-            </li>
-            <li class="nav-item" style="margin-top:2rem;border-top:1px solid rgba(255,255,255,0.08);padding-top:1rem;">
-                <a href="#" class="nav-link" onclick="logout();return false;">🚪 Cerrar Sesión</a>
-            </li>
-        </ul>
-    </aside>
+    <aside class="sidebar"></aside>
 
     <main class="main-content">
         <header class="topbar">
@@ -516,9 +472,7 @@
 
 <!-- ═══ LÓGICA PRINCIPAL ═════════════════════════════════════════ -->
 <script>
-    const loginView     = document.getElementById('loginView');
     const dashboardView = document.getElementById('dashboardView');
-    const loginForm     = document.getElementById('loginForm');
 
     let salesChartInstance  = null;
     let statusChartInstance = null;
@@ -541,6 +495,12 @@
 
     /* ─── INIT ────────────────────────────────────────────────── */
     window.onload = () => {
+        const token = localStorage.getItem('admin_token');
+        if (!token) {
+            window.location.href = 'index.html';
+            return;
+        }
+
         const today = new Date();
         const ago30 = new Date(today);
         ago30.setDate(today.getDate() - 29);
@@ -548,47 +508,11 @@
         document.getElementById('dateFrom').value = ago30.toISOString().split('T')[0];
         document.querySelector('.preset-chip[data-key="30d"]')?.classList.add('active');
 
-        if (localStorage.getItem('admin_token')) {
-            document.getElementById('adminName').textContent = localStorage.getItem('admin_name') || 'Administrador';
-            showDashboard();
-        }
+        document.getElementById('adminName').textContent = localStorage.getItem('admin_name') || 'Administrador';
+        showDashboard();
     };
 
-    /* ─── LOGIN ───────────────────────────────────────────────── */
-    loginForm.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        document.getElementById('loginError').style.display = 'none';
-        document.getElementById('loginBtnText').textContent = 'Conectando...';
-        try {
-            const res    = await fetch(`${API_BASE_URL}/api/admin/login`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    email:    document.getElementById('loginEmail').value,
-                    password: document.getElementById('loginPassword').value
-                })
-            });
-            const result = await res.json();
-            if (result.success) {
-                localStorage.setItem('admin_token', result.token);
-                localStorage.setItem('admin_name',  result.admin_data.nombre);
-                localStorage.setItem('admin_rol',   result.admin_data.rol);
-                document.getElementById('adminName').textContent = result.admin_data.nombre;
-                showDashboard();
-            } else {
-                document.getElementById('loginError').textContent = result.error || 'Credenciales incorrectas.';
-                document.getElementById('loginError').style.display = 'block';
-            }
-        } catch {
-            document.getElementById('loginError').textContent = 'Error de conexión con el servidor.';
-            document.getElementById('loginError').style.display = 'block';
-        } finally {
-            document.getElementById('loginBtnText').textContent = 'Iniciar Sesión';
-        }
-    });
-
     function showDashboard() {
-        loginView.style.display    = 'none';
         dashboardView.style.display = 'block';
         const adminOnlyNav = document.getElementById('admin-only-nav');
         if (adminOnlyNav && localStorage.getItem('admin_rol') !== 'superadmin') {
@@ -747,16 +671,16 @@
             // lo que causaría "Unexpected end of JSON input".
             if (!response.ok) {
                 const errorText = await response.text();
-                console.error('[Mathsoluis Metrics] Error del servidor (' + response.status + '):', errorText);
+                console.error('[PoppyJeans Metrics] Error del servidor (' + response.status + '):', errorText);
                 throw new Error('Error ' + response.status + ' — ' + errorText.slice(0, 200));
             }
 
             const result = await response.json();
 
             // Debug: ver exactamente qué responde el servidor (incluye _schema con nombres de columnas detectados)
-            console.log('[Mathsoluis Metrics] Respuesta del servidor:', result);
+            console.log('[PoppyJeans Metrics] Respuesta del servidor:', result);
             if (result?.data?._schema) {
-                console.log('[Mathsoluis Metrics] Esquema detectado:', result.data._schema);
+                console.log('[PoppyJeans Metrics] Esquema detectado:', result.data._schema);
             }
 
             // ── DIAGNÓSTICO DE FILTRO DE FECHAS ────────────────────────────
@@ -764,12 +688,12 @@
             // en BD, dejamos un mensaje muy explícito para el operador.
             if (result?.data?._debug) {
                 const dbg = result.data._debug;
-                console.log('[Mathsoluis Metrics] _debug fechas:', dbg);
+                console.log('[PoppyJeans Metrics] _debug fechas:', dbg);
                 const total = dbg?.date_range_bd?.total_rows ?? 0;
                 const dentro = dbg?.rows_in_range ?? 0;
                 if (total > 0 && dentro === 0 && (dbg.sql_from || dbg.sql_to)) {
                     console.warn(
-                        `[Mathsoluis Metrics] ⚠ El filtro de fechas excluye TODAS las órdenes.\n` +
+                        `[PoppyJeans Metrics] ⚠ El filtro de fechas excluye TODAS las órdenes.\n` +
                         `   • Rango pedido: ${dbg.sql_from || '—'} → ${dbg.sql_to || '—'}\n` +
                         `   • Rango real en BD: ${dbg.date_range_bd?.oldest || '—'} → ${dbg.date_range_bd?.newest || '—'}\n` +
                         `   • Total de órdenes en BD: ${total}\n` +
@@ -789,7 +713,7 @@
                 if (d.debug_status_counts_all?.length) {
                     console.table(d.debug_status_counts_all);
                 } else {
-                    console.warn('[Mathsoluis] debug_status_counts_all vacío — ¿hay pedidos en la BD?');
+                    console.warn('[PoppyJeans] debug_status_counts_all vacío — ¿hay pedidos en la BD?');
                 }
                 // ─────────────────────────────────────────────────────────────
 
@@ -858,7 +782,7 @@
                 renderCategoryBars(d.category_distribution || []);
 
             } else {
-                console.warn('[Mathsoluis Metrics] El servidor respondió success=false:', result?.error);
+                console.warn('[PoppyJeans Metrics] El servidor respondió success=false:', result?.error);
                 [...KPI_IDS, ...INV_IDS].forEach(id => {
                     const el = document.getElementById(id);
                     if (el) { el.textContent = '—'; el.classList.remove('loading'); }
@@ -870,7 +794,7 @@
                 renderCategoryBars([]);
             }
         } catch (err) {
-            console.error('[Mathsoluis Metrics] Error de red o parsing:', err);
+            console.error('[PoppyJeans Metrics] Error de red o parsing:', err);
             clearLoadingState();
             hideDeltas();
             [...KPI_IDS, ...INV_IDS].forEach(id => {
@@ -1503,7 +1427,7 @@
 
         // Hoja 1: Resumen
         const wsResumen = XLSX.utils.aoa_to_sheet([
-            ['REPORTE MATHSOLUIS — Analytics Dashboard'],
+            ['REPORTE POPPYJEANS — Analytics Dashboard'],
             ['Período:', `${from}  →  ${to}`],
             ['Generado:', now],
             [],
@@ -1550,40 +1474,11 @@
         wsVentas['!cols'] = [{ wch: 14 }, { wch: 24 }];
         XLSX.utils.book_append_sheet(wb, wsVentas, 'Ventas Diarias');
 
-        XLSX.writeFile(wb, `mathsoluis-reporte-${from}-${to}.xlsx`);
+        XLSX.writeFile(wb, `poppyjeans-reporte-${from}-${to}.xlsx`);
     }
 </script>
 
-<!-- ═══ AUTH HELPER v2.0 ════════════════════════════════════════ -->
-<script>
-    const API_BASE_URL = 'https://mathsoluis-api.studiopixelchile.workers.dev';
 
-    function getAuthHeaders() {
-        const token = localStorage.getItem('admin_token');
-        return { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` };
-    }
-
-    async function adminFetch(endpoint, options = {}) {
-        const response = await fetch(`${API_BASE_URL}${endpoint}`, {
-            ...options,
-            headers: { ...getAuthHeaders(), ...(options.headers || {}) }
-        });
-        if (response.status === 401) {
-            localStorage.clear();
-            alert('Tu sesión ha expirado. Por favor inicia sesión nuevamente.');
-            window.location.href = 'configuracion.html';
-            return null;
-        }
-        return response;
-    }
-
-    async function logout() {
-        try {
-            await fetch(`${API_BASE_URL}/api/admin/logout`, { method: 'POST', headers: getAuthHeaders() });
-        } catch (e) { console.warn('No se pudo notificar logout al servidor:', e); }
-        finally { localStorage.clear(); window.location.href = 'configuracion.html'; }
-    }
-</script>
 
 </body>
 </html>

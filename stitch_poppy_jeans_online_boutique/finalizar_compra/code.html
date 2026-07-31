@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+
+<html class="light" lang="es"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Checkout - Poppy Jeans</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..900;1,400..900&amp;family=Plus+Jakarta+Sans:ital,wght@0,200..800;1,200..800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-secondary-fixed-variant": "#4e4543",
+                        "surface-dim": "#dcd9d9",
+                        "inverse-surface": "#303031",
+                        "on-error": "#ffffff",
+                        "primary-fixed": "#ffdad9",
+                        "on-error-container": "#93000a",
+                        "surface-variant": "#e4e2e2",
+                        "tertiary-container": "#ab9c9c",
+                        "on-secondary-container": "#6c6261",
+                        "secondary-fixed": "#eedfdd",
+                        "secondary-container": "#eedfdd",
+                        "error-container": "#ffdad6",
+                        "primary": "#8a4d4e",
+                        "surface-container-low": "#f6f3f3",
+                        "on-secondary": "#ffffff",
+                        "primary-fixed-dim": "#ffb3b3",
+                        "surface-bright": "#fcf9f9",
+                        "on-tertiary-fixed-variant": "#4f4444",
+                        "on-primary-container": "#592628",
+                        "tertiary-fixed-dim": "#d3c3c2",
+                        "on-tertiary": "#ffffff",
+                        "on-surface-variant": "#524343",
+                        "surface": "#fcf9f9",
+                        "tertiary": "#685b5b",
+                        "tertiary-fixed": "#f0dfde",
+                        "on-tertiary-container": "#3e3434",
+                        "surface-container": "#f0eded",
+                        "inverse-on-surface": "#f3f0f0",
+                        "outline-variant": "#d7c2c1",
+                        "surface-container-highest": "#e4e2e2",
+                        "on-primary": "#ffffff",
+                        "outline": "#857372",
+                        "secondary-fixed-dim": "#d1c3c2",
+                        "on-surface": "#1b1b1c",
+                        "secondary": "#665c5b",
+                        "on-primary-fixed-variant": "#6e3637",
+                        "on-primary-fixed": "#380c0f",
+                        "on-background": "#1b1b1c",
+                        "on-secondary-fixed": "#211a19",
+                        "surface-container-high": "#eae7e7",
+                        "inverse-primary": "#ffb3b3",
+                        "primary-container": "#d48c8c",
+                        "error": "#ba1a1a",
+                        "background": "#fcf9f9",
+                        "surface-container-lowest": "#ffffff",
+                        "surface-tint": "#8a4d4e",
+                        "on-tertiary-fixed": "#221919"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "margin-desktop": "64px",
+                        "container-max": "1280px",
+                        "stack-md": "24px",
+                        "base": "8px",
+                        "margin-mobile": "20px",
+                        "stack-lg": "48px",
+                        "stack-sm": "12px",
+                        "gutter": "24px"
+                    },
+                    "fontFamily": {
+                        "headline-sm": ["Playfair Display"],
+                        "label-md": ["Plus Jakarta Sans"],
+                        "headline-md": ["Playfair Display"],
+                        "display-lg-mobile": ["Playfair Display"],
+                        "body-lg": ["Plus Jakarta Sans"],
+                        "display-lg": ["Playfair Display"],
+                        "body-md": ["Plus Jakarta Sans"],
+                        "label-sm": ["Plus Jakarta Sans"]
+                    },
+                    "fontSize": {
+                        "headline-sm": ["24px", { "lineHeight": "32px", "fontWeight": "600" }],
+                        "label-md": ["14px", { "lineHeight": "20px", "letterSpacing": "0.05em", "fontWeight": "600" }],
+                        "headline-md": ["32px", { "lineHeight": "40px", "fontWeight": "600" }],
+                        "display-lg-mobile": ["36px", { "lineHeight": "44px", "letterSpacing": "-0.01em", "fontWeight": "700" }],
+                        "body-lg": ["18px", { "lineHeight": "28px", "fontWeight": "400" }],
+                        "display-lg": ["48px", { "lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+                        "body-md": ["16px", { "lineHeight": "24px", "fontWeight": "400" }],
+                        "label-sm": ["12px", { "lineHeight": "16px", "fontWeight": "500" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        .glass-panel {
+            background: rgba(252, 249, 249, 0.7);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        .step-line {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 100%;
+            height: 2px;
+            background-color: theme('colors.surface-variant');
+            z-index: -1;
+            transform: translateY(-50%);
+        }
+        .step-line-active {
+            background-color: theme('colors.primary');
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-background min-h-screen relative font-body-md overflow-x-hidden">
+<!-- Background Atmospheric Touches -->
+<div class="fixed inset-0 z-[-1] opacity-30 pointer-events-none" style="background-image: radial-gradient(circle at 20% 20%, theme('colors.primary-fixed') 0%, transparent 40%), radial-gradient(circle at 80% 80%, theme('colors.secondary-fixed') 0%, transparent 40%);"></div>
+<!-- TopAppBar (Transactional - Hidden Nav, Brand Focused) -->
+<header class="bg-surface/80 dark:bg-surface-container/80 backdrop-blur-xl docked full-width top-0 sticky z-50 border-b border-primary/10 shadow-sm flex justify-center items-center px-margin-mobile h-16 w-full">
+<a class="font-headline-md text-primary dark:text-primary-fixed-dim italic" href="#">Poppy Jeans</a>
+</header>
+<main class="container mx-auto px-margin-mobile md:px-margin-desktop py-stack-lg max-w-container-max">
+<h1 class="font-display-lg-mobile md:font-display-lg text-primary text-center mb-stack-lg">Checkout Seguro</h1>
+<!-- Progress Indicator -->
+<div class="relative max-w-2xl mx-auto mb-stack-lg flex justify-between">
+<div class="relative w-full flex justify-between z-10">
+<!-- Step 1 -->
+<div class="flex flex-col items-center">
+<div class="w-10 h-10 rounded-full bg-primary text-on-primary flex items-center justify-center font-label-md shadow-lg shadow-primary/20">1</div>
+<span class="mt-2 font-label-sm text-primary">Envío</span>
+</div>
+<!-- Step 2 -->
+<div class="flex flex-col items-center">
+<div class="w-10 h-10 rounded-full bg-surface-variant text-on-surface-variant flex items-center justify-center font-label-md">2</div>
+<span class="mt-2 font-label-sm text-on-surface-variant">Pago</span>
+</div>
+<!-- Step 3 -->
+<div class="flex flex-col items-center">
+<div class="w-10 h-10 rounded-full bg-surface-variant text-on-surface-variant flex items-center justify-center font-label-md">3</div>
+<span class="mt-2 font-label-sm text-on-surface-variant">Revisión</span>
+</div>
+</div>
+<!-- Lines -->
+<div class="absolute top-5 left-[10%] right-[10%] h-[2px] bg-surface-variant z-0">
+<div class="h-full bg-primary w-0" id="progress-bar"></div>
+</div>
+</div>
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-gutter">
+<!-- Main Form Area -->
+<div class="lg:col-span-7 xl:col-span-8 space-y-stack-lg">
+<!-- Step 1: Shipping Details -->
+<section class="glass-panel rounded-xl p-6 md:p-8 shadow-lg shadow-primary/5">
+<div class="flex items-center gap-3 mb-6 border-b border-primary/10 pb-4">
+<span class="material-symbols-outlined text-primary" style="font-variation-settings: 'FILL' 1;">local_shipping</span>
+<h2 class="font-headline-sm text-primary">1. Detalles de Envío</h2>
+</div>
+<form class="space-y-stack-md">
+<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+<div>
+<label class="block font-label-sm text-on-surface-variant mb-1">Nombre</label>
+<input class="w-full bg-surface-container border-0 border-b-2 border-outline-variant focus:border-primary focus:ring-0 px-4 py-3 rounded-t-md transition-colors" placeholder="María" type="text"/>
+</div>
+<div>
+<label class="block font-label-sm text-on-surface-variant mb-1">Apellido</label>
+<input class="w-full bg-surface-container border-0 border-b-2 border-outline-variant focus:border-primary focus:ring-0 px-4 py-3 rounded-t-md transition-colors" placeholder="García" type="text"/>
+</div>
+</div>
+<div>
+<label class="block font-label-sm text-on-surface-variant mb-1">Dirección de Envío</label>
+<input class="w-full bg-surface-container border-0 border-b-2 border-outline-variant focus:border-primary focus:ring-0 px-4 py-3 rounded-t-md transition-colors" placeholder="Av. Principal 123, Depto 4B" type="text"/>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+<div class="md:col-span-2">
+<label class="block font-label-sm text-on-surface-variant mb-1">Ciudad</label>
+<input class="w-full bg-surface-container border-0 border-b-2 border-outline-variant focus:border-primary focus:ring-0 px-4 py-3 rounded-t-md transition-colors" placeholder="Ciudad de México" type="text"/>
+</div>
+<div>
+<label class="block font-label-sm text-on-surface-variant mb-1">Código Postal</label>
+<input class="w-full bg-surface-container border-0 border-b-2 border-outline-variant focus:border-primary focus:ring-0 px-4 py-3 rounded-t-md transition-colors" placeholder="11000" type="text"/>
+</div>
+</div>
+<div>
+<label class="block font-label-sm text-on-surface-variant mb-1">Teléfono (Para actualizaciones del envío)</label>
+<input class="w-full bg-surface-container border-0 border-b-2 border-outline-variant focus:border-primary focus:ring-0 px-4 py-3 rounded-t-md transition-colors" placeholder="+52 55 1234 5678" type="tel"/>
+</div>
+</form>
+</section>
+<!-- Step 2: Payment Method (Disabled look for initial view) -->
+<section class="glass-panel rounded-xl p-6 md:p-8 opacity-60">
+<div class="flex items-center gap-3 mb-6 border-b border-primary/10 pb-4">
+<span class="material-symbols-outlined text-on-surface-variant">credit_card</span>
+<h2 class="font-headline-sm text-on-surface-variant">2. Método de Pago</h2>
+</div>
+<p class="font-body-md text-on-surface-variant">Completa la sección de envío para continuar con el pago.</p>
+</section>
+</div>
+<!-- Order Summary Sidebar -->
+<div class="lg:col-span-5 xl:col-span-4">
+<div class="glass-panel rounded-xl p-6 md:p-8 shadow-lg shadow-primary/5 sticky top-24">
+<h3 class="font-headline-sm text-primary mb-6 border-b border-primary/10 pb-4">Resumen de Orden</h3>
+<!-- Items -->
+<div class="space-y-4 mb-6">
+<div class="flex gap-4 items-center">
+<div class="w-16 h-20 bg-surface-variant rounded-md overflow-hidden relative">
+<img alt="Jeans azules clásicos doblados sobre una superficie plana iluminada." class="object-cover w-full h-full" data-alt="A pair of high-quality, classic blue denim jeans neatly folded on a pristine white surface. Soft, high-key lighting creates a gentle drop shadow, emphasizing the premium texture of the fabric. The overall mood is modern, minimal, and aligns with an elegant e-commerce aesthetic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAVVhQnnq2RnCnHAq3zHxvF1gBQZ0HO7I37_1AStf5Cwk_T7fGuAUWNDZS01jOcuKaOvzkIG_4QKObuOLLYo9spumQsRhAMyBRxRf1dG6f8u8PE3JRh9Jy5VxBNhYXgwQrkXWoINj-YFY4_5aWRKnMUkrG55ZhmP9rtDA4jB4_gjpqIvAW1S45mLcaD3SSAj45QRfI1xVJ0ZJf0B5oniL0czrDjJ9py-iks55fUJ7MmesLYvx1H495EyJAv2uX-dDsiPE1spBAs2xtR"/>
+</div>
+<div class="flex-1">
+<h4 class="font-label-md text-on-surface">The Classic Vintage Straight</h4>
+<p class="font-body-md text-secondary">Talla: 28 | Cantidad: 1</p>
+</div>
+<span class="font-label-md text-primary">$1,299</span>
+</div>
+<div class="flex gap-4 items-center">
+<div class="w-16 h-20 bg-surface-variant rounded-md overflow-hidden relative">
+<img alt="Jeans negros ajustados con detalles sutiles." class="object-cover w-full h-full" data-alt="A pair of sleek, black skinny jeans displayed against a soft, light-mode background. The lighting highlights the durable weave and rich dark tone of the denim. The setting is clean and spacious, echoing a high-end fashion editorial presentation." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBePq2vwVuwrAtR2rggC4gimfBQkSFq5oITAuzIsq1KiufdleYmHjtfpvr6awyRxOELJpLSmQ60rav5rAzQzPO9q_161IVWCCxOHX967QK5toR808whPLSThO9ybub8m_xcVAyyMwt7br4jwLcb3ZfhF0BRzL0IrQ34Qvrn1LpNthKzK4TUIxylnvy-lrWVmaNUyLfPT2uOv0O8156JHZEEMFXkDQ3CaOFIhk1_MoS7nT6SE82oQvu62XHu3TLdW2M2tNchJEHN2RdG"/>
+</div>
+<div class="flex-1">
+<h4 class="font-label-md text-on-surface">Midnight Skinny Flare</h4>
+<p class="font-body-md text-secondary">Talla: 26 | Cantidad: 1</p>
+</div>
+<span class="font-label-md text-primary">$1,450</span>
+</div>
+</div>
+<!-- Totals -->
+<div class="space-y-2 border-t border-primary/10 pt-4 mb-6">
+<div class="flex justify-between font-body-md text-on-surface-variant">
+<span>Subtotal</span>
+<span>$2,749.00</span>
+</div>
+<div class="flex justify-between font-body-md text-on-surface-variant">
+<span>Envío (Estándar)</span>
+<span>$99.00</span>
+</div>
+<div class="flex justify-between font-headline-sm text-primary pt-4 border-t border-primary/10 mt-4">
+<span>Total</span>
+<span>$2,848.00</span>
+</div>
+</div>
+<button class="w-full bg-primary hover:bg-primary/90 text-white font-label-md py-4 rounded-full transition-all transform hover:-translate-y-0.5 shadow-md shadow-primary/20 flex justify-center items-center gap-2">
+<span>Continuar al Pago</span>
+<span class="material-symbols-outlined text-[18px]">arrow_forward</span>
+</button>
+<div class="mt-6 flex items-center justify-center gap-2 text-secondary opacity-80">
+<span class="material-symbols-outlined text-[16px]">lock</span>
+<span class="font-label-sm">Pago encriptado y 100% seguro</span>
+</div>
+</div>
+</div>
+</div>
+</main>
+</body></html>

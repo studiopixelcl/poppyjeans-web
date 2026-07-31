@@ -1,5 +1,5 @@
 /* ==========================================================================
-   Mathsoluis · Pagination renderer
+   PoppyJeans · Pagination renderer
    API:
      renderPagination(paginationData, containerId, callback)
        paginationData = { total, page, limit, totalPages }

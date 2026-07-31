@@ -1,5 +1,5 @@
 // ============================================================================
-// API BACKEND - MATHSOLUIS E-COMMERCE (Inventario, Admin y Auth de Clientes)
+// API BACKEND - POPPYJEANS E-COMMERCE (Inventario, Admin y Auth de Clientes)
 // Director de Ingeniería: Studio Pixel
 // v2.0 - Sesiones seguras con AdminSessions
 // ============================================================================
@@ -79,37 +79,57 @@ function getUtcBounds(fromStr, toStr) {
 // HELPER: Subida de imagen Base64 a Cloudflare R2
 // Devuelve la URL pública (PUBLIC_IMAGES_URL/key) que se guarda en D1.
 // ============================================================================
-async function uploadBase64ToR2(env, dataUrl, meta = {}) {
-  // Parsear "data:image/jpeg;base64,XXXX..."
-  const match = dataUrl.match(/^data:(image\/[a-zA-Z+]+);base64,(.+)$/);
-  if (!match) throw new Error("Formato Base64 inválido");
-  const mime = match[1];
-  const base64 = match[2];
+async function uploadBase64ToR2(env, dataUrl, meta = {}, requestUrl = null) {
+  // Parsear "data:image/jpeg;base64,XXXX..." o "data:video/mp4;base64,XXXX..."
+  // Usamos un slice para evitar problemas de regex con strings muy largos
+  const colonIdx = dataUrl.indexOf(':');
+  const semicolonIdx = dataUrl.indexOf(';');
+  const commaIdx = dataUrl.indexOf(',');
+  if (colonIdx < 0 || semicolonIdx < 0 || commaIdx < 0) throw new Error('Formato Base64 inválido');
+  const mime = dataUrl.slice(colonIdx + 1, semicolonIdx);
+  const encoding = dataUrl.slice(semicolonIdx + 1, commaIdx);
+  if (encoding !== 'base64') throw new Error('Solo se acepta encoding base64');
+  const base64 = dataUrl.slice(commaIdx + 1);
 
   const ext = mime === 'image/jpeg' ? 'jpg'
     : mime === 'image/png' ? 'png'
       : mime === 'image/webp' ? 'webp'
         : mime === 'image/gif' ? 'gif'
-          : 'bin';
+          : mime === 'video/mp4' ? 'mp4'
+            : mime === 'video/webm' ? 'webm'
+              : 'bin';
 
   // Decodificar Base64 a bytes
   const binary = atob(base64);
   const bytes = new Uint8Array(binary.length);
   for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
 
+  return uploadBytesToR2(env, bytes, mime, ext, meta, requestUrl);
+}
+
+// ============================================================================
+// HELPER: Subida de bytes binarios directos a Cloudflare R2
+// Usado para uploads multipart/form-data (imágenes y videos)
+// ============================================================================
+async function uploadBytesToR2(env, bytes, mime, ext, meta = {}, requestUrl = null) {
   // Slug del color para URL legible
   const colorSlug = (meta.color || 'img').toString().toLowerCase()
-    .normalize('NFD').replace(/[̀-ͯ]/g, '')
+    .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
     .replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 30) || 'img';
   const productPart = meta.productId ? `p${meta.productId}` : 'p0';
   const rand = crypto.randomUUID().slice(0, 8);
-  const key = `productos/${productPart}/${colorSlug}-${Date.now()}-${rand}.${ext}`;
+  const folder = (mime.startsWith('video/')) ? 'videos' : 'productos';
+  const key = `${folder}/${productPart}/${colorSlug}-${Date.now()}-${rand}.${ext}`;
 
   await env.IMAGES.put(key, bytes, {
     httpMetadata: { contentType: mime, cacheControl: 'public, max-age=31536000, immutable' }
   });
 
-  const baseUrl = (env.PUBLIC_IMAGES_URL || '').replace(/\/$/, '');
+  let baseUrl = (env.PUBLIC_IMAGES_URL || '').replace(/\/$/, '');
+  if (requestUrl) {
+    const origin = new URL(requestUrl).origin;
+    baseUrl = `${origin}/images`;
+  }
   return `${baseUrl}/${key}`;
 }
 
@@ -139,11 +159,44 @@ async function verifyAdminToken(request, env) {
   }
 }
 
+async function createCustomerSession(env, customerId) {
+  const token = crypto.randomUUID() + '-' + crypto.randomUUID();
+  const expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().replace('T', ' ').substring(0, 19);
+  
+  await env.DB.prepare(
+    "INSERT INTO CustomerSessions (token, customer_id, expires_at) VALUES (?, ?, ?)"
+  ).bind(token, customerId, expiresAt).run();
+  
+  return token;
+}
+
+async function verifyCustomerToken(request, env) {
+  const authHeader = request.headers.get('Authorization');
+  let token = null;
+  if (authHeader && authHeader.startsWith('Bearer ')) {
+    token = authHeader.substring(7);
+  } else {
+    token = request.headers.get('X-Customer-Token');
+  }
+
+  if (!token) return null;
+
+  try {
+    const session = await env.DB.prepare(
+      `SELECT cs.*, c.email, c.nombre FROM CustomerSessions cs JOIN Customers c ON cs.customer_id = c.id WHERE cs.token = ? AND cs.expires_at > datetime('now')`
+    ).bind(token).first();
+    return session || null;
+  } catch (e) {
+    console.error("Error verificando token de cliente:", e);
+    return null;
+  }
+}
+
 // ============================================================================
 // MÓDULO DE CORREOS (RESEND API) Y AUDITORÍA
 // ============================================================================
 
-const LOGO_URL = "https://mathsoluis.cl/ico.jpg";
+const LOGO_URL = "https://www.poppyjeans.cl/poppyjeanslogo.png";
 
 // 1. Correo de Bienvenida
 async function sendWelcomeEmail(env, email, nombre) {
@@ -151,25 +204,25 @@ async function sendWelcomeEmail(env, email, nombre) {
 
   const primerNombre = nombre.split(' ')[0];
   const htmlContent = `
-  <div style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; max-width: 600px; margin: 0 auto; background-color: #FFF8F0; border: 1px solid #FCEEF2; border-radius: 16px; overflow: hidden;">
-      <div style="background-color: #FFFFFF; padding: 40px 30px; text-align: center; border-bottom: 2px solid #FCEEF2;">
-          <img src="${LOGO_URL}" alt="Mathsoluis" style="width: 100px; height: auto; border-radius: 10px; object-fit: contain; margin-bottom: 15px; display: block; margin-left: auto; margin-right: auto;" />
-          <h1 style="color: #8A7360; margin: 0; font-size: 32px; font-style: italic;">Mathsoluis</h1>
+  <div style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; max-width: 600px; margin: 0 auto; background-color: #FFFDF5; border: 1px solid #F2E6E6; border-radius: 16px; overflow: hidden;">
+      <div style="background-color: #FFFFFF; padding: 40px 30px; text-align: center; border-bottom: 2px solid #F2E6E6;">
+          <img src="${LOGO_URL}" alt="PoppyJeans" style="width: 100px; height: auto; border-radius: 10px; object-fit: contain; margin-bottom: 15px; display: block; margin-left: auto; margin-right: auto;" />
+          <h1 style="color: #8a4d4e; margin: 0; font-size: 32px; font-style: italic;">PoppyJeans</h1>
       </div>
       <div style="padding: 40px 30px; text-align: center;">
-          <h2 style="color: #8A7360; font-size: 24px; margin-top: 0;">¡Bienvenida a nuestra familia, ${primerNombre}! ✨</h2>
-          <p style="color: #A09389; font-size: 16px; line-height: 1.6; margin-bottom: 30px;">Tu cuenta ha sido creada con éxito. Desde ahora podrás guardar tus prendas favoritas en tu <b>Lista de Deseos</b>, agilizar tu paso por caja y hacer seguimiento a todos tus envíos en tiempo real.</p>
-          <a href="https://www.mathsoluis.cl" style="display: inline-block; background-color: #13C2B3; color: #FFFFFF; text-decoration: none; padding: 14px 35px; border-radius: 50px; font-weight: bold; font-size: 16px; letter-spacing: 1px; text-transform: uppercase;">Ir de Shopping</a>
+          <h2 style="color: #8a4d4e; font-size: 24px; margin-top: 0;">¡Bienvenida a nuestra familia, ${primerNombre}! ✨</h2>
+          <p style="color: #665c5b; font-size: 16px; line-height: 1.6; margin-bottom: 30px;">Tu cuenta ha sido creada con éxito. Desde ahora podrás guardar tus prendas favoritas en tu <b>Lista de Deseos</b>, agilizar tu paso por caja y hacer seguimiento a todos tus envíos en tiempo real.</p>
+          <a href="https://www.poppyjeans.cl" style="display: inline-block; background-color: #8a4d4e; color: #FFFFFF; text-decoration: none; padding: 14px 35px; border-radius: 50px; font-weight: bold; font-size: 16px; letter-spacing: 1px; text-transform: uppercase;">Ir de Shopping</a>
       </div>
-      <div style="background-color: #F4F0EC; padding: 20px; text-align: center;">
-          <p style="color: #A09389; font-size: 12px; margin: 0;">© 2026 Mathsoluis. Ropa de Bebé Premium.</p>
+      <div style="background-color: #fcf9f9; padding: 20px; text-align: center;">
+          <p style="color: #665c5b; font-size: 12px; margin: 0;">© 2026 PoppyJeans. Moda Femenina Premium.</p>
       </div>
   </div>`;
 
   try {
     const resendRes = await fetch('https://api.resend.com/emails', {
       method: 'POST', headers: { 'Authorization': `Bearer ${env.RESEND_API_KEY}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ from: 'Mathsoluis <pedidos@mathsoluis.cl>', to: [email], subject: '¡Bienvenida a Mathsoluis! 💖', html: htmlContent })
+      body: JSON.stringify({ from: 'PoppyJeans <pedidos@poppyjeans.cl>', to: [email], subject: '¡Bienvenida a PoppyJeans! 💖', html: htmlContent })
     });
     if (!resendRes.ok) {
       const dataError = await resendRes.json().catch(async () => ({ raw: await resendRes.text() }));
@@ -202,10 +255,10 @@ async function sendOrderConfirmationEmail(env, customer, orderId, cart, total) {
                     ${imgCell}
                 </td>
                 <td style="padding: 15px 10px; border-bottom: 1px solid #FCEEF2;" valign="middle">
-                    <p style="margin: 0 0 5px 0; font-weight: bold; color: #8A7360; font-size: 15px; line-height: 1.3;">${item.name}</p>
-                    <p style="margin: 0; color: #A09389; font-size: 13px;">Cant: ${item.quantity}</p>
+                    <p style="margin: 0 0 5px 0; font-weight: bold; color: #8a4d4e; font-size: 15px; line-height: 1.3;">${item.name}</p>
+                    <p style="margin: 0; color: #665c5b; font-size: 13px;">Cant: ${item.quantity}</p>
                 </td>
-                <td style="padding: 15px 0; border-bottom: 1px solid #FCEEF2; text-align: right; font-weight: bold; color: #13C2B3; font-size: 16px;" valign="middle">
+                <td style="padding: 15px 0; border-bottom: 1px solid #F2E6E6; text-align: right; font-weight: bold; color: #8a4d4e; font-size: 16px;" valign="middle">
                     ${formatCurrency(item.price * item.quantity)}
                 </td>
             </tr>
@@ -213,30 +266,30 @@ async function sendOrderConfirmationEmail(env, customer, orderId, cart, total) {
   });
 
   const htmlContent = `
-    <div style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; max-width: 600px; margin: 0 auto; background-color: #FFF8F0; border: 1px solid #FCEEF2; border-radius: 16px; overflow: hidden;">
-        <div style="background-color: #FFFFFF; padding: 40px 30px; text-align: center; border-bottom: 2px solid #FCEEF2;">
-            <img src="${LOGO_URL}" alt="Mathsoluis" style="width: 100px; height: auto; border-radius: 10px; object-fit: contain; margin-bottom: 15px; display: block; margin-left: auto; margin-right: auto;" />
-            <h1 style="color: #8A7360; margin: 0; font-size: 32px; font-style: italic;">Mathsoluis</h1>
+    <div style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; max-width: 600px; margin: 0 auto; background-color: #FFFDF5; border: 1px solid #F2E6E6; border-radius: 16px; overflow: hidden;">
+        <div style="background-color: #FFFFFF; padding: 40px 30px; text-align: center; border-bottom: 2px solid #F2E6E6;">
+            <img src="${LOGO_URL}" alt="PoppyJeans" style="width: 100px; height: auto; border-radius: 10px; object-fit: contain; margin-bottom: 15px; display: block; margin-left: auto; margin-right: auto;" />
+            <h1 style="color: #8a4d4e; margin: 0; font-size: 32px; font-style: italic;">PoppyJeans</h1>
         </div>
         <div style="padding: 35px 30px;">
-            <h2 style="color: #8A7360; font-size: 22px; margin-top: 0; text-align: center;">¡Gracias por tu compra, ${primerNombre}! 🛍️</h2>
-            <p style="color: #A09389; font-size: 15px; text-align: center;">Hemos recibido tu pedido <strong style="color: #8A7360;">#${orderId}</strong> exitosamente y ya comenzamos a prepararlo con mucho amor.</p>
-            <div style="background-color: #FFFFFF; border-radius: 12px; padding: 25px; margin: 30px 0; border: 1px solid #FCEEF2; box-shadow: 0 4px 15px rgba(138, 115, 96, 0.05);">
-                <h3 style="color: #8A7360; font-size: 14px; margin-top: 0; border-bottom: 2px solid #FCEEF2; padding-bottom: 10px; text-transform: uppercase; letter-spacing: 1px;">Resumen de tu pedido</h3>
+            <h2 style="color: #8a4d4e; font-size: 22px; margin-top: 0; text-align: center;">¡Gracias por tu compra, ${primerNombre}! 🛍️</h2>
+            <p style="color: #665c5b; font-size: 15px; text-align: center;">Hemos recibido tu pedido <strong style="color: #8a4d4e;">#${orderId}</strong> exitosamente y ya comenzamos a prepararlo con mucho amor.</p>
+            <div style="background-color: #FFFFFF; border-radius: 12px; padding: 25px; margin: 30px 0; border: 1px solid #F2E6E6; box-shadow: 0 4px 15px rgba(138, 77, 78, 0.05);">
+                <h3 style="color: #8a4d4e; font-size: 14px; margin-top: 0; border-bottom: 2px solid #F2E6E6; padding-bottom: 10px; text-transform: uppercase; letter-spacing: 1px;">Resumen de tu pedido</h3>
                 <table width="100%" cellpadding="0" cellspacing="0" style="border-collapse: collapse; margin-top: 10px;">
                     ${itemsHtml}
                 </table>
-                <div style="text-align: right; margin-top: 20px; font-size: 18px; font-weight: bold; color: #8A7360;">
-                    Total Pagado: <span style="color: #13C2B3; margin-left: 10px;">${formatCurrency(total)}</span>
+                <div style="text-align: right; margin-top: 20px; font-size: 18px; font-weight: bold; color: #8a4d4e;">
+                    Total Pagado: <span style="color: #8a4d4e; margin-left: 10px;">${formatCurrency(total)}</span>
                 </div>
             </div>
-            <div style="background-color: #EAF5FA; border-radius: 12px; padding: 25px; margin-bottom: 35px; border: 1px solid #92CBE6;">
-                <h3 style="color: #2874A6; font-size: 14px; margin-top: 0; margin-bottom: 15px; text-transform: uppercase; letter-spacing: 1px;">Datos de Despacho</h3>
-                <p style="margin: 0 0 5px 0; color: #2874A6; font-size: 14px;"><strong>Dirección:</strong> ${customer.direccion || 'Retiro en Tienda'}</p>
-                <p style="margin: 0 0 5px 0; color: #2874A6; font-size: 14px;"><strong>Comuna:</strong> ${customer.comuna || '-'}</p>
-                <p style="margin: 0; color: #2874A6; font-size: 14px;"><strong>Región:</strong> ${customer.region || '-'}</p>
+            <div style="background-color: #FFFDF5; border-radius: 12px; padding: 25px; margin-bottom: 35px; border: 1px solid #d7c2c1;">
+                <h3 style="color: #8a4d4e; font-size: 14px; margin-top: 0; margin-bottom: 15px; text-transform: uppercase; letter-spacing: 1px;">Datos de Despacho</h3>
+                <p style="margin: 0 0 5px 0; color: #665c5b; font-size: 14px;"><strong>Dirección:</strong> ${customer.direccion || 'Retiro en Tienda'}</p>
+                <p style="margin: 0 0 5px 0; color: #665c5b; font-size: 14px;"><strong>Comuna:</strong> ${customer.comuna || '-'}</p>
+                <p style="margin: 0; color: #665c5b; font-size: 14px;"><strong>Región:</strong> ${customer.region || '-'}</p>
             </div>
-            <p style="color: #A09389; font-size: 14px; text-align: center; font-style: italic; margin-bottom: 30px;">Te enviaremos otro correo cuando tu pedido vaya en camino junto a tu código de seguimiento.</p>
+            <p style="color: #665c5b; font-size: 14px; text-align: center; font-style: italic; margin-bottom: 30px;">Te enviaremos otro correo cuando tu pedido vaya en camino junto a tu código de seguimiento.</p>
             <table width="100%" cellpadding="0" cellspacing="0" style="border-collapse: collapse; margin-bottom: 10px;">
                 <tr>
                     <td align="center" style="padding-bottom: 15px;">
@@ -245,20 +298,20 @@ async function sendOrderConfirmationEmail(env, customer, orderId, cart, total) {
                 </tr>
                 <tr>
                     <td align="center">
-                        <a href="https://www.instagram.com/mathsoluis/" target="_blank" style="display: inline-block; background-color: #13C2B3; color: #FFFFFF; text-decoration: none; padding: 14px 25px; border-radius: 50px; font-weight: bold; font-size: 14px; width: 220px; text-align: center;">📸 Seguir en Instagram</a>
+                        <a href="https://www.instagram.com/poppyjeans/" target="_blank" style="display: inline-block; background-color: #8a4d4e; color: #FFFFFF; text-decoration: none; padding: 14px 25px; border-radius: 50px; font-weight: bold; font-size: 14px; width: 220px; text-align: center;">📸 Seguir en Instagram</a>
                     </td>
                 </tr>
             </table>
         </div>
-        <div style="background-color: #F4F0EC; padding: 20px; text-align: center;">
-            <p style="color: #A09389; font-size: 12px; margin: 0;">© 2026 Mathsoluis. Ropa de Bebé Premium.</p>
+        <div style="background-color: #fcf9f9; padding: 20px; text-align: center;">
+            <p style="color: #665c5b; font-size: 12px; margin: 0;">© 2026 PoppyJeans. Moda Femenina Premium.</p>
         </div>
     </div>`;
 
   try {
     const resendRes = await fetch('https://api.resend.com/emails', {
       method: 'POST', headers: { 'Authorization': `Bearer ${env.RESEND_API_KEY}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ from: 'Mathsoluis <pedidos@mathsoluis.cl>', to: [customer.email], subject: `Confirmación de Pedido #${orderId} 💖`, html: htmlContent })
+      body: JSON.stringify({ from: 'PoppyJeans <pedidos@poppyjeans.cl>', to: [customer.email], subject: `Confirmación de Pedido #${orderId} 💖`, html: htmlContent })
     });
     if (!resendRes.ok) {
       const dataError = await resendRes.json().catch(async () => ({ raw: await resendRes.text() }));
@@ -268,7 +321,8 @@ async function sendOrderConfirmationEmail(env, customer, orderId, cart, total) {
 }
 
 // 3. Correo de Cambio de Estado de Pedido
-async function sendOrderStatusChangeEmail(env, order, customerEmail, customerName) {
+// 3. Correo de Cambio de Estado de Pedido
+async function sendOrderStatusChangeEmail(env, order, customerEmail, customerName, customerNote = '') {
   if (!env.RESEND_API_KEY) return;
 
   const primerNombre = (customerName || 'Cliente').split(' ')[0];
@@ -277,8 +331,9 @@ async function sendOrderStatusChangeEmail(env, order, customerEmail, customerNam
 
   const statusLabels = {
     'Pendiente': { label: 'Pendiente de Pago', emoji: '🟡', color: '#D4AC0D', bg: '#FEF9E7' },
-    'Pagado': { label: 'Pago Confirmado', emoji: '🔵', color: '#13C2B3', bg: '#E0F6F5' },
+    'Pagado': { label: 'Pago Confirmado', emoji: '🔵', color: '#8a4d4e', bg: '#ffdad9' },
     'Preparando': { label: 'En Preparación', emoji: '🟣', color: '#8E44AD', bg: '#F4ECF7' },
+    'En Tránsito': { label: 'En Tránsito', emoji: '🚛', color: '#2980B9', bg: '#EBF5FB' },
     'Enviado': { label: 'En Camino', emoji: '🚚', color: '#1ABC9C', bg: '#E8F8F5' },
     'Entregado': { label: 'Entregado', emoji: '✅', color: '#27AE60', bg: '#EAFAF1' },
     'Cancelado': { label: 'Cancelado', emoji: '🔴', color: '#E74C3C', bg: '#FDEDEC' },
@@ -287,7 +342,8 @@ async function sendOrderStatusChangeEmail(env, order, customerEmail, customerNam
     'Pendiente': 'Tu pedido está pendiente de confirmación de pago.',
     'Pagado': '¡Tu pago ha sido confirmado! Ya comenzamos a revisar tu pedido.',
     'Preparando': '¡Estamos preparando tu pedido con mucho amor y cuidado!',
-    'Enviado': '¡Tu pedido está en camino! Ya fue despachado y pronto llegará a tus manos.',
+    'En Tránsito': '¡Tu pedido se encuentra en tránsito! Ya va en camino hacia la comuna de destino.',
+    'Enviado': '¡Tu pedido fue despachado y pronto llegará a tus manos!',
     'Entregado': '¡Tu pedido fue entregado! Esperamos que les encanten las prendas.',
     'Cancelado': 'Tu pedido ha sido cancelado. Si tienes preguntas, contáctanos.',
   };
@@ -295,18 +351,19 @@ async function sendOrderStatusChangeEmail(env, order, customerEmail, customerNam
     'Pendiente': `Pedido #${orderId} — Pendiente de Pago`,
     'Pagado': `¡Pedido #${orderId} confirmado! 💖`,
     'Preparando': `Tu pedido #${orderId} está en preparación 🎀`,
+    'En Tránsito': `Tu pedido #${orderId} está en tránsito 🚛`,
     'Enviado': `¡Tu pedido #${orderId} está en camino! 🚚`,
     'Entregado': `¡Pedido #${orderId} entregado con éxito! ✨`,
     'Cancelado': `Pedido #${orderId} cancelado`,
   };
 
-  const si = statusLabels[estado] || { label: estado, emoji: '📦', color: '#8A7360', bg: '#FFF8F0' };
+  const si = statusLabels[estado] || { label: estado, emoji: '📦', color: '#8a4d4e', bg: '#FFFDF5' };
   const statusMsg = statusMessages[estado] || 'El estado de tu pedido ha sido actualizado.';
   const subject = subjectLabels[estado] || `Actualización de tu pedido #${orderId}`;
 
-  // Bloque de tracking — solo si está Enviado y tiene número
+  // Bloque de tracking — si está Enviado o En Tránsito y tiene número
   let trackingHtml = '';
-  if (estado === 'Enviado' && order.tracking_code) {
+  if ((estado === 'Enviado' || estado === 'En Tránsito') && order.tracking_code) {
     const tc = order.tracking_code;
     const courier = order.courier || '';
     const courierUrls = {
@@ -319,48 +376,64 @@ async function sendOrderStatusChangeEmail(env, order, customerEmail, customerNam
 
     if (trackingUrl) {
       trackingHtml = `
-            <div style="text-align:center; margin:30px 0;">
-                <p style="color:#A09389; font-size:14px; margin-bottom:5px;">Tu número de seguimiento:</p>
-                <p style="font-family:monospace; font-size:20px; font-weight:bold; color:#8A7360; margin:0 0 20px 0; letter-spacing:2px;">${tc}</p>
-                <a href="${trackingUrl}" target="_blank" style="display:inline-block; background-color:#13C2B3; color:#FFFFFF; text-decoration:none; padding:16px 40px; border-radius:50px; font-weight:bold; font-size:15px; letter-spacing:1px;">🔍 Rastrear con ${courier}</a>
+            <div style="text-align:center; margin:25px 0;">
+                <p style="color:#665c5b; font-size:14px; margin-bottom:5px;">Tu número de seguimiento:</p>
+                <p style="font-family:monospace; font-size:20px; font-weight:bold; color:#8a4d4e; margin:0 0 15px 0; letter-spacing:2px;">${tc}</p>
+                <a href="${trackingUrl}" target="_blank" style="display:inline-block; background-color:#8a4d4e; color:#FFFFFF; text-decoration:none; padding:14px 35px; border-radius:50px; font-weight:bold; font-size:14px; letter-spacing:1px;">🔍 Rastrear con ${courier}</a>
             </div>`;
     } else {
       trackingHtml = `
-            <div style="text-align:center; margin:30px 0; background:#F4F0EC; border-radius:12px; padding:20px; border:1px solid #E8E0D8;">
-                <p style="color:#A09389; font-size:14px; margin-bottom:5px;">Tu número de seguimiento:</p>
-                <p style="font-family:monospace; font-size:22px; font-weight:bold; color:#8A7360; margin:0; letter-spacing:2px;">${tc}</p>
-                ${courier && courier !== 'Otro' ? `<p style="color:#A09389; font-size:13px; margin:10px 0 0 0;">Courier: ${courier}</p>` : ''}
+            <div style="text-align:center; margin:25px 0; background:#fcf9f9; border-radius:12px; padding:20px; border:1px solid #F2E6E6;">
+                <p style="color:#665c5b; font-size:14px; margin-bottom:5px;">Tu número de seguimiento:</p>
+                <p style="font-family:monospace; font-size:22px; font-weight:bold; color:#8a4d4e; margin:0; letter-spacing:2px;">${tc}</p>
+                ${courier && courier !== 'Otro' ? `<p style="color:#665c5b; font-size:13px; margin:10px 0 0 0;">Courier: ${courier}</p>` : ''}
             </div>`;
     }
   }
 
+  // Bloque de nota para el cliente
+  let customerNoteHtml = '';
+  if (customerNote && String(customerNote).trim()) {
+    const escapedNote = String(customerNote)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/\n/g, '<br>');
+    customerNoteHtml = `
+      <div style="background-color:#FDF8F7; border-left:4px solid #8a4d4e; padding:16px; border-radius:10px; margin:20px 0; text-align:left;">
+          <p style="margin:0 0 6px 0; font-size:12px; font-weight:bold; color:#8a4d4e; text-transform:uppercase; letter-spacing:1px;">✉️ Mensaje de Poppy Jeans:</p>
+          <p style="margin:0; font-size:14px; color:#211a19; line-height:1.6;">${escapedNote}</p>
+      </div>`;
+  }
+
   const htmlContent = `
-    <div style="font-family:'Helvetica Neue',Helvetica,Arial,sans-serif; max-width:600px; margin:0 auto; background-color:#FFF8F0; border:1px solid #FCEEF2; border-radius:16px; overflow:hidden;">
-        <div style="background-color:#FFFFFF; padding:40px 30px; text-align:center; border-bottom:2px solid #FCEEF2;">
-            <img src="${LOGO_URL}" alt="Mathsoluis" style="width:100px; height:auto; border-radius:10px; object-fit:contain; margin-bottom:15px; display:block; margin-left:auto; margin-right:auto;" />
-            <h1 style="color:#8A7360; margin:0; font-size:32px; font-style:italic;">Mathsoluis</h1>
+    <div style="font-family:'Helvetica Neue',Helvetica,Arial,sans-serif; max-width:600px; margin:0 auto; background-color:#FFFDF5; border:1px solid #F2E6E6; border-radius:16px; overflow:hidden;">
+        <div style="background-color:#FFFFFF; padding:35px 30px; text-align:center; border-bottom:2px solid #F2E6E6;">
+            <img src="${LOGO_URL}" alt="PoppyJeans" style="width:100px; height:auto; border-radius:10px; object-fit:contain; margin-bottom:15px; display:block; margin-left:auto; margin-right:auto;" />
+            <h1 style="color:#8a4d4e; margin:0; font-size:32px; font-style:italic;">PoppyJeans</h1>
         </div>
-        <div style="padding:40px 30px; text-align:center;">
+        <div style="padding:35px 30px; text-align:center;">
             <div style="display:inline-block; background-color:${si.bg}; color:${si.color}; padding:10px 25px; border-radius:50px; font-weight:bold; font-size:15px; margin-bottom:25px; border:1px solid ${si.color};">
                 ${si.emoji} ${si.label}
             </div>
-            <h2 style="color:#8A7360; font-size:22px; margin-top:0;">Actualización de tu pedido #${orderId}</h2>
-            <p style="color:#A09389; font-size:16px; line-height:1.6; margin-bottom:10px;">Hola <strong style="color:#8A7360;">${primerNombre}</strong>,</p>
-            <p style="color:#A09389; font-size:15px; line-height:1.6; margin-bottom:25px;">${statusMsg}</p>
+            <h2 style="color:#8a4d4e; font-size:22px; margin-top:0;">Actualización de tu pedido #${orderId}</h2>
+            <p style="color:#665c5b; font-size:16px; line-height:1.6; margin-bottom:10px;">Hola <strong style="color:#8a4d4e;">${primerNombre}</strong>,</p>
+            <p style="color:#665c5b; font-size:15px; line-height:1.6; margin-bottom:15px;">${statusMsg}</p>
+            ${customerNoteHtml}
             ${trackingHtml}
         </div>
         <div style="padding:0 30px 30px 30px; text-align:center;">
             <a href="https://wa.me/56930338773" target="_blank" style="display:inline-block; background-color:#25D366; color:#FFFFFF; text-decoration:none; padding:14px 25px; border-radius:50px; font-weight:bold; font-size:14px;">💬 ¿Tienes preguntas? Escríbenos</a>
         </div>
-        <div style="background-color:#F4F0EC; padding:20px; text-align:center;">
-            <p style="color:#A09389; font-size:12px; margin:0;">© 2026 Mathsoluis. Ropa de Bebé Premium.</p>
+        <div style="background-color:#fcf9f9; padding:20px; text-align:center;">
+            <p style="color:#665c5b; font-size:12px; margin:0;">© 2026 PoppyJeans. Moda Femenina Premium.</p>
         </div>
     </div>`;
 
   try {
     const resendRes = await fetch('https://api.resend.com/emails', {
       method: 'POST', headers: { 'Authorization': `Bearer ${env.RESEND_API_KEY}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ from: 'Mathsoluis <pedidos@mathsoluis.cl>', to: [customerEmail], subject, html: htmlContent })
+      body: JSON.stringify({ from: 'PoppyJeans <pedidos@poppyjeans.cl>', to: [customerEmail], subject, html: htmlContent })
     });
     if (!resendRes.ok) {
       const dataError = await resendRes.json().catch(async () => ({ raw: await resendRes.text() }));
@@ -379,23 +452,145 @@ async function logActivity(env, adminName, action, entityType, entityId, details
 }
 
 const corsHeaders = {
-  "Access-Control-Allow-Origin": "*", // TODO: cambiar a "https://www.mathsoluis.cl" en producción
+  "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
-  "Access-Control-Allow-Headers": "Content-Type, Authorization",
+  "Access-Control-Allow-Headers": "Content-Type, Authorization, X-Customer-Token",
 };
 
 // Respuesta de error de autenticación estándar
-const unauthorizedResponse = () => Response.json(
+const unauthorizedResponse = (headers) => Response.json(
   { success: false, error: "No autorizado. Sesión inválida o expirada." },
-  { status: 401, headers: corsHeaders }
+  { status: 401, headers: headers || corsHeaders }
 );
+
+let dbInitialized = false;
+
+async function ensureSchema(env) {
+  if (dbInitialized) return;
+  try {
+    // 1. Crear tabla Coupons
+    await env.DB.prepare(`
+      CREATE TABLE IF NOT EXISTS Coupons (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        codigo TEXT UNIQUE NOT NULL,
+        descuento_porcentaje REAL NOT NULL,
+        activo INTEGER DEFAULT 1,
+        mostrar_en_banner INTEGER DEFAULT 0,
+        fecha_inicio TEXT,
+        fecha_fin TEXT,
+        productos_ids TEXT,
+        fecha_creacion TEXT DEFAULT CURRENT_TIMESTAMP
+      )
+    `).run();
+
+    // 1.5. Crear tabla CustomerSessions
+    await env.DB.prepare(`
+      CREATE TABLE IF NOT EXISTS CustomerSessions (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        token TEXT NOT NULL UNIQUE,
+        customer_id INTEGER NOT NULL,
+        expires_at DATETIME NOT NULL,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (customer_id) REFERENCES Customers(id) ON DELETE CASCADE
+      )
+    `).run();
+
+    // 2. Modificar tabla Orders de forma defensiva
+    try {
+      await env.DB.prepare("ALTER TABLE Orders ADD COLUMN coupon_code TEXT").run();
+    } catch (_) {}
+    try {
+      await env.DB.prepare("ALTER TABLE Orders ADD COLUMN discount_amount REAL DEFAULT 0").run();
+    } catch (_) {}
+
+    try {
+      await env.DB.prepare("ALTER TABLE Products ADD COLUMN bestseller INTEGER DEFAULT 0").run();
+    } catch (_) {}
+    try {
+      await env.DB.prepare("ALTER TABLE Products ADD COLUMN video_url TEXT").run();
+    } catch (_) {}
+    try {
+      await env.DB.prepare("ALTER TABLE Products ADD COLUMN is_clearance INTEGER DEFAULT 0").run();
+    } catch (_) {}
+    try {
+      await env.DB.prepare("ALTER TABLE ProductVariants ADD COLUMN video_url TEXT").run();
+    } catch (_) {}
+
+    dbInitialized = true;
+  } catch (err) {
+    console.error("Error al inicializar esquema de base de datos:", err);
+  }
+}
 
 export default {
   async fetch(request, env, ctx) {
+    // Dynamic CORS Headers for the current request
+    const origin = request.headers.get("Origin") || "";
+    let allowedOrigin = "https://www.poppyjeans.cl";
+    if (
+      origin === "https://www.poppyjeans.cl" ||
+      origin === "https://poppyjeans.cl" ||
+      origin.startsWith("http://localhost:") ||
+      origin.startsWith("http://127.0.0.1:") ||
+      origin.startsWith("file://")
+    ) {
+      allowedOrigin = origin;
+    }
+    const corsHeaders = {
+      "Access-Control-Allow-Origin": allowedOrigin,
+      "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
+      "Access-Control-Allow-Headers": "Content-Type, Authorization, X-Customer-Token",
+    };
+
+    await ensureSchema(env);
     const url = new URL(request.url);
 
     if (request.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
-    if (url.pathname === "/" && request.method === "GET") return new Response("¡API de Mathsoluis Operativa!", { status: 200, headers: corsHeaders });
+    if (url.pathname === "/" && request.method === "GET") return new Response("¡API de PoppyJeans Operativa!", { status: 200, headers: corsHeaders });
+
+    // Servir imágenes y videos de R2 directamente a través del Worker
+    if (url.pathname.startsWith("/images/") && request.method === "GET") {
+      try {
+        if (!env.IMAGES) return new Response("R2 not configured", { status: 500, headers: corsHeaders });
+        const key = decodeURIComponent(url.pathname.substring(8)); // quitar "/images/"
+        const rangeHeader = request.headers.get("Range");
+        const headers = new Headers();
+
+        if (rangeHeader) {
+          const match = rangeHeader.match(/bytes=(\d+)-(\d+)?/);
+          if (match) {
+            const start = parseInt(match[1], 10);
+            const end = match[2] ? parseInt(match[2], 10) : undefined;
+            const object = await env.IMAGES.get(key, { 
+              range: { offset: start, length: end !== undefined ? (end - start + 1) : undefined } 
+            });
+            if (object) {
+              object.writeHttpMetadata(headers);
+              headers.set("Access-Control-Allow-Origin", "*");
+              headers.set("Content-Range", `bytes ${start}-${end !== undefined ? end : (object.size - 1)}/${object.size}`);
+              headers.set("Accept-Ranges", "bytes");
+              if (!headers.has("Cache-Control")) {
+                headers.set("Cache-Control", "public, max-age=31536000, immutable");
+              }
+              return new Response(object.body, { status: 206, headers });
+            }
+          }
+        }
+
+        const object = await env.IMAGES.get(key);
+        if (!object) return new Response("Image Not Found", { status: 404, headers: corsHeaders });
+
+        object.writeHttpMetadata(headers);
+        headers.set("Access-Control-Allow-Origin", "*");
+        headers.set("Accept-Ranges", "bytes");
+        if (!headers.has("Cache-Control")) {
+          headers.set("Cache-Control", "public, max-age=31536000, immutable");
+        }
+        return new Response(object.body, { headers });
+      } catch (error) {
+        return new Response(error.message, { status: 500, headers: corsHeaders });
+      }
+    }
 
     // ========================================================================
     // A. MÓDULO E-COMMERCE: AUTENTICACIÓN Y CHECKOUT (rutas públicas)
@@ -417,7 +612,8 @@ export default {
         } else if (!customer.google_id) {
           await env.DB.prepare("UPDATE Customers SET google_id = ? WHERE email = ?").bind(googleId, email).run();
         }
-        return Response.json({ success: true, customer: { id: customer.id, nombre: customer.nombre, email: customer.email } }, { headers: corsHeaders });
+        const sessionToken = await createCustomerSession(env, customer.id);
+        return Response.json({ success: true, token: sessionToken, customer: { id: customer.id, nombre: customer.nombre, email: customer.email } }, { headers: corsHeaders });
       } catch (error) { return Response.json({ success: false, error: error.message }, { status: 500, headers: corsHeaders }); }
     }
 
@@ -429,9 +625,11 @@ export default {
 
         const hashedPass = await hashPassword(password);
         const info = await env.DB.prepare("INSERT INTO Customers (nombre, email, password_hash) VALUES (?, ?, ?)").bind(nombre, email, hashedPass).run();
+        const customerId = info.meta.last_row_id;
         ctx.waitUntil(sendWelcomeEmail(env, email, nombre));
 
-        return Response.json({ success: true, customer: { id: info.meta.last_row_id, nombre, email } }, { headers: corsHeaders });
+        const sessionToken = await createCustomerSession(env, customerId);
+        return Response.json({ success: true, token: sessionToken, customer: { id: customerId, nombre, email } }, { headers: corsHeaders });
       } catch (error) { return Response.json({ success: false, error: error.message }, { status: 500, headers: corsHeaders }); }
     }
 
@@ -445,7 +643,8 @@ export default {
         const hashedPass = await hashPassword(password);
         if (customer.password_hash !== hashedPass) return Response.json({ success: false, error: "Correo o contraseña incorrectos." }, { status: 401, headers: corsHeaders });
 
-        return Response.json({ success: true, customer: { id: customer.id, nombre: customer.nombre, email: customer.email, telefono: customer.telefono, direccion: customer.direccion, comuna: customer.comuna, region: customer.region } }, { headers: corsHeaders });
+        const sessionToken = await createCustomerSession(env, customer.id);
+        return Response.json({ success: true, token: sessionToken, customer: { id: customer.id, nombre: customer.nombre, email: customer.email, telefono: customer.telefono, direccion: customer.direccion, comuna: customer.comuna, region: customer.region } }, { headers: corsHeaders });
       } catch (error) { return Response.json({ success: false, error: error.message }, { status: 500, headers: corsHeaders }); }
     }
 
@@ -492,9 +691,156 @@ export default {
       }
     }
 
+    // ---- PERSONAL SHOPPER CHATPROXY ----
+    if (url.pathname === "/api/chat" && request.method === "POST") {
+      try {
+        const { message, catalog } = await request.json();
+        if (!message) {
+          return Response.json({ success: false, error: "Falta el mensaje." }, { status: 400, headers: corsHeaders });
+        }
+
+        const apiKey = env.GEMINI_API_KEY;
+        if (!apiKey) {
+          return Response.json({ success: false, error: "Personal Shopper temporalmente fuera de servicio." }, { status: 503, headers: corsHeaders });
+        }
+
+        const systemPrompt = `Eres un Personal Shopper de Poppy Jeans. Catálogo JSON: ${JSON.stringify(catalog || [])}. Consulta del cliente: "${message}". Recomienda 1 o 2 productos exactos. Menciona las tallas y colores que tenemos disponibles según el catálogo. Usa un formato de lista en HTML simple. Sé cordial y empático.`;
+        const payload = { 
+          contents: [{ parts: [{ text: message }] }], 
+          systemInstruction: { parts: [{ text: systemPrompt }] } 
+        };
+
+        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+
+        const data = await response.json();
+        if (data.candidates && data.candidates[0] && data.candidates[0].content && data.candidates[0].content.parts[0]) {
+          return Response.json({ success: true, text: data.candidates[0].content.parts[0].text }, { headers: corsHeaders });
+        } else {
+          return Response.json({ success: false, error: "No se pudo generar respuesta.", details: data }, { status: 502, headers: corsHeaders });
+        }
+      } catch (error) {
+        return Response.json({ success: false, error: error.message }, { status: 500, headers: corsHeaders });
+      }
+    }
+
+    // ---- VER BANNER DE CUPÓN DE DESCUENTO ACTIVO ----
+    if (url.pathname === "/api/coupons/banner" && request.method === "GET") {
+      try {
+        const nowIso = new Date().toISOString();
+        const query = `
+          SELECT * FROM Coupons 
+          WHERE activo = 1 AND mostrar_en_banner = 1
+          ORDER BY id DESC
+        `;
+        const { results } = await env.DB.prepare(query).all();
+        
+        const validCoupon = (results || []).find(coupon => {
+          if (coupon.fecha_inicio && nowIso < coupon.fecha_inicio) return false;
+          if (coupon.fecha_fin && nowIso > coupon.fecha_fin) return false;
+          return true;
+        });
+
+        if (validCoupon) {
+          return Response.json({ 
+            success: true, 
+            coupon: {
+              codigo: validCoupon.codigo,
+              descuento_porcentaje: validCoupon.descuento_porcentaje,
+              fecha_fin: validCoupon.fecha_fin,
+              productos_ids: validCoupon.productos_ids
+            }
+          }, { headers: corsHeaders });
+        }
+        
+        return Response.json({ success: true, coupon: null }, { headers: corsHeaders });
+      } catch (error) {
+        return Response.json({ success: false, error: error.message }, { status: 500, headers: corsHeaders });
+      }
+    }
+
+    // ---- VALIDAR CUPÓN DE DESCUENTO ----
+    if (url.pathname === "/api/coupons/validate" && request.method === "POST") {
+      try {
+        const { code, cart } = await request.json();
+        if (!code) {
+          return Response.json({ success: false, error: "invalid_code", message: "Código de cupón requerido." }, { status: 400, headers: corsHeaders });
+        }
+
+        const coupon = await env.DB.prepare("SELECT * FROM Coupons WHERE codigo = ?").bind(code.trim().toUpperCase()).first();
+        if (!coupon) {
+          return Response.json({ success: false, error: "not_found", message: "El cupón ingresado no existe." }, { headers: corsHeaders });
+        }
+
+        if (coupon.activo !== 1) {
+          return Response.json({ success: false, error: "inactive", message: "Este cupón se encuentra inactivo." }, { headers: corsHeaders });
+        }
+
+        const nowIso = new Date().toISOString();
+        if (coupon.fecha_inicio && nowIso < coupon.fecha_inicio) {
+          return Response.json({ success: false, error: "not_started", message: "Este cupón aún no está disponible para su uso." }, { headers: corsHeaders });
+        }
+
+        if (coupon.fecha_fin && nowIso > coupon.fecha_fin) {
+          return Response.json({ success: false, error: "expired", message: "Este cupón ha expirado." }, { headers: corsHeaders });
+        }
+
+        let applyToAll = true;
+        let allowedProductIds = [];
+        if (coupon.productos_ids) {
+          try {
+            allowedProductIds = JSON.parse(coupon.productos_ids);
+            if (Array.isArray(allowedProductIds) && allowedProductIds.length > 0) {
+              applyToAll = false;
+            }
+          } catch (e) {}
+        }
+
+        let eligibleItems = [];
+        if (!applyToAll) {
+          if (!Array.isArray(cart) || cart.length === 0) {
+            return Response.json({ success: false, error: "empty_cart", message: "El carrito está vacío." }, { headers: corsHeaders });
+          }
+
+          cart.forEach(item => {
+            const parts = item.id.split('_');
+            const originalProductId = parseInt(parts[1], 10);
+            
+            if (allowedProductIds.includes(originalProductId)) {
+              eligibleItems.push(item.id);
+            }
+          });
+
+          if (eligibleItems.length === 0) {
+            return Response.json({ 
+              success: false, 
+              error: "no_matching_products", 
+              message: "Este cupón no aplica a los productos en tu carrito." 
+            }, { headers: corsHeaders });
+          }
+        }
+
+        return Response.json({
+          success: true,
+          coupon: {
+            codigo: coupon.codigo,
+            descuento_porcentaje: coupon.descuento_porcentaje,
+            apply_to_all: applyToAll,
+            eligible_items: applyToAll ? null : eligibleItems
+          }
+        }, { headers: corsHeaders });
+
+      } catch (error) {
+        return Response.json({ success: false, error: error.message }, { status: 500, headers: corsHeaders });
+      }
+    }
+
     if (url.pathname === "/api/checkout" && request.method === "POST") {
       try {
-        const { customer, cart, total, shipping_cost, resume_order_id } = await request.json();
+        const { customer, cart, total, shipping_cost, resume_order_id, coupon_code, discount_amount } = await request.json();
 
         let cust = await env.DB.prepare("SELECT id FROM Customers WHERE email = ?").bind(customer.email).first();
         let customerId;
@@ -584,12 +930,13 @@ export default {
           if (!estResume.includes('pendiente') && !estResume.includes('sin pagar')) {
             return Response.json({ success: false, error: `La orden #${resume_order_id} ya no está pendiente de pago (estado actual: ${existing.estado}).` }, { status: 409, headers: corsHeaders });
           }
-          await env.DB.prepare("UPDATE Orders SET total = ?, shipping_cost = ? WHERE id = ?")
-            .bind(total, shippingCostSafe, resume_order_id).run();
+          await env.DB.prepare("UPDATE Orders SET total = ?, shipping_cost = ?, coupon_code = ?, discount_amount = ? WHERE id = ?")
+            .bind(total, shippingCostSafe, coupon_code || null, discount_amount || 0, resume_order_id).run();
           orderId = resume_order_id;
         } else {
           // La orden nace 'Pendiente'. Solo pasa a 'Pagado' tras la confirmación AUTHORIZED en /api/checkout/confirm.
-          const orderInfo = await env.DB.prepare("INSERT INTO Orders (customer_id, total, shipping_cost, estado) VALUES (?, ?, ?, 'Pendiente')").bind(customerId, total, shippingCostSafe).run();
+          const orderInfo = await env.DB.prepare("INSERT INTO Orders (customer_id, total, shipping_cost, estado, coupon_code, discount_amount) VALUES (?, ?, ?, 'Pendiente', ?, ?)")
+            .bind(customerId, total, shippingCostSafe, coupon_code || null, discount_amount || 0).run();
           orderId = orderInfo.meta.last_row_id;
 
           if (cart && cart.length > 0) {
@@ -625,10 +972,10 @@ export default {
           }
         }
 
-        // Crear transacción en Webpay Plus (entorno PRODUCCIÓN).
-        const TBK_API_KEY_ID = env.TBK_API_KEY_ID || '597051224463';
-        const TBK_API_KEY_SECRET = env.TBK_API_KEY_SECRET || '965fcf2f-2643-4528-be8e-7ef702b558c5';
-        const TBK_BASE = env.TBK_BASE_URL || 'https://webpay3g.transbank.cl/rswebpaytransaction/api/webpay/v1.2/transactions';
+        // Crear transacción en Webpay Plus (Entorno INTEGRACIÓN / CERTIFICACIÓN: 597055555532).
+        const TBK_API_KEY_ID = env.TBK_API_KEY_ID || '597055555532';
+        const TBK_API_KEY_SECRET = env.TBK_API_KEY_SECRET || '579B532A7440BB073079DED9C2057531B637B46CA258066D6F53892613F3751E';
+        const TBK_BASE = env.TBK_BASE_URL || 'https://webpay3gint.transbank.cl/rswebpaytransaction/api/webpay/v1.2/transactions';
 
         const tbkRes = await fetch(TBK_BASE, {
           method: 'POST',
@@ -667,16 +1014,16 @@ export default {
           } catch (_) { }
         }
 
-        const FRONTEND_URL = env.FRONTEND_URL || 'https://mathsoluis.cl';
+        const FRONTEND_URL = env.FRONTEND_URL || 'https://poppyjeans.cl';
 
         // Pago abortado por el usuario o token ausente.
         if (!token_ws) {
           return Response.redirect(FRONTEND_URL + "/checkout.html?status=aborted", 302);
         }
 
-        const TBK_API_KEY_ID = env.TBK_API_KEY_ID || '597051224463';
-        const TBK_API_KEY_SECRET = env.TBK_API_KEY_SECRET || '965fcf2f-2643-4528-be8e-7ef702b558c5';
-        const TBK_BASE = env.TBK_BASE_URL || 'https://webpay3g.transbank.cl/rswebpaytransaction/api/webpay/v1.2/transactions';
+        const TBK_API_KEY_ID = env.TBK_API_KEY_ID || '597055555532';
+        const TBK_API_KEY_SECRET = env.TBK_API_KEY_SECRET || '579B532A7440BB073079DED9C2057531B637B46CA258066D6F53892613F3751E';
+        const TBK_BASE = env.TBK_BASE_URL || 'https://webpay3gint.transbank.cl/rswebpaytransaction/api/webpay/v1.2/transactions';
 
         const confirmRes = await fetch(`${TBK_BASE}/${token_ws}`, {
           method: 'PUT',
@@ -928,7 +1275,17 @@ export default {
         } else {
           whereConditions.push('(p.is_pack = 0 OR p.is_pack IS NULL)');
         }
-        // Filtro Cyber Day: solo productos marcados como en oferta
+        // Filtro Bestseller: solo productos marcados como bestseller
+        const bestsellerParam = url.searchParams.get('bestseller');
+        if (bestsellerParam === '1') {
+          whereConditions.push('p.bestseller = 1');
+        }
+        // Filtro Liquidación: solo productos en liquidación
+        const clearanceParam = url.searchParams.get('clearance') || url.searchParams.get('is_clearance');
+        if (clearanceParam === '1' || clearanceParam === 'true') {
+          whereConditions.push('p.is_clearance = 1');
+        }
+        // Filtro Cyber Day / Ofertas: solo productos marcados como en oferta
         if (isSaleParam === '1') {
           whereConditions.push('p.en_oferta = 1');
         }
@@ -965,7 +1322,7 @@ export default {
           const placeholders = ids.map(() => '?').join(',');
           try {
             variants = (await env.DB.prepare(
-              `SELECT id, product_id, color_name, color_hex, tallas, stock, imagen_1,
+              `SELECT id, product_id, color_name, color_hex, tallas, stock, imagen_1, video_url,
                          ((CASE WHEN imagen_1 IS NOT NULL AND imagen_1 != '' THEN 1 ELSE 0 END) +
                           (CASE WHEN imagen_2 IS NOT NULL AND imagen_2 != '' THEN 1 ELSE 0 END) +
                           (CASE WHEN imagen_3 IS NOT NULL AND imagen_3 != '' THEN 1 ELSE 0 END) +
@@ -1025,7 +1382,17 @@ export default {
 
     if (url.pathname === "/api/categories" && request.method === "GET") {
       try {
-        const { results } = await env.DB.prepare("SELECT * FROM Categories").all();
+        let { results } = await env.DB.prepare("SELECT * FROM Categories").all();
+        if (results) {
+          if (!results.some(c => Number(c.id) === 6 || (c.slug && c.slug.toLowerCase() === 'poleras'))) {
+            try { await env.DB.prepare("INSERT INTO Categories (id, nombre, slug) VALUES (6, 'Poleras', 'poleras')").run(); } catch(e) {}
+          }
+          if (!results.some(c => Number(c.id) === 7 || (c.slug && c.slug.toLowerCase() === 'bodys'))) {
+            try { await env.DB.prepare("INSERT INTO Categories (id, nombre, slug) VALUES (7, 'Bodys', 'bodys')").run(); } catch(e) {}
+          }
+          const res2 = await env.DB.prepare("SELECT * FROM Categories").all();
+          results = res2.results;
+        }
         return Response.json({ success: true, data: results }, { headers: corsHeaders });
       } catch (error) { return Response.json({ success: false, error: error.message }, { status: 500, headers: corsHeaders }); }
     }
@@ -1034,6 +1401,10 @@ export default {
     if (custOrderMatch && request.method === "GET") {
       try {
         const emailDecoded = decodeURIComponent(custOrderMatch[1]);
+        const session = await verifyCustomerToken(request, env);
+        if (!session || session.email.toLowerCase() !== emailDecoded.toLowerCase()) {
+          return Response.json({ success: false, error: "No autorizado para ver estas órdenes." }, { status: 403, headers: corsHeaders });
+        }
         const query = `SELECT o.*, c.nombre as cliente_nombre, c.email as cliente_email FROM Orders o JOIN Customers c ON o.customer_id = c.id WHERE c.email = ? ORDER BY o.fecha_creacion DESC`;
         const { results } = await env.DB.prepare(query).bind(emailDecoded).all();
         return Response.json({ success: true, data: results }, { headers: corsHeaders });
@@ -1053,6 +1424,7 @@ export default {
         const email = (url.searchParams.get('email') || '').toLowerCase().trim();
         if (!orderId) return Response.json({ success: false, error: 'ID de pedido inválido' }, { status: 400, headers: corsHeaders });
 
+        const session = await verifyCustomerToken(request, env);
         const order = await env.DB.prepare(
           `SELECT o.*, c.nombre AS cliente_nombre, c.email AS cliente_email
                  FROM Orders o JOIN Customers c ON o.customer_id = c.id
@@ -1063,6 +1435,9 @@ export default {
         // Validación de propiedad: el email debe coincidir con el dueño de la orden.
         if (email && (order.cliente_email || '').toLowerCase() !== email) {
           return Response.json({ success: false, error: 'No autorizado para ver este pedido' }, { status: 403, headers: corsHeaders });
+        }
+        if (!session || (order.cliente_email || '').toLowerCase() !== session.email.toLowerCase()) {
+          return Response.json({ success: false, error: 'No autorizado para ver este pedido (sesión inválida)' }, { status: 403, headers: corsHeaders });
         }
 
         const { results: rawItems } = await env.DB.prepare(
@@ -1148,9 +1523,6 @@ export default {
 
     // ── PUT /api/orders/:id/cancel ─────────────────────────────────────────────
     // Permite al cliente cancelar una orden cuyo pago aún está pendiente.
-    // NOTA DE STOCK: el inventario solo se descuenta cuando Webpay confirma
-    // AUTHORIZED (ver /api/checkout/confirm). Las órdenes 'Pendiente' nunca
-    // tuvieron stock descontado, por lo que no es necesario revertirlo.
     const cancelOrderMatch = url.pathname.match(/^\/api\/orders\/(\d+)\/cancel$/);
     if (cancelOrderMatch && request.method === "PUT") {
       try {
@@ -1161,6 +1533,11 @@ export default {
         try { body = await request.json(); } catch (_) { body = {}; }
         const email = (body.email || '').toLowerCase().trim();
         if (!email) return Response.json({ success: false, error: 'Email del cliente requerido' }, { status: 400, headers: corsHeaders });
+
+        const session = await verifyCustomerToken(request, env);
+        if (!session || session.email.toLowerCase() !== email) {
+          return Response.json({ success: false, error: 'No autorizado para cancelar este pedido (sesión inválida)' }, { status: 403, headers: corsHeaders });
+        }
 
         // Verificar que la orden existe y pertenece al cliente que solicita
         const order = await env.DB.prepare(
@@ -1265,7 +1642,7 @@ export default {
     // ========================================================================
     if (url.pathname === "/api/config" && (request.method === "GET" || request.method === "POST")) {
       const session = await verifyAdminToken(request, env);
-      if (!session) return unauthorizedResponse();
+      if (!session) return unauthorizedResponse(corsHeaders);
 
       // Asegurar que la tabla de configuración exista (clave/valor)
       await env.DB.prepare(`
@@ -1321,7 +1698,7 @@ export default {
     // ========================================================================
     if (url.pathname.startsWith('/api/admin/')) {
       const session = await verifyAdminToken(request, env);
-      if (!session) return unauthorizedResponse();
+      if (!session) return unauthorizedResponse(corsHeaders);
 
       // El nombre del admin viene del servidor (no del cliente — más seguro)
       const adminName = session.admin_name;
@@ -1329,15 +1706,53 @@ export default {
 
       // ---- IMÁGENES (R2) ----
       // Sube una imagen al bucket R2 y devuelve la URL pública.
-      // Body: { data: "data:image/jpeg;base64,...", productId?, color? }
+      // Soporta dos modos:
+      //   1) JSON body: { data: "data:image/jpeg;base64,...", productId?, color? }
+      //   2) FormData body: campo "file" (Blob/File), productId?, color?
       if (url.pathname === "/api/admin/upload-image" && request.method === "POST") {
         try {
           if (!env.IMAGES) return Response.json({ success: false, error: "R2 no configurado" }, { status: 500, headers: corsHeaders });
-          const { data, productId, color } = await request.json();
-          if (!data || typeof data !== 'string') return Response.json({ success: false, error: "Falta data Base64" }, { status: 400, headers: corsHeaders });
+          const ct = request.headers.get('content-type') || '';
+          if (ct.includes('multipart/form-data') || ct.includes('application/octet-stream')) {
+            // Modo binario: FormData
+            const form = await request.formData();
+            const fileField = form.get('file');
+            if (!fileField) return Response.json({ success: false, error: "Falta campo 'file'" }, { status: 400, headers: corsHeaders });
+            const productId = form.get('productId') || null;
+            const color = form.get('color') || 'img';
+            const mime = fileField.type || 'image/jpeg';
+            const ext = mime === 'image/jpeg' ? 'jpg' : mime === 'image/png' ? 'png' : mime === 'image/webp' ? 'webp' : mime === 'image/gif' ? 'gif' : 'jpg';
+            const bytes = new Uint8Array(await fileField.arrayBuffer());
+            const publicUrl = await uploadBytesToR2(env, bytes, mime, ext, { productId, color }, request.url);
+            return Response.json({ success: true, url: publicUrl }, { headers: corsHeaders });
+          } else {
+            // Modo base64 JSON (retrocompatibilidad)
+            const { data, productId, color } = await request.json();
+            if (!data || typeof data !== 'string') return Response.json({ success: false, error: "Falta data Base64" }, { status: 400, headers: corsHeaders });
+            const publicUrl = await uploadBase64ToR2(env, data, { productId, color }, request.url);
+            return Response.json({ success: true, url: publicUrl }, { headers: corsHeaders });
+          }
+        } catch (error) { return Response.json({ success: false, error: error.message }, { status: 500, headers: corsHeaders }); }
+      }
 
-          const url = await uploadBase64ToR2(env, data, { productId, color });
-          return Response.json({ success: true, url }, { headers: corsHeaders });
+      // ---- VIDEOS (R2) — upload binario via FormData ----
+      // Body: FormData con campo "file" (video/mp4 o video/webm), productId?, color?
+      if (url.pathname === "/api/admin/upload-video" && request.method === "POST") {
+        try {
+          if (!env.IMAGES) return Response.json({ success: false, error: "R2 no configurado" }, { status: 500, headers: corsHeaders });
+          const form = await request.formData();
+          const fileField = form.get('file');
+          if (!fileField) return Response.json({ success: false, error: "Falta campo 'file'" }, { status: 400, headers: corsHeaders });
+          const productId = form.get('productId') || null;
+          const color = form.get('color') || 'video';
+          const mime = fileField.type || 'video/mp4';
+          if (!mime.startsWith('video/')) return Response.json({ success: false, error: "Solo se permiten archivos de video" }, { status: 400, headers: corsHeaders });
+          const ext = mime === 'video/mp4' ? 'mp4' : mime === 'video/webm' ? 'webm' : mime === 'video/quicktime' ? 'mov' : 'mp4';
+          // Validar tamaño (max 50MB)
+          const bytes = new Uint8Array(await fileField.arrayBuffer());
+          if (bytes.length > 50 * 1024 * 1024) return Response.json({ success: false, error: "El video supera el límite de 50MB" }, { status: 413, headers: corsHeaders });
+          const publicUrl = await uploadBytesToR2(env, bytes, mime, ext, { productId, color }, request.url);
+          return Response.json({ success: true, url: publicUrl }, { headers: corsHeaders });
         } catch (error) { return Response.json({ success: false, error: error.message }, { status: 500, headers: corsHeaders }); }
       }
 
@@ -1368,7 +1783,7 @@ export default {
               const val = variant[col];
               if (val && typeof val === 'string' && val.startsWith('data:')) {
                 try {
-                  const newUrl = await uploadBase64ToR2(env, val, { productId: variant.product_id, color: variant.color_name });
+                  const newUrl = await uploadBase64ToR2(env, val, { productId: variant.product_id, color: variant.color_name }, request.url);
                   updates[col] = newUrl;
                 } catch (e) {
                   console.error(`Error migrando ${col} de variante ${v.id}:`, e);
@@ -1399,10 +1814,19 @@ export default {
         } catch (error) { return Response.json({ success: false, error: error.message }, { status: 500, headers: corsHeaders }); }
       }
 
-      // ---- INVENTARIO ----
       if (url.pathname === "/api/admin/categories" && request.method === "GET") {
         try {
-          const { results } = await env.DB.prepare("SELECT * FROM Categories").all();
+          let { results } = await env.DB.prepare("SELECT * FROM Categories").all();
+          if (results) {
+            if (!results.some(c => Number(c.id) === 6 || (c.slug && c.slug.toLowerCase() === 'poleras'))) {
+              try { await env.DB.prepare("INSERT INTO Categories (id, nombre, slug) VALUES (6, 'Poleras', 'poleras')").run(); } catch(e) {}
+            }
+            if (!results.some(c => Number(c.id) === 7 || (c.slug && c.slug.toLowerCase() === 'bodys'))) {
+              try { await env.DB.prepare("INSERT INTO Categories (id, nombre, slug) VALUES (7, 'Bodys', 'bodys')").run(); } catch(e) {}
+            }
+            const res2 = await env.DB.prepare("SELECT * FROM Categories").all();
+            results = res2.results;
+          }
           return Response.json({ success: true, data: results }, { headers: corsHeaders });
         } catch (error) { return Response.json({ success: false, error: error.message }, { status: 500, headers: corsHeaders }); }
       }
@@ -1417,6 +1841,8 @@ export default {
           const kitFilter = url.searchParams.get('kit');
           const ofertaFilter = url.searchParams.get('oferta');
           const isPackFilter = url.searchParams.get('is_pack');
+          const bestsellerFilter = url.searchParams.get('bestseller');
+          const clearanceFilter = url.searchParams.get('clearance') || url.searchParams.get('is_clearance');
 
           // WHERE dinámico: búsqueda en nombre, SKU y etiquetas; filtros rápidos de panel
           const whereConditions = [];
@@ -1426,8 +1852,10 @@ export default {
             queryParams.push(searchTerm, searchTerm, searchTerm);
           }
           if (kitFilter === '1') { whereConditions.push('p.es_kit = 1'); }
-          if (ofertaFilter === '1') { whereConditions.push('p.en_oferta = 1'); }
+          if (ofertaFilter === '1') { whereConditions.push('(p.en_oferta = 1 OR p.isOffer = 1)'); }
           if (isPackFilter === '1') { whereConditions.push('p.is_pack = 1'); }
+          if (bestsellerFilter === '1') { whereConditions.push('p.bestseller = 1'); }
+          if (clearanceFilter === '1') { whereConditions.push('p.is_clearance = 1'); }
           const whereClause = whereConditions.length ? `WHERE ${whereConditions.join(' AND ')}` : '';
 
           const totalRow = await env.DB.prepare(
@@ -1471,13 +1899,16 @@ export default {
           const _isoP = body.isOffer || body.en_oferta || 0;
           const _ofpP = body.offerPrice || body.precio_oferta || null;
           const _isPackP = body.is_pack === 1 || body.is_pack === '1' ? 1 : 0;
-          const info = await env.DB.prepare(`INSERT INTO Products (sku, nombre, descripcion, precio_normal, precio_oferta, en_oferta, oferta_limitada, fecha_fin_oferta, stock, categoria_id, categorias_ids, etiquetas, weight, is_pack) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`)
-            .bind(body.sku || null, body.nombre, _descP, body.precio_normal, _ofpP, _isoP, body.oferta_limitada || 0, body.fecha_fin_oferta || null, body.stock || 0, categoriaIdPrimary, categoriasStr, _tagsP, body.weight || 0, _isPackP).run();
+          const _bestsellerP = body.bestseller === 1 || body.bestseller === '1' || body.bestseller === true ? 1 : 0;
+          const _clearanceP = body.is_clearance === 1 || body.is_clearance === '1' || body.is_clearance === true || body.en_liquidacion === 1 ? 1 : 0;
+          const _videoUrlP = body.video_url || null;
+          const info = await env.DB.prepare(`INSERT INTO Products (sku, nombre, descripcion, precio_normal, precio_oferta, en_oferta, oferta_limitada, fecha_fin_oferta, stock, categoria_id, categorias_ids, etiquetas, weight, is_pack, bestseller, video_url, is_clearance) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`)
+            .bind(body.sku || null, body.nombre, _descP, body.precio_normal, _ofpP, _isoP, body.oferta_limitada || 0, body.fecha_fin_oferta || null, body.stock || 0, categoriaIdPrimary, categoriasStr, _tagsP, body.weight || 0, _isPackP, _bestsellerP, _videoUrlP, _clearanceP).run();
 
           const newProductId = info.meta.last_row_id;
           if (body.variantes && body.variantes.length > 0) {
-            const variantStmts = body.variantes.map(v => env.DB.prepare(`INSERT INTO ProductVariants (product_id, color_name, color_hex, tallas, stock, imagen_1, imagen_2, imagen_3, imagen_4, imagen_5) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`)
-              .bind(newProductId, v.color_name, v.color_hex, v.tallas, v.stock || 0, v.images[0] || null, v.images[1] || null, v.images[2] || null, v.images[3] || null, v.images[4] || null));
+            const variantStmts = body.variantes.map(v => env.DB.prepare(`INSERT INTO ProductVariants (product_id, color_name, color_hex, tallas, stock, imagen_1, imagen_2, imagen_3, imagen_4, imagen_5, video_url) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`)
+              .bind(newProductId, v.color_name, v.color_hex, v.tallas, v.stock || 0, v.images[0] || null, v.images[1] || null, v.images[2] || null, v.images[3] || null, v.images[4] || null, v.video_url || null));
             await env.DB.batch(variantStmts);
           }
           ctx.waitUntil(logActivity(env, adminName, 'CREAR', 'Producto', newProductId, body.nombre));
@@ -1488,6 +1919,17 @@ export default {
       const productMatch = url.pathname.match(/^\/api\/admin\/products\/(\d+)$/);
       if (productMatch) {
         const pId = parseInt(productMatch[1], 10);
+        if (request.method === "GET") {
+          try {
+            const product = await env.DB.prepare(`SELECT p.*, c.nombre as categoria_nombre FROM Products p LEFT JOIN Categories c ON p.categoria_id = c.id WHERE p.id = ?`).bind(pId).first();
+            if (!product) return Response.json({ success: false, error: "Producto no encontrado" }, { status: 404, headers: corsHeaders });
+            product.categorias_ids = parseCategorias(product.categorias_ids);
+            const { results: variants } = await env.DB.prepare("SELECT * FROM ProductVariants WHERE product_id = ?").bind(pId).all();
+            product.variantes = variants;
+            if (product.variantes.length === 0 && product.imagen_url) product.variantes = [{ color_name: 'Único', color_hex: '#cccccc', tallas: product.tallas || '', stock: product.stock || 0, imagen_1: product.imagen_url }];
+            return Response.json({ success: true, data: product }, { headers: corsHeaders });
+          } catch (error) { return Response.json({ success: false, error: error.message }, { status: 500, headers: corsHeaders }); }
+        }
         if (request.method === "DELETE") {
           try {
             await env.DB.prepare("DELETE FROM ProductVariants WHERE product_id = ?").bind(pId).run();
@@ -1499,6 +1941,13 @@ export default {
         if (request.method === "PUT") {
           try {
             const body = await request.json();
+            if (body.toggleStatusOnly) {
+              const newVisible = (body.visible == 1 || body.visible === true || body.visible === '1') ? 1 : 0;
+              await env.DB.prepare(`UPDATE Products SET visible = ? WHERE id = ?`)
+                .bind(newVisible, pId).run();
+              ctx.waitUntil(logActivity(env, adminName, 'EDITAR', 'Producto', pId, `${body.nombre || ''} (Cambio de estado)`));
+              return Response.json({ success: true, message: `Estado de producto actualizado` }, { headers: corsHeaders });
+            }
             const categoriasStr = serializeCategorias(body.categorias_ids);
             const categoriaIdPrimary = Array.isArray(body.categorias_ids) && body.categorias_ids.length > 0 ? body.categorias_ids[0] : (body.categoria_id || null);
             const _descU = body.description || body.descripcion || null;
@@ -1506,12 +1955,15 @@ export default {
             const _isoU = body.isOffer || body.en_oferta || 0;
             const _ofpU = body.offerPrice || body.precio_oferta || null;
             const _isPackU = body.is_pack === 1 || body.is_pack === '1' ? 1 : 0;
-            await env.DB.prepare(`UPDATE Products SET sku = ?, nombre = ?, descripcion = ?, precio_normal = ?, precio_oferta = ?, en_oferta = ?, oferta_limitada = ?, fecha_fin_oferta = ?, stock = ?, categoria_id = ?, categorias_ids = ?, visible = ?, etiquetas = ?, weight = ?, is_pack = ? WHERE id = ?`)
-              .bind(body.sku || null, body.nombre, _descU, body.precio_normal, _ofpU, _isoU, body.oferta_limitada || 0, body.fecha_fin_oferta || null, body.stock || 0, categoriaIdPrimary, categoriasStr, body.visible !== undefined ? body.visible : 1, _tagsU, body.weight || 0, _isPackU, pId).run();
+            const _bestsellerU = body.bestseller === 1 || body.bestseller === '1' || body.bestseller === true ? 1 : 0;
+            const _clearanceU = body.is_clearance === 1 || body.is_clearance === '1' || body.is_clearance === true || body.en_liquidacion === 1 ? 1 : 0;
+            const _videoUrlU = body.video_url || null;
+            await env.DB.prepare(`UPDATE Products SET sku = ?, nombre = ?, descripcion = ?, precio_normal = ?, precio_oferta = ?, en_oferta = ?, oferta_limitada = ?, fecha_fin_oferta = ?, stock = ?, categoria_id = ?, categorias_ids = ?, visible = ?, etiquetas = ?, weight = ?, is_pack = ?, bestseller = ?, video_url = ?, is_clearance = ? WHERE id = ?`)
+              .bind(body.sku || null, body.nombre, _descU, body.precio_normal, _ofpU, _isoU, body.oferta_limitada || 0, body.fecha_fin_oferta || null, body.stock || 0, categoriaIdPrimary, categoriasStr, body.visible !== undefined ? body.visible : 1, _tagsU, body.weight || 0, _isPackU, _bestsellerU, _videoUrlU, _clearanceU, pId).run();
             await env.DB.prepare("DELETE FROM ProductVariants WHERE product_id = ?").bind(pId).run();
             if (body.variantes && body.variantes.length > 0) {
-              const variantStmts = body.variantes.map(v => env.DB.prepare(`INSERT INTO ProductVariants (product_id, color_name, color_hex, tallas, stock, imagen_1, imagen_2, imagen_3, imagen_4, imagen_5) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`)
-                .bind(pId, v.color_name, v.color_hex, v.tallas, v.stock || 0, v.images[0] || null, v.images[1] || null, v.images[2] || null, v.images[3] || null, v.images[4] || null));
+              const variantStmts = body.variantes.map(v => env.DB.prepare(`INSERT INTO ProductVariants (product_id, color_name, color_hex, tallas, stock, imagen_1, imagen_2, imagen_3, imagen_4, imagen_5, video_url) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`)
+                .bind(pId, v.color_name, v.color_hex, v.tallas, v.stock || 0, v.images[0] || null, v.images[1] || null, v.images[2] || null, v.images[3] || null, v.images[4] || null, v.video_url || null));
               await env.DB.batch(variantStmts);
             }
             ctx.waitUntil(logActivity(env, adminName, 'EDITAR', 'Producto', pId, body.nombre));
@@ -1638,6 +2090,7 @@ export default {
         try {
           const fromQ = url.searchParams.get('from');
           const toQ = url.searchParams.get('to');
+          const estadoQ = (url.searchParams.get('estado') || url.searchParams.get('status') || '').trim();
           const page = Math.max(1, parseInt(url.searchParams.get('page') || '1', 10) || 1);
           const limit = Math.min(10000, Math.max(1, parseInt(url.searchParams.get('limit') || '20', 10) || 20));
           const offset = (page - 1) * limit;
@@ -1649,16 +2102,17 @@ export default {
           const colNames = (ordersSchema || []).map(c => c.name);
           const fechaCol = colNames.includes('created_at') ? 'created_at' : 'fecha_creacion';
 
-          // Construir condiciones WHERE combinadas (from/to + search).
+          // Construir condiciones WHERE combinadas (from/to + search + estado).
           // Los aliases explícitos o.${fechaCol} y c.nombre evitan ambigüedad.
           const conditions = [];
           const bindParams = [];
           const { utcFrom, utcTo } = getUtcBounds(fromQ, toQ);
           if (utcFrom) { conditions.push(`o.${fechaCol} >= ?`); bindParams.push(utcFrom); }
           if (utcTo) { conditions.push(`o.${fechaCol} <= ?`); bindParams.push(utcTo); }
+          if (estadoQ) { conditions.push(`LOWER(o.estado) LIKE ?`); bindParams.push(`%${estadoQ.toLowerCase()}%`); }
           if (searchTerm) {
-            conditions.push(`(CAST(o.id AS TEXT) LIKE ? OR c.nombre LIKE ? OR c.email LIKE ?)`);
-            bindParams.push(searchTerm, searchTerm, searchTerm);
+            conditions.push(`(CAST(o.id AS TEXT) LIKE ? OR c.nombre LIKE ? OR c.email LIKE ? OR LOWER(o.courier) LIKE ? OR LOWER(o.tracking_code) LIKE ?)`);
+            bindParams.push(searchTerm, searchTerm, searchTerm, searchTerm, searchTerm);
           }
           const whereClause = conditions.length ? 'WHERE ' + conditions.join(' AND ') : '';
 
@@ -1758,13 +2212,14 @@ export default {
             const logDetails = `Estado: ${body.estado} | Courier: ${body.courier || 'Sin asignar'} | Tracking: ${body.tracking_code || 'Sin asignar'}`;
             ctx.waitUntil(logActivity(env, adminName, 'EDITAR', 'Pedido', oId, logDetails));
 
-            // Notificar al cliente si el estado cambió y la opción está activa
-            if (body.notify_customer === true && oldEstado !== body.estado) {
+            // Notificar al cliente si la opción está activa
+            if (body.notify_customer === true) {
               const updatedOrder = await env.DB.prepare(
                 `SELECT o.*, c.nombre, c.email FROM Orders o LEFT JOIN Customers c ON o.customer_id = c.id WHERE o.id = ?`
               ).bind(oId).first();
               if (updatedOrder?.email) {
-                ctx.waitUntil(sendOrderStatusChangeEmail(env, updatedOrder, updatedOrder.email, updatedOrder.nombre));
+                const customerNote = body.nota_cliente || body.customer_note || '';
+                ctx.waitUntil(sendOrderStatusChangeEmail(env, updatedOrder, updatedOrder.email, updatedOrder.nombre, customerNote));
               }
             }
 
@@ -2157,7 +2612,7 @@ export default {
           const { results: statusDistribution } = await exec(
             env.DB.prepare(
               `SELECT ${estadoCol} AS estado, COUNT(*) AS count
-               FROM Orders WHERE 1=1 ${f.clause}
+               FROM Orders WHERE LOWER(${estadoCol}) IN ('pagado','preparando','enviado','recibido','entregado') ${f.clause}
                GROUP BY ${estadoCol} ORDER BY count DESC`
             ), f.params
           ).all();
@@ -2210,7 +2665,7 @@ export default {
           // helper buildFilter — si esto es 0 mientras total_rows > 0, el problema
           // es 100% el rango de fechas (no la columna ni la query).
           const inRangeRow = await exec(
-            env.DB.prepare(`SELECT COUNT(*) AS n FROM Orders WHERE 1=1 ${f.clause}`),
+            env.DB.prepare(`SELECT COUNT(*) AS n FROM Orders WHERE LOWER(${estadoCol}) IN ('pagado','preparando','enviado','recibido','entregado') ${f.clause}`),
             f.params
           ).first();
 
@@ -2261,6 +2716,129 @@ export default {
             error: error.message,
             hint: "Revisa la consola del Worker en Cloudflare Dashboard para el stack trace completo."
           }, { status: 500, headers: corsHeaders });
+        }
+      }
+
+      // ---- CUPONES DE DESCUENTO (ADMIN) ----
+      if (url.pathname === "/api/admin/coupons" && request.method === "GET") {
+        try {
+          const { results } = await env.DB.prepare("SELECT * FROM Coupons ORDER BY id DESC").all();
+          return Response.json({ success: true, data: results }, { headers: corsHeaders });
+        } catch (error) { 
+          return Response.json({ success: false, error: error.message }, { status: 500, headers: corsHeaders }); 
+        }
+      }
+
+      if (url.pathname === "/api/admin/coupons" && request.method === "POST") {
+        try {
+          const body = await request.json();
+          if (!body.codigo || !body.descuento_porcentaje) {
+            return Response.json({ success: false, error: "Código y porcentaje de descuento son obligatorios." }, { status: 400, headers: corsHeaders });
+          }
+
+          const existing = await env.DB.prepare("SELECT id FROM Coupons WHERE codigo = ?").bind(body.codigo.trim().toUpperCase()).first();
+          if (existing) {
+            return Response.json({ success: false, error: "Ya existe un cupón con este código." }, { status: 400, headers: corsHeaders });
+          }
+
+          const info = await env.DB.prepare(
+            `INSERT INTO Coupons (codigo, descuento_porcentaje, activo, mostrar_en_banner, fecha_inicio, fecha_fin, productos_ids) 
+             VALUES (?, ?, ?, ?, ?, ?, ?)`
+          ).bind(
+            body.codigo.trim().toUpperCase(),
+            Number(body.descuento_porcentaje),
+            body.activo !== undefined ? Number(body.activo) : 1,
+            body.mostrar_en_banner !== undefined ? Number(body.mostrar_en_banner) : 0,
+            body.fecha_inicio || null,
+            body.fecha_fin || null,
+            body.productos_ids ? JSON.stringify(body.productos_ids) : null
+          ).run();
+
+          ctx.waitUntil(logActivity(env, adminName, 'CREAR', 'Cupon', info.meta.last_row_id, body.codigo));
+          return Response.json({ success: true, message: "Cupón creado exitosamente", id: info.meta.last_row_id }, { status: 201, headers: corsHeaders });
+        } catch (error) { 
+          return Response.json({ success: false, error: error.message }, { status: 500, headers: corsHeaders }); 
+        }
+      }
+
+      const couponMatch = url.pathname.match(/^\/api\/admin\/coupons\/(\d+)$/);
+      if (couponMatch) {
+        const couponId = parseInt(couponMatch[1], 10);
+        
+        if (request.method === "GET") {
+          try {
+            const coupon = await env.DB.prepare("SELECT * FROM Coupons WHERE id = ?").bind(couponId).first();
+            if (!coupon) {
+              return Response.json({ success: false, error: "El cupón no existe." }, { status: 404, headers: corsHeaders });
+            }
+            return Response.json({ success: true, data: coupon }, { headers: corsHeaders });
+          } catch (error) {
+            return Response.json({ success: false, error: error.message }, { status: 500, headers: corsHeaders });
+          }
+        }
+
+        if (request.method === "PUT") {
+          try {
+            const body = await request.json();
+            
+            if (Object.keys(body).length <= 2 && (body.activo !== undefined || body.mostrar_en_banner !== undefined)) {
+              if (body.activo !== undefined) {
+                await env.DB.prepare("UPDATE Coupons SET activo = ? WHERE id = ?").bind(Number(body.activo), couponId).run();
+                ctx.waitUntil(logActivity(env, adminName, 'EDITAR', 'Cupon', couponId, `Estado de cupón ID ${couponId} cambiado a: ${body.activo ? 'activo' : 'inactivo'}`));
+              }
+              if (body.mostrar_en_banner !== undefined) {
+                await env.DB.prepare("UPDATE Coupons SET mostrar_en_banner = ? WHERE id = ?").bind(Number(body.mostrar_en_banner), couponId).run();
+                ctx.waitUntil(logActivity(env, adminName, 'EDITAR', 'Cupon', couponId, `Visibilidad en banner de cupón ID ${couponId} cambiada a: ${body.mostrar_en_banner ? 'visible' : 'oculto'}`));
+              }
+              return Response.json({ success: true, message: "Cupón actualizado" }, { headers: corsHeaders });
+            }
+
+            if (!body.codigo || !body.descuento_porcentaje) {
+              return Response.json({ success: false, error: "Código y porcentaje de descuento son obligatorios." }, { status: 400, headers: corsHeaders });
+            }
+
+            const existing = await env.DB.prepare("SELECT id FROM Coupons WHERE codigo = ? AND id != ?").bind(body.codigo.trim().toUpperCase(), couponId).first();
+            if (existing) {
+              return Response.json({ success: false, error: "Ya existe otro cupón con este código." }, { status: 400, headers: corsHeaders });
+            }
+
+            await env.DB.prepare(
+              `UPDATE Coupons SET 
+                codigo = ?, 
+                descuento_porcentaje = ?, 
+                activo = ?, 
+                mostrar_en_banner = ?, 
+                fecha_inicio = ?, 
+                fecha_fin = ?, 
+                productos_ids = ?
+               WHERE id = ?`
+            ).bind(
+              body.codigo.trim().toUpperCase(),
+              Number(body.descuento_porcentaje),
+              body.activo !== undefined ? Number(body.activo) : 1,
+              body.mostrar_en_banner !== undefined ? Number(body.mostrar_en_banner) : 0,
+              body.fecha_inicio || null,
+              body.fecha_fin || null,
+              body.productos_ids ? JSON.stringify(body.productos_ids) : null,
+              couponId
+            ).run();
+
+            ctx.waitUntil(logActivity(env, adminName, 'EDITAR', 'Cupon', couponId, `Cupón actualizado: ${body.codigo}`));
+            return Response.json({ success: true, message: "Cupón actualizado exitosamente" }, { headers: corsHeaders });
+          } catch (error) { 
+            return Response.json({ success: false, error: error.message }, { status: 500, headers: corsHeaders }); 
+          }
+        }
+
+        if (request.method === "DELETE") {
+          try {
+            const coupon = await env.DB.prepare("SELECT codigo FROM Coupons WHERE id = ?").bind(couponId).first();
+            await env.DB.prepare("DELETE FROM Coupons WHERE id = ?").bind(couponId).run();
+            ctx.waitUntil(logActivity(env, adminName, 'ELIMINAR', 'Cupon', couponId, `Cupón eliminado: ${coupon?.codigo || couponId}`));
+            return Response.json({ success: true, message: "Cupón eliminado exitosamente" }, { headers: corsHeaders });
+          } catch (error) { 
+            return Response.json({ success: false, error: error.message }, { status: 500, headers: corsHeaders }); 
+          }
         }
       }
 

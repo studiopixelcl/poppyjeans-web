@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+
+<html lang="es"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Shopping Cart - Poppy Jeans</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..900;1,400..900&amp;family=Plus+Jakarta+Sans:wght@400..700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-secondary-fixed-variant": "#4e4543",
+                        "surface-dim": "#dcd9d9",
+                        "inverse-surface": "#303031",
+                        "on-error": "#ffffff",
+                        "primary-fixed": "#ffdad9",
+                        "on-error-container": "#93000a",
+                        "surface-variant": "#e4e2e2",
+                        "tertiary-container": "#ab9c9c",
+                        "on-secondary-container": "#6c6261",
+                        "secondary-fixed": "#eedfdd",
+                        "secondary-container": "#eedfdd",
+                        "error-container": "#ffdad6",
+                        "primary": "#8a4d4e",
+                        "surface-container-low": "#f6f3f3",
+                        "on-secondary": "#ffffff",
+                        "primary-fixed-dim": "#ffb3b3",
+                        "surface-bright": "#fcf9f9",
+                        "on-tertiary-fixed-variant": "#4f4444",
+                        "on-primary-container": "#592628",
+                        "tertiary-fixed-dim": "#d3c3c2",
+                        "on-tertiary": "#ffffff",
+                        "on-surface-variant": "#524343",
+                        "surface": "#fcf9f9",
+                        "tertiary": "#685b5b",
+                        "tertiary-fixed": "#f0dfde",
+                        "on-tertiary-container": "#3e3434",
+                        "surface-container": "#f0eded",
+                        "inverse-on-surface": "#f3f0f0",
+                        "outline-variant": "#d7c2c1",
+                        "surface-container-highest": "#e4e2e2",
+                        "on-primary": "#ffffff",
+                        "outline": "#857372",
+                        "secondary-fixed-dim": "#d1c3c2",
+                        "on-surface": "#1b1b1c",
+                        "secondary": "#665c5b",
+                        "on-primary-fixed-variant": "#6e3637",
+                        "on-primary-fixed": "#380c0f",
+                        "on-background": "#1b1b1c",
+                        "on-secondary-fixed": "#211a19",
+                        "surface-container-high": "#eae7e7",
+                        "inverse-primary": "#ffb3b3",
+                        "primary-container": "#d48c8c",
+                        "error": "#ba1a1a",
+                        "background": "#fcf9f9",
+                        "surface-container-lowest": "#ffffff",
+                        "surface-tint": "#8a4d4e",
+                        "on-tertiary-fixed": "#221919"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "margin-desktop": "64px",
+                        "container-max": "1280px",
+                        "stack-md": "24px",
+                        "base": "8px",
+                        "margin-mobile": "20px",
+                        "stack-lg": "48px",
+                        "stack-sm": "12px",
+                        "gutter": "24px"
+                    },
+                    "fontFamily": {
+                        "headline-sm": ["Playfair Display"],
+                        "label-md": ["Plus Jakarta Sans"],
+                        "headline-md": ["Playfair Display"],
+                        "display-lg-mobile": ["Playfair Display"],
+                        "body-lg": ["Plus Jakarta Sans"],
+                        "display-lg": ["Playfair Display"],
+                        "body-md": ["Plus Jakarta Sans"],
+                        "label-sm": ["Plus Jakarta Sans"]
+                    },
+                    "fontSize": {
+                        "headline-sm": ["24px", { "lineHeight": "32px", "fontWeight": "600" }],
+                        "label-md": ["14px", { "lineHeight": "20px", "letterSpacing": "0.05em", "fontWeight": "600" }],
+                        "headline-md": ["32px", { "lineHeight": "40px", "fontWeight": "600" }],
+                        "display-lg-mobile": ["36px", { "lineHeight": "44px", "letterSpacing": "-0.01em", "fontWeight": "700" }],
+                        "body-lg": ["18px", { "lineHeight": "28px", "fontWeight": "400" }],
+                        "display-lg": ["48px", { "lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+                        "body-md": ["16px", { "lineHeight": "24px", "fontWeight": "400" }],
+                        "label-sm": ["12px", { "lineHeight": "16px", "fontWeight": "500" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        body {
+            background-color: theme('colors.background');
+            color: theme('colors.on-background');
+        }
+        /* Custom scrollbar for a cleaner look */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: theme('colors.surface-container-low');
+        }
+        ::-webkit-scrollbar-thumb {
+            background: theme('colors.outline-variant');
+            border-radius: theme('borderRadius.full');
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: theme('colors.outline');
+        }
+        /* Glassmorphism utilities */
+        .glass-panel {
+            background: rgba(252, 249, 249, 0.7);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        .bloom-reveal-container {
+            position: relative;
+            overflow: hidden;
+        }
+        .bloom-reveal-overlay {
+            position: absolute;
+            inset: 0;
+            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" opacity="0.15"><filter id="noise"><feTurbulence type="fractalNoise" baseFrequency="0.8" numOctaves="4" stitchTiles="stitch"/></filter><rect width="100%" height="100%" filter="url(%23noise)" fill="%238a4d4e"/></svg>');
+            opacity: 0;
+            transition: opacity 0.5s ease-in-out;
+            mix-blend-mode: multiply;
+        }
+        .bloom-reveal-container:hover .bloom-reveal-overlay {
+            opacity: 1;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="antialiased min-h-screen flex flex-col relative overflow-x-hidden">
+<!-- Decorative Floral Background Elements (Subtle) -->
+<div class="fixed top-0 left-0 w-full h-full pointer-events-none z-[-1] overflow-hidden opacity-30 mix-blend-multiply">
+<div class="absolute top-[-10%] left-[-10%] w-[50vw] h-[50vw] rounded-full bg-primary-fixed-dim blur-[100px] opacity-20"></div>
+<div class="absolute bottom-[-10%] right-[-10%] w-[60vw] h-[60vw] rounded-full bg-secondary-fixed-dim blur-[120px] opacity-30"></div>
+</div>
+<!-- TopAppBar Component -->
+<header class="bg-surface/80 dark:bg-surface-container/80 backdrop-blur-xl docked full-width top-0 sticky z-50 border-b border-primary/10 shadow-sm flex justify-between items-center px-margin-mobile h-16 w-full hidden md:flex">
+<button class="text-on-surface-variant hover:opacity-80 transition-opacity p-2">
+<span class="material-symbols-outlined">menu</span>
+</button>
+<h1 class="font-headline-md text-primary dark:text-primary-fixed-dim italic">Poppy Jeans</h1>
+<button class="text-primary hover:opacity-80 transition-opacity p-2 scale-95 transition-transform">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">shopping_bag</span>
+</button>
+</header>
+<!-- Mobile Top Header (Fallback for linear flow if TopAppBar isn't strictly adhered to for mobile transactional, but we'll include a simple back nav) -->
+<header class="md:hidden flex items-center justify-between px-margin-mobile h-16 sticky top-0 bg-surface/90 backdrop-blur-md z-40 border-b border-primary/5">
+<button class="text-on-surface-variant p-2 -ml-2" onclick="window.history.back()">
+<span class="material-symbols-outlined">arrow_back</span>
+</button>
+<h1 class="font-headline-sm text-headline-sm-mobile text-primary italic">Shopping Cart</h1>
+<div class="w-10"></div> <!-- Spacer for centering -->
+</header>
+<!-- Main Content Canvas -->
+<main class="flex-grow w-full max-w-container-max mx-auto px-margin-mobile md:px-margin-desktop py-stack-md md:py-stack-lg flex flex-col lg:flex-row gap-stack-lg">
+<!-- Cart Items Section -->
+<section class="flex-1 flex flex-col gap-stack-md">
+<div class="hidden md:block mb-base">
+<h2 class="font-headline-md text-headline-md text-on-surface">Your Cart</h2>
+<p class="font-body-md text-body-md text-on-surface-variant mt-2">2 items ready for checkout.</p>
+</div>
+<!-- Item 1 -->
+<div class="glass-panel rounded-xl p-4 flex gap-4 items-start relative group transition-all duration-300 hover:shadow-[0_8px_24px_rgba(138,77,78,0.08)]">
+<!-- Image -->
+<div class="w-24 h-32 md:w-32 md:h-40 rounded-lg overflow-hidden flex-shrink-0 bloom-reveal-container bg-surface-container">
+<img alt="High-waisted classic denim jeans in a soft, premium wash." class="w-full h-full object-cover" data-alt="A pair of classic, high-waisted denim jeans laid flat against a pristine white background. The denim features a soft, premium light-blue wash with subtle fading. The lighting is soft and high-key, illuminating the fine texture of the fabric and the sturdy stitching. The mood is modern, clean, and high-end fashion, aligning perfectly with a light-mode, minimalist aesthetic. Occasional soft pink floral shadows suggest a poetic, feminine touch." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDbtduQGBv-vnLR-hEDEIhFkTet9bnOAw3UNhGGReUzROukXk9EFmVmJIteTg1UQ3uIl_bfSZwqB3GL4PyqpOuvHFeqtzv_XIQeVeGe5u67t0MqEsRgbBPj-KqMIlL1R3vgX7pbhEorv4Zy-9fy7IoyPRgYgBBIzrZVHf1Sn8dw_iSBMvI1FTwL0Q9-HImSuXmFm6l167a6day-3DCdUXbEJtfVnBxnux5K_5wH8SroT7fZ7kaO4x8Pt68xFZvTGp5n8mVGlu--UY4y"/>
+<div class="bloom-reveal-overlay"></div>
+</div>
+<!-- Details -->
+<div class="flex-1 flex flex-col justify-between h-full py-1">
+<div>
+<div class="flex justify-between items-start gap-2">
+<h3 class="font-label-md text-label-md text-on-surface">The Classic High-Rise Straight</h3>
+<button class="text-tertiary hover:text-error transition-colors p-1 -mr-1 mt-[-4px]">
+<span class="material-symbols-outlined text-[20px]">close</span>
+</button>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant mt-1">Vintage Wash</p>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Size: 28</p>
+</div>
+<div class="flex justify-between items-end mt-4">
+<!-- Quantity Control -->
+<div class="flex items-center border border-outline-variant rounded-full overflow-hidden bg-surface">
+<button class="px-3 py-1 text-on-surface-variant hover:bg-surface-container transition-colors">-</button>
+<span class="font-label-md text-label-md w-8 text-center">1</span>
+<button class="px-3 py-1 text-on-surface-variant hover:bg-surface-container transition-colors">+</button>
+</div>
+<p class="font-label-md text-label-md text-primary">$128.00</p>
+</div>
+</div>
+</div>
+<!-- Item 2 -->
+<div class="glass-panel rounded-xl p-4 flex gap-4 items-start relative group transition-all duration-300 hover:shadow-[0_8px_24px_rgba(138,77,78,0.08)]">
+<!-- Image -->
+<div class="w-24 h-32 md:w-32 md:h-40 rounded-lg overflow-hidden flex-shrink-0 bloom-reveal-container bg-surface-container">
+<img alt="A delicate silk camisole in soft blush pink." class="w-full h-full object-cover" data-alt="A delicate silk camisole top in a soft blush pink hue, elegantly draped over a subtle, minimalist mannequin. The fabric has a gentle sheen, catching the soft, diffused natural light in a bright, modern studio setting. The background is a clean, off-white surface, enhancing the luxurious, romantic feel of the garment. The overall aesthetic is feminine, high-end editorial, matching a refined light-mode color palette." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBBMMpgdT4hjGZi7uSX27d11JX4cv4f9Jd1QdqJI5tDEF-WrMVkhznXjLPa6vWKYibjjIroMYCXZ8HKDXzgXUleG8AnoRQEET9MdiFvz6mlkHRk35jDI8Hd7Y0DOE5AlkaT6sZoy3ASIlJf1xeDD05gPR0N7Vgb0BtYABYmHkHUxIroF8knLS7J7lCw7HJGMXHVM-yiHFq4LHowBF0bvFnufCcz620ngUikdlGOmxB4mYJkf1mcE7f5xkfVtVm2NuVrQ7a7xUmqJN5i"/>
+<div class="bloom-reveal-overlay"></div>
+</div>
+<!-- Details -->
+<div class="flex-1 flex flex-col justify-between h-full py-1">
+<div>
+<div class="flex justify-between items-start gap-2">
+<h3 class="font-label-md text-label-md text-on-surface">Silk Whisper Camisole</h3>
+<button class="text-tertiary hover:text-error transition-colors p-1 -mr-1 mt-[-4px]">
+<span class="material-symbols-outlined text-[20px]">close</span>
+</button>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant mt-1">Blush Pink</p>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Size: M</p>
+</div>
+<div class="flex justify-between items-end mt-4">
+<!-- Quantity Control -->
+<div class="flex items-center border border-outline-variant rounded-full overflow-hidden bg-surface">
+<button class="px-3 py-1 text-on-surface-variant hover:bg-surface-container transition-colors">-</button>
+<span class="font-label-md text-label-md w-8 text-center">1</span>
+<button class="px-3 py-1 text-on-surface-variant hover:bg-surface-container transition-colors">+</button>
+</div>
+<p class="font-label-md text-label-md text-primary">$85.00</p>
+</div>
+</div>
+</div>
+<!-- Optional: Empty State (Hidden by default, shown for reference of styling) -->
+<!--
+            <div class="flex flex-col items-center justify-center py-stack-lg text-center opacity-50">
+                <span class="material-symbols-outlined text-[64px] text-primary-container mb-4">local_florist</span>
+                <h3 class="font-headline-sm text-headline-sm text-on-surface">Your cart feels a little light.</h3>
+                <p class="font-body-md text-body-md text-on-surface-variant mt-2 max-w-sm">Discover our latest collection of premium denim and elegant essentials.</p>
+                <button class="mt-6 px-6 py-3 rounded-full border border-primary text-primary font-label-md hover:bg-primary hover:text-on-primary transition-all duration-300">Continue Shopping</button>
+            </div>
+            -->
+</section>
+<!-- Order Summary Section -->
+<section class="w-full lg:w-[400px] flex-shrink-0">
+<div class="glass-panel rounded-xl p-6 lg:p-8 sticky top-24 flex flex-col gap-stack-sm">
+<h2 class="font-headline-sm text-headline-sm text-on-surface border-b border-primary/10 pb-4 mb-2">Order Summary</h2>
+<!-- Promo Code -->
+<div class="py-2">
+<label class="sr-only" for="promo">Promo Code</label>
+<div class="flex gap-2">
+<input class="w-full bg-secondary-container/30 border-0 border-b border-outline-variant focus:border-primary focus:ring-0 font-body-md text-on-surface placeholder-on-surface-variant/50 transition-colors px-2 py-2" id="promo" placeholder="Enter Promo Code" type="text"/>
+<button class="font-label-md text-label-md text-primary hover:text-primary-container transition-colors whitespace-nowrap px-2">Apply</button>
+</div>
+</div>
+<!-- Price Breakdown -->
+<div class="flex flex-col gap-3 py-4 border-b border-primary/10">
+<div class="flex justify-between items-center">
+<span class="font-body-md text-body-md text-on-surface-variant">Subtotal</span>
+<span class="font-body-md text-body-md text-on-surface">$213.00</span>
+</div>
+<div class="flex justify-between items-center">
+<span class="font-body-md text-body-md text-on-surface-variant">Shipping</span>
+<span class="font-body-md text-body-md text-on-surface">Calculated at checkout</span>
+</div>
+<div class="flex justify-between items-center">
+<span class="font-body-md text-body-md text-on-surface-variant">Estimated Tax</span>
+<span class="font-body-md text-body-md text-on-surface">$17.04</span>
+</div>
+</div>
+<!-- Total -->
+<div class="flex justify-between items-center py-2 mb-4">
+<span class="font-headline-sm text-headline-sm text-on-surface">Total</span>
+<span class="font-headline-sm text-headline-sm text-primary">$230.04</span>
+</div>
+<!-- CTA -->
+<button class="w-full bg-primary text-on-primary font-label-md text-label-md py-4 rounded-full hover:-translate-y-0.5 hover:shadow-[0_8px_16px_rgba(138,77,78,0.2)] transition-all duration-300 flex items-center justify-center gap-2">
+                    Proceder al Pago
+                    <span class="material-symbols-outlined text-[18px]">arrow_forward</span>
+</button>
+<p class="font-label-sm text-label-sm text-center text-on-surface-variant/70 mt-2">
+                    Secure checkout powered by Stripe.
+                </p>
+</div>
+</section>
+</main>
+<!-- BottomNavBar is suppressed as this is a transactional task-focused screen (Checkout flow) -->
+</body></html>

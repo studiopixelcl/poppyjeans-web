@@ -1,174 +1,218 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ingresar | Mathsoluis</title>
-    <link rel="icon" href="./ico.jpg" type="image/jpeg">
-    
+    <title>Ingresar | Poppy Jeans</title>
+    <!-- Favicon -->
+    <link rel="icon" href="./favicon.png" type="image/png">
+
+    <!-- Metadatos SEO y Open Graph -->
+    <meta name="description" content="Inicia sesión o regístrate en Poppy Jeans para acceder a tu Lista de Deseos, gestionar tus compras y realizar seguimiento de tus pedidos.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://www.poppyjeans.cl/login.html">
+    <meta property="og:title" content="Ingresar | Poppy Jeans">
+    <meta property="og:description" content="Inicia sesión o regístrate en Poppy Jeans para acceder a tu Lista de Deseos, gestionar tus compras y realizar seguimiento de tus pedidos.">
+    <meta property="og:image" content="https://www.poppyjeans.cl/poppyjeanslogo.png">
+    <meta property="og:site_name" content="Poppy Jeans">
+
+    <!-- Twitter Cards -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:url" content="https://www.poppyjeans.cl/login.html">
+    <meta name="twitter:title" content="Ingresar | Poppy Jeans">
+    <meta name="twitter:description" content="Inicia sesión o regístrate en Poppy Jeans para acceder a tu Lista de Deseos, gestionar tus compras y realizar seguimiento de tus pedidos.">
+    <meta name="twitter:image" content="https://www.poppyjeans.cl/poppyjeanslogo.png">
+
+    <!-- Preconnect & Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,600;1,600&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=Plus+Jakarta+Sans:ital,wght@0,200..800;1,200..800&display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+
+    <!-- Google Identity Library -->
     <script src="https://accounts.google.com/gsi/client" async defer></script>
 
+    <!-- Tailwind CSS with custom theme config -->
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+              "primary": "#8a4d4e", // Rosa bloom maroon
+              "secondary": "#665c5b",
+              "background": "#fcf9f9", // Ivory base
+              "surface": "#fcf9f9",
+              "surface-container": "#f0eded",
+              "surface-container-low": "#f6f3f3",
+              "on-surface": "#1b1b1c",
+              "on-background": "#1b1b1c",
+              "outline": "#857372",
+              "outline-variant": "#d7c2c1",
+              "error": "#ba1a1a",
+              "on-primary": "#ffffff"
+            },
+            "borderRadius": {
+              "DEFAULT": "0.25rem",
+              "lg": "0.5rem",
+              "xl": "0.75rem",
+              "full": "9999px"
+            },
+            "spacing": {
+              "margin-desktop": "64px",
+              "container-max": "1280px",
+              "stack-md": "24px",
+              "base": "8px",
+              "margin-mobile": "20px",
+              "stack-lg": "48px",
+              "stack-sm": "12px",
+              "gutter": "24px"
+            },
+            "fontFamily": {
+              "headline-sm": ["Playfair Display"],
+              "label-md": ["Plus Jakarta Sans"],
+              "headline-md": ["Playfair Display"],
+              "display-lg-mobile": ["Playfair Display"],
+              "body-lg": ["Plus Jakarta Sans"],
+              "display-lg": ["Playfair Display"],
+              "body-md": ["Plus Jakarta Sans"],
+              "label-sm": ["Plus Jakarta Sans"]
+            },
+            "fontSize": {
+              "headline-sm": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+              "label-md": ["14px", {"lineHeight": "20px", "letterSpacing": "0.05em", "fontWeight": "600"}],
+              "headline-md": ["32px", {"lineHeight": "40px", "fontWeight": "600"}],
+              "display-lg-mobile": ["36px", {"lineHeight": "44px", "letterSpacing": "-0.01em", "fontWeight": "700"}],
+              "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+              "display-lg": ["48px", {"lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+              "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+              "label-sm": ["12px", {"lineHeight": "16px", "fontWeight": "500"}]
+            }
+          }
+        }
+      }
+    </script>
+
+    <!-- Custom CSS styles for high-fidelity overlays -->
     <style>
-        :root {
-            --blanco-puro: #FFFFFF;
-            --beige-calido: #FFFBF9;
-            --rosa-palo: #F9EBEA;
-            --rosa-intenso: #C28B8A;
-            --gris-oscuro: #4A4446;
-            --gris-claro: #F5F0F0;
-            --font-main: 'Poppins', sans-serif;
-            --font-display: 'Playfair Display', serif;
-            --transition-smooth: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
-            --shadow-soft: 0 8px 24px rgba(194, 139, 138, 0.12);
+        body {
+            background-color: theme('colors.background');
+            color: theme('colors.on-background');
+            font-family: 'Plus Jakarta Sans', sans-serif;
+        }
+        .input-premium {
+            border: 1.5px solid #eedfdd;
+            background: #ffffff;
+            transition: all 0.3s ease;
+        }
+        .input-premium:focus {
+            border-color: #8a4d4e;
+            box-shadow: 0 0 0 4px rgba(138, 77, 78, 0.15);
+            outline: none;
+        }
+        .auth-tab.active {
+            background-color: #ffffff;
+            color: #8a4d4e;
+            box-shadow: 0 4px 12px rgba(138, 77, 78, 0.08);
+        }
+        .subtle-shadow {
+            box-shadow: 0 8px 32px rgba(138, 77, 78, 0.05);
+        }
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(15px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .auth-view {
+            display: none !important;
+        }
+        .auth-view.active {
+            display: flex !important;
+            animation: fadeInUp 0.4s ease forwards;
         }
 
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: var(--font-main); background-color: var(--beige-calido); color: var(--gris-oscuro); display: flex; min-height: 100vh; overflow-x: hidden;}
-        button { border: none; background: none; font-family: inherit; cursor: pointer; outline: none;}
-
-        /* --- SPLIT LAYOUT --- */
-        .auth-container { display: flex; width: 100%; min-height: 100vh; }
-        
-        /* Mitad Izquierda: Imagen */
-        .auth-banner { display: none; width: 55%; position: relative; background: var(--rosa-palo); overflow: hidden; }
-        @media (min-width: 900px) { .auth-banner { display: block; } }
-        .auth-banner img { width: 100%; height: 100%; object-fit: cover; opacity: 0.95; }
-        .auth-banner-overlay { position: absolute; inset: 0; background: linear-gradient(180deg, rgba(74, 68, 70, 0.05) 0%, rgba(74, 68, 70, 0.7) 100%); display: flex; flex-direction: column; justify-content: flex-end; padding: 5rem; color: var(--blanco-puro); }
-        .auth-banner h2 { font-family: var(--font-display); font-size: 3rem; margin-bottom: 1rem; line-height: 1.1; font-weight: 600;}
-        
-        /* Mitad Derecha: Formulario */
-        .auth-form-wrapper { width: 100%; display: flex; flex-direction: column; justify-content: center; padding: 2rem 5%; position: relative; background: var(--blanco-puro); }
-        @media (min-width: 900px) { .auth-form-wrapper { width: 45%; padding: 4rem 10%; } }
-        
-        .back-link { position: absolute; top: 2rem; left: 2rem; font-size: 0.9rem; font-weight: 500; color: #888; text-decoration: none; display: flex; align-items: center; gap: 5px; transition: var(--transition-smooth); }
-        @media (min-width: 900px) { .back-link { left: 10%; } }
-        .back-link:hover { color: var(--rosa-intenso); transform: translateX(-3px); }
-
-        .auth-header { text-align: center; margin-bottom: 2rem; }
-        .logo { font-family: var(--font-display); font-size: 2rem; font-weight: 700; font-style: italic; color: var(--rosa-intenso); text-decoration: none; display: inline-flex; align-items: center; gap: 10px; margin-bottom: 1.5rem;}
-        .logo img { width: 45px; height: 45px; object-fit: contain; mix-blend-mode: multiply; }
-        .auth-header h1 { font-family: var(--font-display); font-size: 1.8rem; color: var(--gris-oscuro); margin-bottom: 0.5rem; font-weight: 600;}
-        .auth-header p { font-size: 0.95rem; color: #888; }
-
-        /* --- NUEVO DISEÑO DE TABS (TOGGLE PILL) --- */
-        .auth-tabs { 
-            display: flex; 
-            background: var(--fondo-claro); 
-            border-radius: 50px; 
-            padding: 0.4rem; 
-            margin-bottom: 2.5rem; 
-            box-shadow: inset 0 2px 4px rgba(0,0,0,0.02);
-        }
-        .auth-tab { 
-            flex: 1; 
-            padding: 0.9rem; 
-            text-align: center; 
-            font-weight: 600; 
-            color: #888; 
-            transition: var(--transition-smooth); 
-            font-size: 0.95rem; 
-            border-radius: 50px;
-        }
-        .auth-tab.active { 
-            background: var(--blanco-puro); 
-            color: var(--rosa-intenso); 
-            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
-        }
-        
-        .auth-view { display: none; animation: fadeInUp 0.4s ease forwards; }
-        .auth-view.active { display: block; }
-        
-        /* --- INPUTS PREMIUM --- */
-        .input-group { margin-bottom: 1.5rem; }
-        .input-group label { display: block; font-size: 0.85rem; font-weight: 600; color: var(--gris-oscuro); margin-bottom: 0.5rem; margin-left: 0.5rem;}
-        .input-group input { 
-            width: 100%; 
-            padding: 1.1rem 1.2rem; 
-            border: 1px solid var(--gris-claro); 
-            border-radius: 12px; 
-            font-family: var(--font-main); 
-            font-size: 0.95rem; 
-            outline: none; 
-            background: var(--blanco-puro); 
-            transition: var(--transition-smooth); 
-            color: var(--gris-oscuro);
-        }
-        .input-group input::placeholder { color: #ccc; font-weight: 300;}
-        .input-group input:focus { 
-            border-color: var(--rosa-intenso); 
-            background: var(--blanco-puro); 
-            box-shadow: 0 0 0 4px rgba(194, 139, 138, 0.1); 
+        .editorial-overlay {
+            text-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
         }
 
-        .btn-primary { 
-            width: 100%; 
-            background: var(--rosa-intenso); 
-            color: var(--blanco-puro); 
-            padding: 1.2rem; 
-            border-radius: 50px; 
-            border: none; 
-            font-weight: 600; 
-            font-size: 1rem; 
-            transition: var(--transition-smooth); 
-            text-transform: uppercase; 
-            letter-spacing: 1px; 
-            margin-top: 1rem; 
-            box-shadow: var(--shadow-soft);
+        /* Ajustes responsivos basados en la altura de la pantalla para evitar desbordamiento */
+        @media (max-height: 850px) {
+            .editorial-overlay {
+                padding: 2.5rem !important; /* p-10 */
+                gap: 0.5rem !important;
+            }
+            .editorial-overlay h2 {
+                font-size: 2rem !important; /* text-3xl */
+                line-height: 2.25rem !important;
+            }
+            .editorial-overlay p {
+                font-size: 0.8rem !important; /* text-xs */
+                line-height: 1.15rem !important;
+            }
         }
-        .btn-primary:hover:not(:disabled) { background: #a87675; transform: translateY(-3px); box-shadow: 0 12px 25px rgba(194, 139, 138, 0.25); }
-        .btn-primary:disabled { background: #ccc; cursor: not-allowed; box-shadow: none; transform: none;}
-
-        .auth-divider { text-align: center; margin: 1.5rem 0; position: relative; }
-        .auth-divider::before { content: ''; position: absolute; top: 50%; left: 0; width: 100%; height: 1px; background: var(--gris-claro); z-index: 1; }
-        .auth-divider span { background: var(--blanco-puro); padding: 0 15px; position: relative; z-index: 2; font-size: 0.85rem; color: #999; }
-
-        .google-btn-wrapper { display: flex; justify-content: center; margin-bottom: 0.5rem; min-height: 44px; width: 100%;}
-
-        /* TOAST */
-        .toast-notification { position: fixed; bottom: -100px; left: 50%; transform: translateX(-50%); background: var(--gris-oscuro); color: var(--blanco-puro); padding: 14px 28px; border-radius: 50px; font-size: 0.95rem; font-weight: 500; box-shadow: 0 10px 30px rgba(0,0,0,0.2); z-index: 9999; transition: bottom 0.4s cubic-bezier(0.25, 0.8, 0.25, 1); display: flex; align-items: center; gap: 10px; }
-        .toast-notification.show { bottom: 30px; } 
-        .toast-notification.error { background: var(--danger-color); }
-
-        @keyframes fadeInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        @media (max-height: 680px) {
+            .editorial-overlay {
+                padding: 1.5rem !important; /* p-6 */
+            }
+            .editorial-overlay p {
+                display: none; /* Ocultar el párrafo en pantallas extremadamente chatas para dar prioridad al título */
+            }
+        }
     </style>
 </head>
-<body>
 
-    <div id="toastNotification" class="toast-notification"><span id="toastIcon">✨</span> <span id="toastMsg">Mensaje</span></div>
+<body class="antialiased min-h-screen lg:h-screen lg:overflow-hidden flex flex-col">
 
-    <div class="auth-container">
-        <!-- BANNER IZQUIERDO -->
-        <div class="auth-banner">
-            <img src="https://images.unsplash.com/photo-1519689680058-324335c77eba?auto=format&fit=crop&w=1000&q=80" alt="Bebé Mathsoluis">
-            <div class="auth-banner-overlay">
-                <h2>Viste sus primeros pasos con amor.</h2>
-                <p style="font-size: 1.15rem; opacity: 0.9; font-weight: 300;">Únete a la familia Mathsoluis y accede a colecciones exclusivas, guarda tus favoritos y haz seguimiento a tus pedidos en tiempo real.</p>
+    <div id="toastNotification" class="fixed bottom-[-100px] left-1/2 -translate-x-1/2 bg-[#1b1b1c] text-[#fcf9f9] px-6 py-3.5 rounded-full text-sm font-medium shadow-2xl z-[9999] transition-all duration-500 flex items-center gap-2">
+        <span id="toastIcon">✨</span> <span id="toastMsg">Mensaje</span>
+    </div>
+
+    <!-- Layout Dividido (Split Screen) -->
+    <div class="flex-1 flex w-full">
+        
+        <!-- Mitad Izquierda: Banner Editorial (Desktop Only) -->
+        <div class="hidden lg:block w-[55%] relative overflow-hidden bg-[#191e2a] select-none">
+            <!-- Imagen de fondo difuminada para llenar los bordes sin recortar la foto principal -->
+            <img src="./media/login_editorial.png" alt="" class="absolute inset-0 w-full h-full object-cover filter blur-xl opacity-40 scale-105">
+            
+            <!-- Imagen principal que se muestra completa sin recortes -->
+            <img src="./media/login_editorial.png" alt="Editorial Poppy Jeans" class="relative z-10 w-full h-full object-contain object-center">
+            
+            <!-- Textos alineados arriba de la foto (sin degradado) -->
+            <div class="editorial-overlay absolute inset-0 z-20 flex flex-col justify-start p-16 text-white gap-3">
+                <h2 class="font-headline-md text-4xl font-bold leading-tight">Viste tu esencia con elegancia.</h2>
+                <p class="text-sm text-[#fcf9f9]/90 max-w-lg leading-relaxed">Únete al círculo Poppy Jeans. Guarda tus favoritos, realiza seguimiento a tus pedidos y accede a lanzamientos exclusivos de denim de alta costura antes que nadie.</p>
             </div>
         </div>
 
-        <!-- FORMULARIOS DERECHOS -->
-        <div class="auth-form-wrapper">
-            <a href="index.html" class="back-link">
-                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
-                Volver a la tienda
+        <!-- Mitad Derecha: Formulario de Autenticación -->
+        <div class="w-full lg:w-[45%] bg-white flex flex-col justify-center px-6 py-12 md:px-16 lg:px-20 relative select-none">
+            
+            <!-- Volver a la Tienda -->
+            <a href="index.html" class="absolute top-6 left-6 flex items-center gap-1.5 text-[#665c5b] hover:text-primary transition-all font-label-md text-xs font-bold">
+                <span class="material-symbols-outlined text-[18px]">keyboard_backspace</span>
+                <span>Volver a la tienda</span>
             </a>
 
-            <div style="max-width: 420px; width: 100%; margin: 0 auto;">
-                <div class="auth-header">
-                    <a href="index.html" class="logo"><img src="./ico.jpg" alt="Logo" onerror="this.src='https://via.placeholder.com/45x45?text=M'"> Mathsoluis</a>
-                    <h1>Bienvenida a tu espacio</h1>
-                    <p>Ingresa o regístrate para continuar</p>
+            <div class="w-full max-w-[400px] mx-auto flex flex-col gap-8">
+                
+                <!-- Encabezado -->
+                <div class="text-center flex flex-col items-center gap-3">
+                    <a href="index.html" class="inline-flex items-center gap-3 group cursor-pointer py-1 select-none">
+                        <img src="./poppyjeanslogo.png" alt="Poppy Jeans Logo" class="w-12 h-12 object-cover rounded-full ring-2 ring-[#8a4d4e]/30 group-hover:scale-105 transition-all duration-300">
+                        <img src="./media/poppyjeans_logo_script.png" alt="Poppy Jeans" class="h-8 object-contain">
+                    </a>
+                    <p class="text-xs text-[#665c5b]">Ingresa o crea tu cuenta para continuar</p>
                 </div>
 
-                <div class="auth-tabs" id="authTabsContainer">
-                    <button class="auth-tab active" data-target="loginFormView">Iniciar Sesión</button>
-                    <button class="auth-tab" data-target="registerFormView">Crear Cuenta</button>
+                <!-- Tabs (Pill Toggle) -->
+                <div class="flex bg-[#f6f3f3] rounded-full p-1 border border-[#eedfdd]/50" id="authTabsContainer">
+                    <button class="flex-1 py-2.5 rounded-full font-bold text-xs text-[#665c5b] hover:text-primary transition-all auth-tab active" data-target="loginFormView">Iniciar Sesión</button>
+                    <button class="flex-1 py-2.5 rounded-full font-bold text-xs text-[#665c5b] hover:text-primary transition-all auth-tab" data-target="registerFormView">Crear Cuenta</button>
                 </div>
 
-                <!-- Controlador global de Google Identity (Se carga una sola vez) -->
+                <!-- Google Identity Library (Cargado en Head) -->
                 <div id="g_id_onload"
                      data-client_id="1066740303615-7r15mbch99m1p1tcf5j4j8onn9oe51ls.apps.googleusercontent.com"
                      data-context="use"
@@ -178,54 +222,54 @@
                 </div>
 
                 <!-- VISTA: LOGIN -->
-                <div id="loginFormView" class="auth-view active">
-                    
-                    <div class="google-btn-wrapper">
-                        <!-- Botón de Google específico para Iniciar Sesión -->
+                <div id="loginFormView" class="auth-view active flex flex-col gap-6">
+                    <div class="flex justify-center min-h-[44px] w-full">
                         <div class="g_id_signin" data-type="standard" data-size="large" data-theme="outline" data-text="sign_in_with" data-shape="pill" data-logo_alignment="left" data-width="350"></div>
                     </div>
                     
-                    <div class="auth-divider"><span>o ingresa con tu correo</span></div>
+                    <div class="relative text-center border-b border-[#eedfdd] pb-3.5 mb-1.5">
+                        <span class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white px-4 text-[10px] font-bold text-[#857372] uppercase tracking-widest select-none">o con tu correo</span>
+                    </div>
                     
-                    <form onsubmit="realLogin(event)">
-                        <div class="input-group">
-                            <label>Correo Electrónico</label>
-                            <input type="email" id="loginUserEmail" required placeholder="correo@ejemplo.com">
+                    <form onsubmit="realLogin(event)" class="flex flex-col gap-4">
+                        <div class="flex flex-col gap-1.5">
+                            <label class="text-xs font-bold text-[#665c5b] ml-1">Correo Electrónico</label>
+                            <input type="email" id="loginUserEmail" required placeholder="correo@ejemplo.com" autocomplete="username email" class="input-premium px-4 py-3 rounded-xl text-sm w-full">
                         </div>
-                        <div class="input-group">
-                            <label>Contraseña</label>
-                            <input type="password" id="loginUserPass" required placeholder="••••••••">
+                        <div class="flex flex-col gap-1.5">
+                            <label class="text-xs font-bold text-[#665c5b] ml-1">Contraseña</label>
+                            <input type="password" id="loginUserPass" required placeholder="••••••••" autocomplete="current-password" class="input-premium px-4 py-3 rounded-xl text-sm w-full">
                         </div>
-                        <button type="submit" class="btn-primary" id="btnLogin">Ingresar a mi cuenta</button>
+                        <button type="submit" class="w-full bg-primary text-white font-label-md text-xs py-4 rounded-full uppercase tracking-wider font-bold shadow-md hover:bg-primary/95 hover:-translate-y-0.5 active:scale-98 transition-all mt-2" id="btnLogin">Ingresar</button>
                     </form>
                 </div>
 
                 <!-- VISTA: REGISTRO -->
-                <div id="registerFormView" class="auth-view">
-                    
-                    <div class="google-btn-wrapper">
-                        <!-- Botón de Google específico para Registro -->
+                <div id="registerFormView" class="auth-view flex flex-col gap-6">
+                    <div class="flex justify-center min-h-[44px] w-full">
                         <div class="g_id_signin" data-type="standard" data-size="large" data-theme="outline" data-text="signup_with" data-shape="pill" data-logo_alignment="left" data-width="350"></div>
                     </div>
                     
-                    <div class="auth-divider"><span>o regístrate con tu correo</span></div>
+                    <div class="relative text-center border-b border-[#eedfdd] pb-3.5 mb-1.5">
+                        <span class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white px-4 text-[10px] font-bold text-[#857372] uppercase tracking-widest select-none">o con tu correo</span>
+                    </div>
 
-                    <form onsubmit="realRegister(event)">
-                        <div class="input-group">
-                            <label>Nombre Completo</label>
-                            <input type="text" id="regUserName" required placeholder="Ej: Camila Rojas">
+                    <form onsubmit="realRegister(event)" class="flex flex-col gap-4">
+                        <div class="flex flex-col gap-1.5">
+                            <label class="text-xs font-bold text-[#665c5b] ml-1">Nombre Completo</label>
+                            <input type="text" id="regUserName" required placeholder="Ej: Camila Rojas" autocomplete="name" class="input-premium px-4 py-3 rounded-xl text-sm w-full">
                         </div>
-                        <div class="input-group">
-                            <label>Correo Electrónico</label>
-                            <input type="email" id="regUserEmail" required placeholder="correo@ejemplo.com">
+                        <div class="flex flex-col gap-1.5">
+                            <label class="text-xs font-bold text-[#665c5b] ml-1">Correo Electrónico</label>
+                            <input type="email" id="regUserEmail" required placeholder="correo@ejemplo.com" autocomplete="email" class="input-premium px-4 py-3 rounded-xl text-sm w-full">
                         </div>
-                        <div class="input-group">
-                            <label>Crea una Contraseña</label>
-                            <input type="password" id="regUserPass" required placeholder="Mínimo 6 caracteres" minlength="6">
+                        <div class="flex flex-col gap-1.5">
+                            <label class="text-xs font-bold text-[#665c5b] ml-1">Contraseña</label>
+                            <input type="password" id="regUserPass" required placeholder="Mínimo 6 caracteres" minlength="6" autocomplete="new-password" class="input-premium px-4 py-3 rounded-xl text-sm w-full">
                         </div>
-                        <button type="submit" class="btn-primary" id="btnRegister">Registrarme ahora</button>
+                        <button type="submit" class="w-full bg-primary text-white font-label-md text-xs py-4 rounded-full uppercase tracking-wider font-bold shadow-md hover:bg-primary/95 hover:-translate-y-0.5 active:scale-98 transition-all mt-2" id="btnRegister">Registrarme</button>
                     </form>
-                    <p style="text-align: center; font-size: 0.8rem; color: #999; margin-top: 1.5rem;">Al registrarte, aceptas nuestras Políticas de Privacidad y Términos de Servicio.</p>
+                    <p class="text-center text-[10px] text-[#665c5b]/70 px-4 leading-normal mt-2">Al registrarte, aceptas nuestras Políticas de Privacidad y Términos de Servicio de Poppy Jeans.</p>
                 </div>
             </div>
         </div>
@@ -234,24 +278,31 @@
     <!-- SCRIPT LOGIC -->
     <script>
         (function() {
-            // URL del Backend API real
-            const API_BASE_URL = 'https://mathsoluis-api.studiopixelchile.workers.dev';
+            const API_BASE_URL = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
+                ? 'http://localhost:8788'
+                : 'https://api.poppyjeans.cl';
 
-            // Redirigir si ya está logueado
-            if (localStorage.getItem('mathsoluis_customer')) {
+            if (localStorage.getItem('poppyjeans_customer')) {
                 window.location.href = 'cuenta.html';
                 return;
             }
 
             window.showToast = function(message, type = 'success') {
                 const toast = document.getElementById('toastNotification');
-                document.getElementById('toastMsg').textContent = message;
-                document.getElementById('toastIcon').textContent = type === 'error' ? '❌' : '✨';
-                toast.className = `toast-notification show ${type}`;
-                setTimeout(() => { toast.classList.remove('show'); }, 4000);
+                const msg = document.getElementById('toastMsg');
+                const icon = document.getElementById('toastIcon');
+                msg.textContent = message;
+                icon.textContent = type === 'error' ? '❌' : '✨';
+                
+                toast.classList.remove('bottom-[-100px]');
+                toast.classList.add('bottom-8');
+                setTimeout(() => {
+                    toast.classList.remove('bottom-8');
+                    toast.classList.add('bottom-[-100px]');
+                }, 3500);
             }
 
-            // TABS LOGIC
+            // Tabs Logic
             const authTabs = document.querySelectorAll('.auth-tab');
             const loginView = document.getElementById('loginFormView');
             const registerView = document.getElementById('registerFormView');
@@ -266,11 +317,7 @@
                 });
             });
 
-            // ==========================================================
-            // LÓGICA DE AUTENTICACIÓN REAL (CONECTADA AL BACKEND)
-            // ==========================================================
-
-            // 1. Registro Manual
+            // Registro Manual
             window.realRegister = async (e) => {
                 e.preventDefault();
                 const btn = document.getElementById('btnRegister');
@@ -293,13 +340,14 @@
                     const result = await response.json();
 
                     if (result.success) {
-                        localStorage.setItem('mathsoluis_customer', JSON.stringify({
+                        localStorage.setItem('poppyjeans_customer', JSON.stringify({
                             id: result.customer.id,
                             name: result.customer.nombre,
                             email: result.customer.email
                         }));
+                        localStorage.setItem('poppyjeans_customer_token', result.token);
                         
-                        showToast(`¡Cuenta creada, ${name.split(' ')[0]}! Te hemos enviado un correo de bienvenida.`);
+                        showToast(`¡Cuenta creada, ${name.split(' ')[0]}! Bienvenido a Poppy Jeans.`);
                         setTimeout(() => { window.location.href = 'cuenta.html'; }, 1500);
                     } else {
                         showToast(result.error || 'No se pudo crear la cuenta.', 'error');
@@ -313,7 +361,7 @@
                 }
             };
 
-            // 2. Login Manual
+            // Login Manual
             window.realLogin = async (e) => {
                 e.preventDefault();
                 const btn = document.getElementById('btnLogin');
@@ -335,7 +383,7 @@
                     const result = await response.json();
 
                     if (result.success) {
-                        localStorage.setItem('mathsoluis_customer', JSON.stringify({
+                        localStorage.setItem('poppyjeans_customer', JSON.stringify({
                             id: result.customer.id,
                             name: result.customer.nombre,
                             email: result.customer.email,
@@ -344,8 +392,9 @@
                             comuna: result.customer.comuna || '',
                             region: result.customer.region || ''
                         }));
+                        localStorage.setItem('poppyjeans_customer_token', result.token);
                         
-                        showToast(`¡Bienvenida de nuevo, ${result.customer.nombre.split(' ')[0]}!`);
+                        showToast(`¡Bienvenido de nuevo, ${result.customer.nombre.split(' ')[0]}!`);
                         setTimeout(() => { window.location.href = 'cuenta.html'; }, 1000);
                     } else {
                         showToast(result.error || 'Correo o contraseña incorrectos.', 'error');
@@ -353,15 +402,14 @@
                         btn.textContent = originalText;
                     }
                 } catch (error) {
-                    showToast('Error de conexión. Revisa tu internet e intenta de nuevo.', 'error');
+                    showToast('Error de conexión. Intenta de nuevo más tarde.', 'error');
                     btn.disabled = false;
                     btn.textContent = originalText;
                 }
             };
 
-            // 3. Login con Google (OAuth 2.0)
+            // Login con Google OAuth
             window.handleGoogleLogin = async (response) => {
-                // response.credential contiene el Token JWT encriptado que envía Google
                 const googleToken = response.credential;
                 
                 try {
@@ -374,11 +422,12 @@
                     const result = await res.json();
 
                     if (result.success) {
-                        localStorage.setItem('mathsoluis_customer', JSON.stringify({
+                        localStorage.setItem('poppyjeans_customer', JSON.stringify({
                             id: result.customer.id,
                             name: result.customer.nombre,
                             email: result.customer.email
                         }));
+                        localStorage.setItem('poppyjeans_customer_token', result.token);
                         showToast('¡Sesión iniciada con Google!');
                         setTimeout(() => { window.location.href = 'cuenta.html'; }, 1000);
                     } else {
@@ -392,4 +441,5 @@
         })();
     </script>
 </body>
+
 </html>

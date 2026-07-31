@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+
+<html lang="es"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Poppy Jeans - Inicio</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..900;1,400..900&amp;family=Plus+Jakarta+Sans:ital,wght@0,200..800;1,200..800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                            "on-secondary-fixed": "#211a19",
+                            "inverse-surface": "#303031",
+                            "on-secondary": "#ffffff",
+                            "surface-dim": "#dcd9d9",
+                            "surface-container-highest": "#e4e2e2",
+                            "secondary-fixed-dim": "#d1c3c2",
+                            "on-tertiary": "#ffffff",
+                            "tertiary-fixed": "#f0dfde",
+                            "on-tertiary-fixed-variant": "#4f4444",
+                            "on-primary-fixed-variant": "#6e3637",
+                            "primary-fixed-dim": "#ffb3b3",
+                            "on-primary-fixed": "#380c0f",
+                            "surface-container-high": "#eae7e7",
+                            "secondary": "#665c5b",
+                            "on-tertiary-container": "#3e3434",
+                            "primary": "#8a4d4e",
+                            "surface-bright": "#fcf9f9",
+                            "surface": "#fcf9f9",
+                            "error-container": "#ffdad6",
+                            "surface-variant": "#e4e2e2",
+                            "tertiary": "#685b5b",
+                            "background": "#fcf9f9",
+                            "on-error-container": "#93000a",
+                            "on-surface": "#1b1b1c",
+                            "on-tertiary-fixed": "#221919",
+                            "on-secondary-container": "#6c6261",
+                            "secondary-container": "#eedfdd",
+                            "error": "#ba1a1a",
+                            "surface-tint": "#8a4d4e",
+                            "surface-container": "#f0eded",
+                            "inverse-primary": "#ffb3b3",
+                            "primary-fixed": "#ffdad9",
+                            "on-surface-variant": "#524343",
+                            "outline": "#857372",
+                            "inverse-on-surface": "#f3f0f0",
+                            "tertiary-container": "#ab9c9c",
+                            "surface-container-low": "#f6f3f3",
+                            "on-primary-container": "#592628",
+                            "on-primary": "#ffffff",
+                            "on-background": "#1b1b1c",
+                            "on-secondary-fixed-variant": "#4e4543",
+                            "outline-variant": "#d7c2c1",
+                            "secondary-fixed": "#eedfdd",
+                            "on-error": "#ffffff",
+                            "tertiary-fixed-dim": "#d3c3c2",
+                            "primary-container": "#d48c8c",
+                            "surface-container-lowest": "#ffffff"
+                    },
+                    "borderRadius": {
+                            "DEFAULT": "0.25rem",
+                            "lg": "0.5rem",
+                            "xl": "0.75rem",
+                            "full": "9999px"
+                    },
+                    "spacing": {
+                            "stack-md": "24px",
+                            "stack-lg": "48px",
+                            "margin-mobile": "20px",
+                            "base": "8px",
+                            "stack-sm": "12px",
+                            "margin-desktop": "64px",
+                            "gutter": "24px",
+                            "container-max": "1280px"
+                    },
+                    "fontFamily": {
+                            "label-md": [
+                                    "Plus Jakarta Sans"
+                            ],
+                            "headline-md": [
+                                    "Playfair Display"
+                            ],
+                            "label-sm": [
+                                    "Plus Jakarta Sans"
+                            ],
+                            "display-lg-mobile": [
+                                    "Playfair Display"
+                            ],
+                            "body-lg": [
+                                    "Plus Jakarta Sans"
+                            ],
+                            "headline-sm": [
+                                    "Playfair Display"
+                            ],
+                            "display-lg": [
+                                    "Playfair Display"
+                            ],
+                            "body-md": [
+                                    "Plus Jakarta Sans"
+                            ]
+                    },
+                    "fontSize": {
+                            "label-md": [
+                                    "14px",
+                                    {
+                                            "lineHeight": "20px",
+                                            "letterSpacing": "0.05em",
+                                            "fontWeight": "600"
+                                    }
+                            ],
+                            "headline-md": [
+                                    "32px",
+                                    {
+                                            "lineHeight": "40px",
+                                            "fontWeight": "600"
+                                    }
+                            ],
+                            "label-sm": [
+                                    "12px",
+                                    {
+                                            "lineHeight": "16px",
+                                            "fontWeight": "500"
+                                    }
+                            ],
+                            "display-lg-mobile": [
+                                    "36px",
+                                    {
+                                            "lineHeight": "44px",
+                                            "letterSpacing": "-0.01em",
+                                            "fontWeight": "700"
+                                    }
+                            ],
+                            "body-lg": [
+                                    "18px",
+                                    {
+                                            "lineHeight": "28px",
+                                            "fontWeight": "400"
+                                    }
+                            ],
+                            "headline-sm": [
+                                    "24px",
+                                    {
+                                            "lineHeight": "32px",
+                                            "fontWeight": "600"
+                                    }
+                            ],
+                            "display-lg": [
+                                    "48px",
+                                    {
+                                            "lineHeight": "56px",
+                                            "letterSpacing": "-0.02em",
+                                            "fontWeight": "700"
+                                    }
+                            ],
+                            "body-md": [
+                                    "16px",
+                                    {
+                                            "lineHeight": "24px",
+                                            "fontWeight": "400"
+                                    }
+                            ]
+                    }
+            },
+        }
+    </script>
+<style>.bloom-reveal {
+    position: relative;
+    overflow: hidden
+    }
+.bloom-reveal::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background-image: url(https://lh3.googleusercontent.com/aida-public/AB6AXuAba3tNmIk-dUSvztON-wl5J7PJzUmCgLCmKsEpcgVCap_Ju6LTNAmtsQ_fD9jrk4nGWwhOlcDfZANMZaSseaUNQQ-TZoWoQaKQvR6zFTVHKVmuEXCO-eCRgPPXwlY5ieQK5E1kZtHvTml3IFTX5w0xk3v5XNfy4JVyANAQG6y6iOnesrknJnVW35WsM-xMvr9SQfLM6iMcVx--rzjPJlieL-YCXTOQTKst3WGcnAOP7LPIfHi2yJWQ0Mt1VjBZkHhFy2WwXV6LVWCI);
+    background-size: cover;
+    background-position: center;
+    opacity: 0;
+    transition: opacity 0.5s ease;
+    mix-blend-mode: overlay;
+    pointer-events: none
+    }
+.bloom-reveal:hover::after {
+    opacity: 0.3
+    }
+.glass-card {
+    background: rgba(255, 255, 255, 0.4);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.2)
+    }</style>
+</head>
+<body class="bg-background text-on-background font-body-md min-h-screen flex flex-col pt-20">
+<!-- TopNavBar -->
+<nav class="fixed top-0 left-0 w-full z-50 flex justify-between items-center px-margin-mobile md:px-margin-desktop h-20 bg-surface/80 dark:bg-surface/80 backdrop-blur-md backdrop-blur-xl bg-surface/70 dark:bg-inverse-surface/70 shadow-sm dark:shadow-none border-b border-white/20">
+<div class="font-headline-sm text-headline-sm font-bold text-primary dark:text-inverse-primary tracking-tight">
+            Poppy Jeans
+        </div>
+<div class="hidden md:flex gap-8 items-center">
+<a class="font-label-md text-label-md text-primary dark:text-inverse-primary border-b-2 border-primary dark:border-inverse-primary pb-1 hover:text-primary dark:hover:text-inverse-primary transition-colors duration-300 scale-95 active:scale-90 transition-transform" href="#">Home</a>
+<a class="font-label-md text-label-md text-on-surface-variant dark:text-surface-variant hover:text-primary dark:hover:text-inverse-primary transition-colors duration-300 scale-95 active:scale-90 transition-transform" href="#">Shop</a>
+<a class="font-label-md text-label-md text-on-surface-variant dark:text-surface-variant hover:text-primary dark:hover:text-inverse-primary transition-colors duration-300 scale-95 active:scale-90 transition-transform" href="#">About</a>
+</div>
+<div class="flex gap-4 items-center">
+<button class="text-primary dark:text-inverse-primary hover:text-primary dark:hover:text-inverse-primary transition-colors duration-300 scale-95 active:scale-90 transition-transform">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 0;">person</span>
+</button>
+<button class="text-primary dark:text-inverse-primary hover:text-primary dark:hover:text-inverse-primary transition-colors duration-300 scale-95 active:scale-90 transition-transform">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 0;">shopping_bag</span>
+</button>
+</div>
+</nav>
+<main class="flex-grow flex flex-col">
+<!-- Hero Section -->
+<section class="relative h-[819px] w-full flex items-center justify-center px-margin-mobile md:px-margin-desktop overflow-hidden">
+<div class="absolute inset-0 z-0">
+<img alt="A beautiful young woman modeling premium light blue denim jeans and a soft pastel silk top, standing in a sunlit, ethereal garden setting. The lighting is soft and golden, creating a romantic, feminine mood. The aesthetic is high-end fashion editorial with subtle floral elements framing the composition." class="w-full h-full object-cover object-center" data-alt="A beautiful young woman modeling premium light blue denim jeans and a soft pastel silk top, standing in a sunlit, ethereal garden setting. The lighting is soft and golden, creating a romantic, feminine mood. The aesthetic is high-end fashion editorial with subtle floral elements framing the composition." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBD3_GvLNNqmdhfto-zNdxSsfDodY6i8OZytOWCByhG1XAZ34RtJi1QJa6q9W-8kokwnZ9ULY_FPcEVUdrAfUCV9Rne3mQ_6t4EClCS4lGuY2lQPnG0_3DKDDxFDz5Q5x5WBz5ZawFdIqKa0ptl3gDWYXPaSoNnzaGSDpe8GorFgmGiDp2QW-EY8QhMHXTTzeEV-F699pn8xvasELRcGBWogm7Bdf4I-NsLaFEu9wdmg0HG8xj7jYS44y8IRU8z2UvCxhji5sV2EZ2j"/>
+<div class="absolute inset-0 bg-gradient-to-r from-surface/60 to-transparent"></div>
+</div>
+<div class="relative z-10 w-full max-w-container-max glass-card p-stack-md md:p-stack-lg rounded-xl max-w-xl mx-auto md:ml-0 md:mr-auto">
+<h1 class="font-display-lg text-display-lg text-primary mb-base">Embrace Your Bloom</h1>
+<p class="font-body-lg text-body-lg text-on-surface-variant mb-stack-md">Discover denim crafted for the romantic modern soul. Soft, durable, and unmistakably elegant.</p>
+<a class="inline-flex items-center justify-center px-6 py-3 bg-primary text-on-primary font-label-md text-label-md rounded hover:-translate-y-0.5 transition-transform duration-300 shadow-md shadow-primary/20" href="#">
+                    Shop The Collection
+                </a>
+</div>
+</section>
+<!-- Categories Section (Bento Grid) -->
+<section class="py-stack-lg px-margin-mobile md:px-margin-desktop max-w-container-max mx-auto w-full">
+<div class="flex items-center justify-between mb-stack-md">
+<h2 class="font-headline-md text-headline-md text-primary">Curated Elegance</h2>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-12 gap-gutter auto-rows-[300px]">
+<!-- Category 1: Pantalones (Large) -->
+<a class="md:col-span-8 group relative rounded-xl overflow-hidden bloom-reveal" href="#">
+<img alt="Close up shot of premium quality denim jeans in a soft pastel blue wash, neatly folded on a minimalist white surface. Delicate pink peony petals are scattered around the jeans. The lighting is bright and airy, emphasizing the fabric texture and the romantic, modern aesthetic." class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" data-alt="Close up shot of premium quality denim jeans in a soft pastel blue wash, neatly folded on a minimalist white surface. Delicate pink peony petals are scattered around the jeans. The lighting is bright and airy, emphasizing the fabric texture and the romantic, modern aesthetic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAdIgsmKRUMWiKde0a_jo57VavbDpojqYLpt0aVEukcBrcgUtDrYEpq63dyCng-wXIcBWqMBYc-mIvsq9KHl7XaCKcGG9umr9PWApQWt4pAKxbudFMbssxJgcGlZhR3eJZW9XRyFX5NPsrNnUFeEacYo71I1xR-wvAWKQqlIMRMsTF5a2RILLHaTrfOWwXNZEpbd9HrtX5nUXiHx4HNqPB2AHuZnCycIPKh5qe_n6c4Z-J65DlS8khZ4ZqPbilrvusEG4qHzdATs6H9"/>
+<div class="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent flex items-end p-stack-md">
+<div class="glass-card px-4 py-2 rounded-lg">
+<span class="font-headline-sm text-headline-sm text-white">Denim</span>
+</div>
+</div>
+</a>
+<!-- Category 2: Tops (Tall) -->
+<a class="md:col-span-4 md:row-span-2 group relative rounded-xl overflow-hidden bloom-reveal" href="#">
+<img alt="A collection of soft, pastel-colored silk and cotton tops hung on minimalist brass hangers against a pristine white wall. The garments exude a feminine, elegant feel. Soft natural light highlights the delicate fabrics, contributing to a high-end, poetic modernism visual style." class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" data-alt="A collection of soft, pastel-colored silk and cotton tops hung on minimalist brass hangers against a pristine white wall. The garments exude a feminine, elegant feel. Soft natural light highlights the delicate fabrics, contributing to a high-end, poetic modernism visual style." src="https://lh3.googleusercontent.com/aida-public/AB6AXuD-0_xVK-jGtTWOjBJjooLAR1e9Ajovp6qQU17yXU83qLAHXiE1Aty93lGtaaRmjhYnrK6BliY19SCJSMzhGOwYpG5_u-BZEf03KBQtMlJHuE1fvqBJNBbrA-rjVV7ITDRMobngZwYaDA88tnNBQmrGxN_GUjK3vhqo8Bzlf0ePtOWu_ahUJ-mW2twv5Mtchc2lly3-TDzJaHa1OmgsHSbYlW_W7mN5NlCIS9KqLJv2qBJlyHuLFxJtRFu6GV6NjpaSil8dt6-BBu2r"/>
+<div class="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent flex items-end p-stack-md">
+<div class="glass-card px-4 py-2 rounded-lg">
+<span class="font-headline-sm text-headline-sm text-white">Tops</span>
+</div>
+</div>
+</a>
+<!-- Category 3: Accesorios (Wide) -->
+<a class="md:col-span-8 group relative rounded-xl overflow-hidden bloom-reveal" href="#">
+<img alt="A stylish arrangement of modern, feminine accessories including a delicate leather handbag, subtle gold jewelry, and a pastel silk scarf, laid out on a clean, light surface with faint floral shadows. The aesthetic is luxurious, minimalist, and perfectly aligned with a light-mode, premium brand identity." class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" data-alt="A stylish arrangement of modern, feminine accessories including a delicate leather handbag, subtle gold jewelry, and a pastel silk scarf, laid out on a clean, light surface with faint floral shadows. The aesthetic is luxurious, minimalist, and perfectly aligned with a light-mode, premium brand identity." src="https://lh3.googleusercontent.com/aida-public/AB6AXuARVSvuuBLsPITXmLzuieREOaBzC-bouMJC-Md_sHteUfhWkeX-RFWIsciiGLOnHJI_L_9ovBJJ9bDccKFcNXnCCqrbjTm1CsQ9h2DMwx3jymwNYVKJVRFK70ANb_4EPX2-6uBZ7PbiKukFxXfakexP3spoSPkzmcOevukG3HkGprCGYv2neKfoWyTBIkuhytr81PFsdQvqr3meZx08e62bA86PBqcKU2ptUmCNgDnnWO5VGdPOrzYar0KY20CXx1-3KMdL_7oh3tmO"/>
+<div class="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent flex items-end p-stack-md">
+<div class="glass-card px-4 py-2 rounded-lg">
+<span class="font-headline-sm text-headline-sm text-white">Accessories</span>
+</div>
+</div>
+</a>
+</div>
+</section>
+<!-- Best Sellers Section -->
+<section class="py-stack-lg px-margin-mobile md:px-margin-desktop bg-surface-container-low max-w-container-max mx-auto w-full">
+<div class="text-center mb-stack-md">
+<h2 class="font-headline-md text-headline-md text-primary mb-base">The Poppy Favorites</h2>
+<p class="font-body-md text-body-md text-on-surface-variant">Our most loved pieces, chosen by you.</p>
+</div>
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-gutter">
+<!-- Product 1 -->
+<div class="group flex flex-col">
+<div class="relative rounded-xl overflow-hidden mb-4 bg-surface aspect-[3/4] bloom-reveal shadow-sm hover:shadow-lg hover:shadow-primary/10 transition-shadow duration-300">
+<img alt="Full length shot of high-waisted, wide-leg denim jeans in a classic light wash. The jeans are displayed flat against a clean, soft white background. The lighting is even and bright, highlighting the premium stitching and fabric quality, fitting a modern minimalist aesthetic." class="w-full h-full object-cover" data-alt="Full length shot of high-waisted, wide-leg denim jeans in a classic light wash. The jeans are displayed flat against a clean, soft white background. The lighting is even and bright, highlighting the premium stitching and fabric quality, fitting a modern minimalist aesthetic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuC4D_yz7vJgDIUp4fxF9A7lAH39Q-hK4tfwmD1WiX6IPeK6sgRyJiYh19hmnTs8FT0dgYbghqGWOXRQk4DqWcT92GbQ-AV8VqDV4vR6Zhd--00FjTzo7F6we9IPKlCtE8ByVKFSvqZTfX2U4QLlQr-5wwSw3L6PU23HXNc0xIPlOl7d_lfuaIPW9vJZKbG5lnA0HSW2XqMC-JlNt9cXfElGSiKrD_xM4shoEy8QHz2CPP9WyHTAvXX8e4zdFGPUOiqQAx_4Y1rqaQ3L"/>
+<button class="absolute top-4 right-4 text-on-surface hover:text-primary transition-colors glass-card p-2 rounded-full flex items-center justify-center">
+<span class="material-symbols-outlined text-[20px]" style="font-variation-settings: 'FILL' 0;">favorite</span>
+</button>
+</div>
+<h3 class="font-label-md text-label-md text-on-surface mb-1">The Juliet High-Rise</h3>
+<p class="font-body-md text-body-md text-on-surface-variant">$128.00</p>
+</div>
+<!-- Product 2 -->
+<div class="group flex flex-col">
+<div class="relative rounded-xl overflow-hidden mb-4 bg-surface aspect-[3/4] bloom-reveal shadow-sm hover:shadow-lg hover:shadow-primary/10 transition-shadow duration-300">
+<img alt="A pair of straight-leg denim jeans in a soft vintage wash, styled elegantly on a neutral background. The lighting is warm and inviting, emphasizing the casual yet luxurious feel of the garment. The overall mood is feminine and refined, suitable for a premium fashion catalog." class="w-full h-full object-cover" data-alt="A pair of straight-leg denim jeans in a soft vintage wash, styled elegantly on a neutral background. The lighting is warm and inviting, emphasizing the casual yet luxurious feel of the garment. The overall mood is feminine and refined, suitable for a premium fashion catalog." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBocpKts9aJ1k0PDiO62qTCfMf10I8RyQPqKiAO478AYl7bfWyFouBnWmKto64S48Ze9bijnMIvZWYoO7e_Um9ke_3LzlqIzsT0TWJ7ud3zi-IqsWXX-BzKBRsxlvjRAoTwibb0tKRs4dUyWmTXAVqbSM99I-IHvoRVvqOAey-T0WF3JBWgIjB6Q4dRMyq3f5Fh_ghw-NSbWU-nP0gq_imgjMwSXsiXoL1rU3cUV_6enoAbZGvE1eQweFPRKAEI_kOZNRPtFomQyrxq"/>
+<button class="absolute top-4 right-4 text-on-surface hover:text-primary transition-colors glass-card p-2 rounded-full flex items-center justify-center">
+<span class="material-symbols-outlined text-[20px]" style="font-variation-settings: 'FILL' 0;">favorite</span>
+</button>
+</div>
+<h3 class="font-label-md text-label-md text-on-surface mb-1">The Rose Straight</h3>
+<p class="font-body-md text-body-md text-on-surface-variant">$115.00</p>
+</div>
+<!-- Product 3 -->
+<div class="group flex flex-col">
+<div class="relative rounded-xl overflow-hidden mb-4 bg-surface aspect-[3/4] bloom-reveal shadow-sm hover:shadow-lg hover:shadow-primary/10 transition-shadow duration-300">
+<img alt="A close-up of a delicate, dusty pink silk blouse with subtle ruffle details, draped softly over a dress form. The lighting is soft and diffused, creating a romantic, ethereal mood. The image reflects a poetic modernism style with high attention to fabric texture." class="w-full h-full object-cover" data-alt="A close-up of a delicate, dusty pink silk blouse with subtle ruffle details, draped softly over a dress form. The lighting is soft and diffused, creating a romantic, ethereal mood. The image reflects a poetic modernism style with high attention to fabric texture." src="https://lh3.googleusercontent.com/aida-public/AB6AXuC8hH6P64WP_kHKIL0J0NAJ4UjJQgewvnzmE2qe7Nm9txVSRY3hGcM9iHy4GdVl3Oui0-mb8M4YPh_FP3j7Q6zi8DXNkV556TXMyvvEBecKgzs-YsFIjjS7EsKNKwS1vTEcum8H4vLMTtAXJ9rOvYBu83SSC1y1kyDZPV3fCOG0A4n2KNGvzmXEQ2B3z1hGhE5iN2FMRYzI0c63wsQuNBZacEg7QqCQOG-yl0KbGd69Y4rMA1WGuhP3Ze1kw9FlGoTmJb1vkz_0_QWj"/>
+<button class="absolute top-4 right-4 text-on-surface hover:text-primary transition-colors glass-card p-2 rounded-full flex items-center justify-center">
+<span class="material-symbols-outlined text-[20px]" style="font-variation-settings: 'FILL' 0;">favorite</span>
+</button>
+</div>
+<h3 class="font-label-md text-label-md text-on-surface mb-1">Silk Peony Blouse</h3>
+<p class="font-body-md text-body-md text-on-surface-variant">$85.00</p>
+</div>
+<!-- Product 4 -->
+<div class="group flex flex-col">
+<div class="relative rounded-xl overflow-hidden mb-4 bg-surface aspect-[3/4] bloom-reveal shadow-sm hover:shadow-lg hover:shadow-primary/10 transition-shadow duration-300">
+<img alt="A minimalist white denim jacket resting on a light wooden chair next to a vase with soft pink flowers. The setting is bright, airy, and sunlit, evoking a sense of calm elegance. The aesthetic is clean, modern, and aligned with a premium, feminine brand identity." class="w-full h-full object-cover" data-alt="A minimalist white denim jacket resting on a light wooden chair next to a vase with soft pink flowers. The setting is bright, airy, and sunlit, evoking a sense of calm elegance. The aesthetic is clean, modern, and aligned with a premium, feminine brand identity." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBJMWVJy8lsFCNLYzee5UmckyHWzWnoNokKbX5QP3V7b03aU4Uq8FymlXg8aHoaxm8ZduCP_85jw8bpeMUIe3_xovW7ehW_K79-bZly64JyIItnySVglfCWWzBtqGvqix6x5B0OQxXqJXogCeICb7AFA5-zcVGDULBZqU9B6pnNCqIVru7iZ-liebyvLi9nAgjhTu0d5ZmM18L_b4Z8mWKNoiEv2XtoawFchyZahwPNQv57VA0PRoCS-DJjro9CLFidWMAdqVe6YsmT"/>
+<button class="absolute top-4 right-4 text-on-surface hover:text-primary transition-colors glass-card p-2 rounded-full flex items-center justify-center">
+<span class="material-symbols-outlined text-[20px]" style="font-variation-settings: 'FILL' 0;">favorite</span>
+</button>
+</div>
+<h3 class="font-label-md text-label-md text-on-surface mb-1">Lily Denim Jacket</h3>
+<p class="font-body-md text-body-md text-on-surface-variant">$140.00</p>
+</div>
+</div>
+<div class="mt-stack-md text-center">
+<a class="inline-flex items-center justify-center px-6 py-2 border border-primary text-primary font-label-md text-label-md rounded hover:-translate-y-0.5 hover:bg-primary/5 transition-all duration-300" href="#">
+                    View All Bestsellers
+                </a>
+</div>
+</section>
+</main>
+<!-- Footer -->
+<footer class="w-full py-stack-lg px-margin-mobile md:px-margin-desktop grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-gutter bg-surface-container-low dark:bg-inverse-surface border-t border-primary/10 flat no shadows mt-auto">
+<div class="flex flex-col gap-4">
+<span class="font-headline-sm text-headline-sm text-primary dark:text-inverse-primary">Poppy Jeans</span>
+<p class="font-body-md text-body-md text-on-surface-variant dark:text-surface-variant opacity-80 hover:opacity-100 transition-opacity">
+                © 2024 Poppy Jeans. Designed for the romantic modern soul.
+            </p>
+</div>
+<div class="flex flex-col gap-2">
+<h4 class="font-label-md text-label-md text-primary dark:text-inverse-primary mb-2">Support</h4>
+<a class="font-label-sm text-label-sm text-on-surface-variant dark:text-surface-variant hover:text-primary dark:hover:text-inverse-primary transition-all underline underline-offset-4 opacity-80 hover:opacity-100" href="#">Help Center</a>
+<a class="font-label-sm text-label-sm text-on-surface-variant dark:text-surface-variant hover:text-primary dark:hover:text-inverse-primary transition-all underline underline-offset-4 opacity-80 hover:opacity-100" href="#">Shipping &amp; Returns</a>
+</div>
+<div class="flex flex-col gap-2">
+<h4 class="font-label-md text-label-md text-primary dark:text-inverse-primary mb-2">Company</h4>
+<a class="font-label-sm text-label-sm text-on-surface-variant dark:text-surface-variant hover:text-primary dark:hover:text-inverse-primary transition-all underline underline-offset-4 opacity-80 hover:opacity-100" href="#">Sustainability</a>
+<a class="font-label-sm text-label-sm text-on-surface-variant dark:text-surface-variant hover:text-primary dark:hover:text-inverse-primary transition-all underline underline-offset-4 opacity-80 hover:opacity-100" href="#">Contact Us</a>
+<a class="font-label-sm text-label-sm text-on-surface-variant dark:text-surface-variant hover:text-primary dark:hover:text-inverse-primary transition-all underline underline-offset-4 opacity-80 hover:opacity-100" href="#">Privacy Policy</a>
+</div>
+<div class="flex flex-col gap-4">
+<h4 class="font-label-md text-label-md text-primary dark:text-inverse-primary">Stay in Bloom</h4>
+<div class="flex">
+<input class="bg-secondary/10 border-0 border-b border-secondary/30 focus:border-primary focus:ring-0 px-0 py-2 w-full font-body-md text-body-md text-on-surface bg-transparent transition-colors" placeholder="Email address" type="email"/>
+<button class="text-primary hover:text-primary-container p-2 transition-colors">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 0;">arrow_forward</span>
+</button>
+</div>
+</div>
+</footer>
+</body></html>

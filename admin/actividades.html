@@ -3,25 +3,28 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mathsoluis | Registro de Actividades</title>
+    <title>PoppyJeans | Registro de Actividades</title>
+    <!-- Favicon -->
+    <link rel="icon" href="../favicon.png" type="image/png">
     
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;600;700;800&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=Plus+Jakarta+Sans:ital,wght@0,200..800;1,200..800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="../pagination.css">
+    <script src="layout.js"></script>
     
     <style>
         /* --- STUDIO PIXEL TOKENS --- */
         :root {
             --blanco-puro: #FFFFFF;
-            --fondo-claro: #F4F7F6; 
-            --teal-studio: #13C2B3; 
-            --teal-claro: #E0F6F5;  
-            --dark-studio: #1E1E24; 
-            --gris-claro: #E8ECEB;
-            --danger-color: #E74C3C;
-            --warning-color: #F39C12;
+            --fondo-claro: #fcf9f9; 
+            --teal-studio: #8a4d4e; 
+            --teal-claro: #ffdad9;  
+            --dark-studio: #211a19; 
+            --gris-claro: #eedfdd;
+            --danger-color: #ba1a1a;
+            --warning-color: #B7950B;
             
-            --font-main: 'Poppins', sans-serif;
-            --font-display: 'Montserrat', sans-serif;
+            --font-main: 'Plus Jakarta Sans', sans-serif;
+            --font-display: 'Playfair Display', serif;
             
             --radius-md: 12px;
             --radius-lg: 24px;
@@ -93,31 +96,13 @@
             <div class="denied-icon">🔒</div>
             <h2 style="font-family: var(--font-display); font-size: 1.8rem; margin-bottom: 1rem;">Acceso Restringido</h2>
             <p style="color: #666; margin-bottom: 2rem;">Esta sección (Caja Negra) es confidencial y exclusiva para roles de Super Administrador. Tu cuenta actual no tiene los permisos suficientes.</p>
-            <a href="index.html" class="btn-primary">Volver al Inventario</a>
+            <a href="inventario.html" class="btn-primary">Volver al Inventario</a>
         </div>
     </div>
 
     <!-- VISTA DASHBOARD -->
     <div id="dashboardView">
-        <aside class="sidebar">
-            <div class="sidebar-logo">MATHSO<span>LUIS</span></div>
-            <ul class="nav-menu">
-                <li class="nav-item"><a href="index.html" class="nav-link">📦 Inventario</a></li>
-                <li class="nav-item"><a href="pedidos.html" class="nav-link">📝 Pedidos</a></li>
-                <li class="nav-item"><a href="clientes.html" class="nav-link">👥 Clientes</a></li>
-                <li id="admin-only-nav" style="margin-top: 1.5rem;">
-                    <span style="display:block; font-size:0.65rem; font-weight:700; text-transform:uppercase; letter-spacing:1px; color:#555; padding:0 1rem 0.5rem;">Solo Admin</span>
-                    <ul style="list-style:none; padding:0; margin:0;">
-                        <li class="nav-item"><a href="metricas.html" class="nav-link">📈 Métricas</a></li>
-                        <li class="nav-item"><a href="actividades.html" class="nav-link active">📜 Actividades</a></li>
-                        <li class="nav-item"><a href="configuracion.html" class="nav-link">⚙️ Configuración</a></li>
-                    </ul>
-                </li>
-                <li class="nav-item" style="margin-top: 2rem; border-top: 1px solid rgba(255,255,255,0.08); padding-top: 1rem;">
-                    <a href="#" class="nav-link" onclick="logout(); return false;">🚪 Cerrar Sesión</a>
-                </li>
-            </ul>
-        </aside>
+        <aside class="sidebar"></aside>
 
         <main class="main-content">
             <header class="topbar">
@@ -175,7 +160,7 @@
             const rol = localStorage.getItem('admin_rol'); // Validamos el Rol guardado en Login
             
             if (!token) {
-                window.location.href = 'configuracion.html'; // Si no hay sesión, al inicio
+                window.location.href = 'index.html'; // Si no hay sesión, al inicio
                 return;
             }
 
@@ -272,38 +257,7 @@
 
     </script>
 
-    <!-- ✅ AUTH HELPER v2.0 - Sesiones seguras con token UUID -->
-    <script>
-        const API_BASE_URL = 'https://mathsoluis-api.studiopixelchile.workers.dev';
 
-        function getAuthHeaders() {
-            const token = localStorage.getItem('admin_token');
-            return { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` };
-        }
-
-        async function adminFetch(endpoint, options = {}) {
-            const response = await fetch(`${API_BASE_URL}${endpoint}`, {
-                ...options,
-                headers: { ...getAuthHeaders(), ...(options.headers || {}) }
-            });
-            if (response.status === 401) {
-                localStorage.clear();
-                alert('Tu sesión ha expirado. Por favor inicia sesión nuevamente.');
-                window.location.href = 'configuracion.html';
-                return null;
-            }
-            return response;
-        }
-
-        async function logout() {
-            try {
-                await fetch(`${API_BASE_URL}/api/admin/logout`, {
-                    method: 'POST', headers: getAuthHeaders()
-                });
-            } catch (e) { console.warn('No se pudo notificar logout al servidor:', e); }
-            finally { localStorage.clear(); window.location.href = 'configuracion.html'; }
-        }
-    </script>
 
 </body>
 </html>

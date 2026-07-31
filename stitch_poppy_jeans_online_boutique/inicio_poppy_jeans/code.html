@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Poppy Jeans - Home</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..900;1,400..900&amp;family=Plus+Jakarta+Sans:ital,wght@0,200..800;1,200..800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "on-secondary-fixed-variant": "#4e4543",
+                    "surface-dim": "#dcd9d9",
+                    "inverse-surface": "#303031",
+                    "on-error": "#ffffff",
+                    "primary-fixed": "#ffdad9",
+                    "on-error-container": "#93000a",
+                    "surface-variant": "#e4e2e2",
+                    "tertiary-container": "#ab9c9c",
+                    "on-secondary-container": "#6c6261",
+                    "secondary-fixed": "#eedfdd",
+                    "secondary-container": "#eedfdd",
+                    "error-container": "#ffdad6",
+                    "primary": "#8a4d4e",
+                    "surface-container-low": "#f6f3f3",
+                    "on-secondary": "#ffffff",
+                    "primary-fixed-dim": "#ffb3b3",
+                    "surface-bright": "#fcf9f9",
+                    "on-tertiary-fixed-variant": "#4f4444",
+                    "on-primary-container": "#592628",
+                    "tertiary-fixed-dim": "#d3c3c2",
+                    "on-tertiary": "#ffffff",
+                    "on-surface-variant": "#524343",
+                    "surface": "#fcf9f9",
+                    "tertiary": "#685b5b",
+                    "tertiary-fixed": "#f0dfde",
+                    "on-tertiary-container": "#3e3434",
+                    "surface-container": "#f0eded",
+                    "inverse-on-surface": "#f3f0f0",
+                    "outline-variant": "#d7c2c1",
+                    "surface-container-highest": "#e4e2e2",
+                    "on-primary": "#ffffff",
+                    "outline": "#857372",
+                    "secondary-fixed-dim": "#d1c3c2",
+                    "on-surface": "#1b1b1c",
+                    "secondary": "#665c5b",
+                    "on-primary-fixed-variant": "#6e3637",
+                    "on-primary-fixed": "#380c0f",
+                    "on-background": "#1b1b1c",
+                    "on-secondary-fixed": "#211a19",
+                    "surface-container-high": "#eae7e7",
+                    "inverse-primary": "#ffb3b3",
+                    "primary-container": "#d48c8c",
+                    "error": "#ba1a1a",
+                    "background": "#fcf9f9",
+                    "surface-container-lowest": "#ffffff",
+                    "surface-tint": "#8a4d4e",
+                    "on-tertiary-fixed": "#221919"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "margin-desktop": "64px",
+                    "container-max": "1280px",
+                    "stack-md": "24px",
+                    "base": "8px",
+                    "margin-mobile": "20px",
+                    "stack-lg": "48px",
+                    "stack-sm": "12px",
+                    "gutter": "24px"
+            },
+            "fontFamily": {
+                    "headline-sm": ["Playfair Display"],
+                    "label-md": ["Plus Jakarta Sans"],
+                    "headline-md": ["Playfair Display"],
+                    "display-lg-mobile": ["Playfair Display"],
+                    "body-lg": ["Plus Jakarta Sans"],
+                    "display-lg": ["Playfair Display"],
+                    "body-md": ["Plus Jakarta Sans"],
+                    "label-sm": ["Plus Jakarta Sans"]
+            },
+            "fontSize": {
+                    "headline-sm": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                    "label-md": ["14px", {"lineHeight": "20px", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                    "headline-md": ["32px", {"lineHeight": "40px", "fontWeight": "600"}],
+                    "display-lg-mobile": ["36px", {"lineHeight": "44px", "letterSpacing": "-0.01em", "fontWeight": "700"}],
+                    "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+                    "display-lg": ["48px", {"lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                    "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                    "label-sm": ["12px", {"lineHeight": "16px", "fontWeight": "500"}]
+            }
+          }
+        }
+      }
+    </script>
+<style>
+        body {
+            background-color: theme('colors.background');
+            color: theme('colors.on-background');
+        }
+        .glass-panel {
+            background: rgba(252, 249, 249, 0.6);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        .bloom-hover {
+            position: relative;
+            overflow: hidden;
+        }
+        .bloom-hover::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(circle, rgba(255,218,217,0.4) 0%, rgba(255,255,255,0) 70%);
+            opacity: 0;
+            transition: opacity 0.4s ease;
+            pointer-events: none;
+        }
+        .bloom-hover:hover::after {
+            opacity: 1;
+        }
+        .subtle-shadow {
+            box-shadow: 0 8px 32px rgba(138, 77, 78, 0.08);
+        }
+        
+        /* Hide scrollbar for horizontal scrolling */
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+    </style>
+</head>
+<body class="antialiased min-h-screen flex flex-col pb-24 md:pb-0">
+<!-- TopAppBar -->
+<header class="bg-surface/80 dark:bg-surface-container/80 backdrop-blur-xl docked full-width top-0 sticky z-50 border-b border-primary/10 shadow-sm flex justify-between items-center px-margin-mobile h-16 w-full">
+<button aria-label="Menu" class="text-on-surface-variant hover:opacity-80 transition-opacity active:scale-95 transition-transform">
+<span class="material-symbols-outlined" data-icon="menu">menu</span>
+</button>
+<div class="text-center flex-1">
+<h1 class="font-headline-md text-primary dark:text-primary-fixed-dim italic">Poppy Jeans</h1>
+</div>
+<button aria-label="Shopping Bag" class="text-on-surface-variant hover:opacity-80 transition-opacity active:scale-95 transition-transform">
+<span class="material-symbols-outlined" data-icon="shopping_bag">shopping_bag</span>
+</button>
+</header>
+<!-- Main Content Canvas -->
+<main class="flex-1 w-full max-w-container-max mx-auto md:px-margin-desktop">
+<!-- Hero Section -->
+<section class="relative w-full h-[70vh] min-h-[500px] flex items-center justify-center overflow-hidden md:mt-8 md:rounded-3xl subtle-shadow">
+<div class="absolute inset-0 z-0">
+<img alt="Hero Background Floral" class="w-full h-full object-cover object-center opacity-80" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBEI3M7d0VagUCio2Dq_WjkP5yykSj6ks5FAYhBcZqX_Ss6sY5AchY7vu7ATsyXMqhF_QCB7e60-BHZAPtxjY2h8g0oi7lK-KguSKkjc3GWubZKjSrLvnep9J5TZtID7Bk1efBT0GszHz8RywLZL1B1hyeBJ-L0zXJSM0_OP2JAFBK6qfPVc2DUlSGIqHNsPBebOwfEBBdCsPqnvIh6YNiKSqtXwv5fX6uox2IuTYruWgT38N1H0L68ferKI4Dj52jDqS3Q1cTJ0eQO"/>
+</div>
+<div class="relative z-10 glass-panel p-8 md:p-12 rounded-2xl max-w-md mx-margin-mobile text-center flex flex-col items-center gap-stack-md subtle-shadow">
+<img alt="Poppy Jeans Logo" class="w-24 h-24 object-contain rounded-full shadow-md" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDg7v4ugysKytnTSSCAiHHMlcgiChOvELTi-GFWcrFM_WxpL3xFLSUcmRuBlGc618vXItu75ahwN1o2cgrOaxXcU3KQ4Uf7bBxcqUeo7FiHJoCVio4cu0efxYwWSX0z6RvQottkUaEzeqSRSaD3yUTCql-Ta-4LeYWrRh8sxnn5L5AoXPRqpcEFcZnUYOj_vbLtSF_sYZ_xlDuNpObNRv9gQYcjUdDySmBJZ5UEGJ7KM-MUsTJEW0NDDVs-YjdO9TkbK9jkz3KzkQGM"/>
+<div class="flex flex-col gap-base">
+<p class="font-label-md text-label-md text-secondary uppercase tracking-widest">Descubre la</p>
+<h2 class="font-display-lg-mobile text-display-lg-mobile md:font-display-lg md:text-display-lg text-primary">Nueva Colección de Jeans</h2>
+</div>
+<button class="mt-4 bg-primary text-on-primary px-8 py-3 rounded-full font-label-md text-label-md hover:-translate-y-0.5 transition-transform shadow-md hover:shadow-lg">
+                    Comprar Ahora
+                </button>
+</div>
+</section>
+<!-- Featured Categories (Bento Grid Style) -->
+<section class="mt-stack-lg px-margin-mobile md:px-0">
+<div class="flex justify-between items-end mb-stack-md">
+<h3 class="font-headline-sm text-headline-sm text-on-surface">Categorías</h3>
+<a class="font-label-md text-label-md text-primary hover:underline" href="#">Ver todo</a>
+</div>
+<div class="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-gutter">
+<!-- Category 1 -->
+<a class="bloom-hover relative h-48 md:h-64 rounded-xl overflow-hidden group col-span-2 md:col-span-2 subtle-shadow" href="#">
+<img class="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" data-alt="A high-fashion editorial shot of premium denim jeans folded neatly on a pristine white marble surface, illuminated by soft, natural studio lighting with a romantic, light-mode aesthetic and a hint of soft pink floral shadow." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBaNXEy3GGgZZZsMjMvgATONVa_VbE42Z9ZkA_qdMMUuWU0_b-nSvutBoyUaJK9lg1Z-b131efa-BWeonPY5Wi1pRokPZwaAZf2XOPk05iX6QGKH9py6WLG6uqQmCfj9CzHorCna-VdcTOIC3nc7lP6PKGEkTqRq80ob9hroO4AOd215tz80ifsFMVNO71rHgkaLtlvrY-r5tpnTdhn9pyOxzJ7O6D882RgH_rRxSlT37vdVjyrPps49XfHKw-uYJMYDfF4gOKod2p7"/>
+<div class="absolute inset-0 bg-gradient-to-t from-surface/90 via-surface/20 to-transparent"></div>
+<div class="absolute bottom-0 left-0 p-4">
+<h4 class="font-headline-sm text-headline-sm text-primary mb-1">Pantalones</h4>
+<p class="font-label-sm text-label-sm text-secondary">La base de tu estilo</p>
+</div>
+</a>
+<!-- Category 2 -->
+<a class="bloom-hover relative h-48 md:h-64 rounded-xl overflow-hidden group col-span-1 md:col-span-1 subtle-shadow" href="#">
+<img class="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" data-alt="A stylish flat lay of a delicate silk blouse in soft blush pink, resting on a clean, bright background with subtle elegant lighting, evoking a modern, feminine, premium fashion brand identity." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBg1jTdf5VpkjZ1pTZ8cStuptGrgiOMBucnTiHiJIg18a_YKw1olOtGpF48M7rWZOQnwrJSphPKHJCcGmO7n0PN6yW0-bkc83ktOsrAA1ffh18ur7roD52zCtXya80HagKWrrsBi5PZuFUltOzg8WzcBWhDYKqTnFwIGmzH6fw5k1fMKUE2iV1wv3r5bE-X9pIE7JvTASmJZdQVszps5rIMYDAkrR5EMG1ie1CkenuoPrXHqGG1dUz46JQNiatVoEL2Rzu7qnIjg2fp"/>
+<div class="absolute inset-0 bg-gradient-to-t from-surface/90 via-surface/20 to-transparent"></div>
+<div class="absolute bottom-0 left-0 p-4">
+<h4 class="font-headline-sm text-headline-sm text-primary mb-1">Tops</h4>
+</div>
+</a>
+<!-- Category 3 -->
+<a class="bloom-hover relative h-48 md:h-64 rounded-xl overflow-hidden group col-span-1 md:col-span-1 subtle-shadow" href="#">
+<img class="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" data-alt="A close-up of delicate gold jewelry and a premium leather belt on a bright, minimalist background with soft, ethereal lighting and a hint of warm, rosy tones fitting a high-end romantic aesthetic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuD8NEsIJ_KWb-4wt-ZpwfUW0CHstM5ifyUWR_J_piCStRWdymaq502ONwWrKIKz4WsMNnXyoV6MhrwEMEFQodwkHQPWYdaoy1mx5u2beAiSSJ2-WVSZimltVrR5U0x236hrugBX0qOIIAlECF-nB8lWISVBqiUEarQr9_xGWeDOcYP0UMtvEHgaZ3pxOVHVmnMNzlznFDkkooGc73rrwY_iairZ3krqwLgg0fUKDj0NbWDDUeou3bgwl0eRLgAy4dFTD7v4bElxxL4l"/>
+<div class="absolute inset-0 bg-gradient-to-t from-surface/90 via-surface/20 to-transparent"></div>
+<div class="absolute bottom-0 left-0 p-4">
+<h4 class="font-headline-sm text-headline-sm text-primary mb-1">Accesorios</h4>
+</div>
+</a>
+</div>
+</section>
+<!-- Best Sellers Horizontal Scroll -->
+<section class="mt-stack-lg py-stack-md bg-surface-container-low md:rounded-3xl">
+<div class="px-margin-mobile md:px-margin-desktop flex justify-between items-end mb-stack-md">
+<div>
+<h3 class="font-headline-sm text-headline-sm text-on-surface">Best Sellers</h3>
+<p class="font-body-md text-body-md text-secondary mt-1">Los favoritos de la temporada</p>
+</div>
+</div>
+<div class="flex overflow-x-auto no-scrollbar gap-4 px-margin-mobile md:px-margin-desktop pb-4 snap-x snap-mandatory">
+<!-- Product 1 -->
+<div class="snap-start flex-none w-[260px] group cursor-pointer">
+<div class="relative aspect-[3/4] rounded-xl overflow-hidden mb-3 bg-surface-variant subtle-shadow bloom-hover">
+<img class="w-full h-full object-cover" data-alt="A model wearing light wash, high-waisted wide-leg jeans, standing against a clean, bright minimalist studio background with soft, glowing natural light and a premium, romantic aesthetic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDqpZIfz0rBH5jYldt2pu8frMEMVB-A6Jd1Dvvq4V3C5MNOPh2GB4DEWpHdgY6wu4FG-GGtvQvSl2FRzlg34Q_H3izTVo9OZe36EZL7BrIVnciBCZKBECPP7M9LWLsLdK1GCEDkv6HDS-Glz0v4i8Vigeq3Mrr2gerLvXU2jc1Ms9uC6TnJOVBJ6fh4ibOUQPWZr_MNC13aJpJzZoWVNiSl1WwARA-DV88MNbLDgy8b1fn-Ib2Ce64iuAcWHvq1N-pvk0i968FuQQQy"/>
+<button class="absolute top-3 right-3 w-8 h-8 rounded-full bg-surface/80 backdrop-blur-sm flex items-center justify-center text-secondary hover:text-primary transition-colors">
+<span class="material-symbols-outlined text-[18px]" data-icon="favorite">favorite</span>
+</button>
+</div>
+<h4 class="font-label-md text-label-md text-on-surface">Wide Leg 'Rosé'</h4>
+<p class="font-body-md text-body-md text-secondary mt-1">$1,299 MXN</p>
+</div>
+<!-- Product 2 -->
+<div class="snap-start flex-none w-[260px] group cursor-pointer">
+<div class="relative aspect-[3/4] rounded-xl overflow-hidden mb-3 bg-surface-variant subtle-shadow bloom-hover">
+<img class="w-full h-full object-cover" data-alt="A pair of classic straight-leg vintage wash jeans shown in a clean, minimalist setting with soft, ethereal studio lighting, conveying a high-quality, feminine, and poetic modernism style." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDdNAy8aTD3CzKhHc_AgUkifnvkfJ6n6gKt13_YUHEe_sw0V9izoy9TgpFil67Imj2oYRHp1ANgQXArR-FNfXxv1SxMb7bcCPWik1bPoGTHVDD95FNg7hA1tSoj1yizVZX06yLxHlH2rp4GDb24ucSurfxjtQlgOptK16HnyipWVeHISGHjd_7Q1txvMcveTrZ86CnBnHRNPCQbmhxKF8i0LUlerb4MitYufS2OQwTylpSg6ZSXAgU-wlqQPrLcRy5H8M9pJkAN7Ejb"/>
+<button class="absolute top-3 right-3 w-8 h-8 rounded-full bg-surface/80 backdrop-blur-sm flex items-center justify-center text-secondary hover:text-primary transition-colors">
+<span class="material-symbols-outlined text-[18px]" data-icon="favorite">favorite</span>
+</button>
+</div>
+<h4 class="font-label-md text-label-md text-on-surface">Straight Classic 'Lily'</h4>
+<p class="font-body-md text-body-md text-secondary mt-1">$1,150 MXN</p>
+</div>
+<!-- Product 3 -->
+<div class="snap-start flex-none w-[260px] group cursor-pointer">
+<div class="relative aspect-[3/4] rounded-xl overflow-hidden mb-3 bg-surface-variant subtle-shadow bloom-hover">
+<img class="w-full h-full object-cover" data-alt="Detail shot of the back pocket and stitching of premium dark wash denim, illuminated by soft, flattering light in a minimalist, modern romantic aesthetic space." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAoNlFrhpN4V4cLc3_Svm_FTlPeUR7rF2EKyP7QlauP_5DZ_GH3i_bahKjcdn02ohjbqPjz0TNmUk-b5YrvuWfGB8Emf303twLbg3mkHEswgQbJKgihBO8F0XvX834ZBiewa2AMOVdeHU8RouYtyLfCC8g7a8YXm9A0gMh8flqVA6nQugBBdn6kIb64GIHpLDTs8tD1SGDrtk72amrtLg0-PXL-TEHT57n_UlHts339345W95I30SmOaBGl2Q8LVU3qcn-IGiVRqHfc"/>
+<button class="absolute top-3 right-3 w-8 h-8 rounded-full bg-surface/80 backdrop-blur-sm flex items-center justify-center text-secondary hover:text-primary transition-colors">
+<span class="material-symbols-outlined text-[18px]" data-icon="favorite">favorite</span>
+</button>
+</div>
+<h4 class="font-label-md text-label-md text-on-surface">Skinny 'Peony' Dark</h4>
+<p class="font-body-md text-body-md text-secondary mt-1">$1,350 MXN</p>
+</div>
+<!-- Product 4 -->
+<div class="snap-start flex-none w-[260px] group cursor-pointer">
+<div class="relative aspect-[3/4] rounded-xl overflow-hidden mb-3 bg-surface-variant subtle-shadow bloom-hover">
+<img class="w-full h-full object-cover" data-alt="A stylish shot of cropped flare jeans paired with elegant heels on a bright, smooth floor, featuring soft, glowing ambient lighting typical of a high-end feminine fashion editorial." src="https://lh3.googleusercontent.com/aida-public/AB6AXuB37AEl3942U7-FWPQCHSR_jxbQ57kbVrAUs2LsoCkaffOBfQrhIdVqDShbe7ZWHw_q6B583a_Bs1zjCMymdQiaikXFiEe_vIccUhV-sCP4XhjvU8McCwvmLMOtB66ZPATUkH4tWIaDCGM-Fp04TXenW_LfdtP558Kn_Gh4VE26WUoBuQ46DM5Gl94z_947snmfX1fVj1nK8g3LUs_iROORbUfxHywKNHy9b4YxnkPxVW6jMROI7My5bteYga1ZJrJT9BwysTHpk5V2"/>
+<button class="absolute top-3 right-3 w-8 h-8 rounded-full bg-surface/80 backdrop-blur-sm flex items-center justify-center text-secondary hover:text-primary transition-colors">
+<span class="material-symbols-outlined text-[18px]" data-icon="favorite">favorite</span>
+</button>
+</div>
+<h4 class="font-label-md text-label-md text-on-surface">Cropped Flare 'Dahlia'</h4>
+<p class="font-body-md text-body-md text-secondary mt-1">$1,200 MXN</p>
+</div>
+</div>
+</section>
+<!-- Floral Promo Banner -->
+<section class="mt-stack-lg mb-stack-lg px-margin-mobile md:px-0">
+<div class="relative w-full rounded-2xl overflow-hidden bg-primary-fixed subtle-shadow flex flex-col md:flex-row items-center p-8 md:p-12 gap-8">
+<div class="absolute inset-0 opacity-20 pointer-events-none" style="background-image: url('data:image/svg+xml,%3Csvg width=\'60\' height=\'60\' viewBox=\'0 0 60 60\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cg fill=\'none\' fill-rule=\'evenodd\'%3E%3Cg fill=\'%238a4d4e\' fill-opacity=\'0.4\'%3E%3Cpath d=\'M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z\'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E');"></div>
+<div class="flex-1 text-center md:text-left relative z-10">
+<p class="font-label-md text-label-md text-primary-fixed-dim uppercase tracking-widest mb-2">Edición Especial</p>
+<h3 class="font-headline-md text-headline-md text-on-primary-fixed mb-4">Colección Botánica</h3>
+<p class="font-body-md text-body-md text-on-primary-fixed-variant mb-6 max-w-md">Detalles bordados y siluetas fluidas inspiradas en la naturaleza. Descubre la delicadeza en cada costura.</p>
+<button class="bg-surface text-primary px-6 py-2.5 rounded-full font-label-md text-label-md hover:bg-surface-container transition-colors shadow-sm">
+                        Explorar Colección
+                    </button>
+</div>
+<div class="w-full md:w-1/2 max-w-sm relative z-10">
+<img class="rounded-xl object-cover aspect-square shadow-lg transform rotate-3 hover:rotate-0 transition-transform duration-500" data-alt="A beautiful flat lay of premium denim fabric intertwined with fresh, delicate pink peonies and green foliage, styled with a serene, bright, modern poetic aesthetic suitable for a feminine fashion brand." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDu8Ul6B2iAVPur_ZL3EBv7l0dF2aYj0w__LY9c-Ihq16QDfw2_p2pa-xOoFK-tCFVEBSeiUSGYcWfdlN5wQrKf9Zp9gWU7etH_ZVwPVFtTQmLYlRv3Ez-kQHvEycfM1hTt-ZzxpxjNjIG_Hw6eVk-eCxHFNpkHUmsvyCLkGd7FLLem0NhbUop_PHevpSpASYASSqhFUVWAwFFgtVS0Mx2a6XgZoyCQaw5q-b2qsV4lnZMHd0t0W6aCe3oK7iTvrqxEaqmb1dqdKAM0"/>
+</div>
+</div>
+</section>
+</main>
+<!-- BottomNavBar (Mobile Only) -->
+<nav class="md:hidden bg-surface/90 dark:bg-surface-container-highest/90 backdrop-blur-md fixed bottom-0 w-full z-50 rounded-t-xl border-t border-primary/5 shadow-[0_-4px_12px_rgba(138,77,78,0.08)] flex justify-around items-center h-20 pb-safe px-4">
+<!-- Active Tab: Home -->
+<a class="flex flex-col items-center justify-center text-primary dark:text-primary-fixed-dim font-bold hover:text-primary transition-colors active:scale-110 duration-200 w-16" href="#">
+<span class="material-symbols-outlined" data-icon="home" style="font-variation-settings: 'FILL' 1;">home</span>
+<span class="font-label-sm text-[10px] mt-1">Home</span>
+</a>
+<!-- Inactive Tabs -->
+<a class="flex flex-col items-center justify-center text-secondary dark:text-secondary-fixed-dim opacity-60 hover:text-primary transition-colors active:scale-110 duration-200 w-16" href="#">
+<span class="material-symbols-outlined" data-icon="styler">styler</span>
+<span class="font-label-sm text-[10px] mt-1">Shop</span>
+</a>
+<a class="flex flex-col items-center justify-center text-secondary dark:text-secondary-fixed-dim opacity-60 hover:text-primary transition-colors active:scale-110 duration-200 w-16" href="#">
+<span class="material-symbols-outlined" data-icon="search">search</span>
+<span class="font-label-sm text-[10px] mt-1">Search</span>
+</a>
+<a class="flex flex-col items-center justify-center text-secondary dark:text-secondary-fixed-dim opacity-60 hover:text-primary transition-colors active:scale-110 duration-200 w-16" href="#">
+<span class="material-symbols-outlined" data-icon="person">person</span>
+<span class="font-label-sm text-[10px] mt-1">Profile</span>
+</a>
+</nav>
+<!-- Desktop Footer Placeholder (Simple) -->
+<footer class="hidden md:block w-full bg-surface-container py-stack-lg mt-stack-lg border-t border-primary/10 text-center">
+<p class="font-body-md text-secondary">© 2024 Poppy Jeans. All rights reserved.</p>
+</footer>
+</body></html>

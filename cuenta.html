@@ -1,279 +1,307 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mi Cuenta | Mathsoluis</title>
-    <link rel="icon" href="./ico.jpg" type="image/jpeg">
+    <title>Mi Cuenta | Poppy Jeans</title>
+    <!-- Favicon -->
+    <link rel="icon" href="./favicon.png" type="image/png">
 
-    <!-- ============================================================
-         GOOGLE ANALYTICS 4 / GOOGLE ADS — ETIQUETA GLOBAL DEL SITIO
-         Pega aquí tu snippet de Google Tag (gtag.js) con tu ID G-XXXXXXX
-         Ejemplo:
-         <script async src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXX"></script>
-         <script>
-           window.dataLayer = window.dataLayer || [];
-           function gtag(){dataLayer.push(arguments);}
-           gtag('js', new Date());
-           gtag('config', 'G-XXXXXXX');
-         </script>
-    ============================================================ -->
+    <!-- Metadatos SEO y Open Graph -->
+    <meta name="description" content="Accede a tu cuenta de Poppy Jeans para ver tus compras anteriores, realizar seguimiento de tus envíos y editar tu información de contacto.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://www.poppyjeans.cl/cuenta.html">
+    <meta property="og:title" content="Mi Cuenta | Poppy Jeans">
+    <meta property="og:description" content="Accede a tu cuenta de Poppy Jeans para ver tus compras anteriores, realizar seguimiento de tus envíos y editar tu información de contacto.">
+    <meta property="og:image" content="https://www.poppyjeans.cl/poppyjeanslogo.png">
+    <meta property="og:site_name" content="Poppy Jeans">
 
+    <!-- Twitter Cards -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:url" content="https://www.poppyjeans.cl/cuenta.html">
+    <meta name="twitter:title" content="Mi Cuenta | Poppy Jeans">
+    <meta name="twitter:description" content="Accede a tu cuenta de Poppy Jeans para ver tus compras anteriores, realizar seguimiento de tus envíos y editar tu información de contacto.">
+    <meta name="twitter:image" content="https://www.poppyjeans.cl/poppyjeanslogo.png">
+
+    <!-- Preconnect & Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;1,600&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    
+    <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=Plus+Jakarta+Sans:ital,wght@0,200..800;1,200..800&display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+
+    <!-- Tailwind CSS with custom theme config -->
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+              "primary": "#8a4d4e", // Rosa bloom maroon
+              "secondary": "#665c5b",
+              "background": "#fcf9f9", // Ivory base
+              "surface": "#fcf9f9",
+              "surface-container": "#f0eded",
+              "surface-container-low": "#f6f3f3",
+              "on-surface": "#1b1b1c",
+              "on-background": "#1b1b1c",
+              "outline": "#857372",
+              "outline-variant": "#d7c2c1",
+              "error": "#ba1a1a",
+              "on-primary": "#ffffff"
+            },
+            "borderRadius": {
+              "DEFAULT": "0.25rem",
+              "lg": "0.5rem",
+              "xl": "0.75rem",
+              "full": "9999px"
+            },
+            "spacing": {
+              "margin-desktop": "64px",
+              "container-max": "1280px",
+              "stack-md": "24px",
+              "base": "8px",
+              "margin-mobile": "20px",
+              "stack-lg": "48px",
+              "stack-sm": "12px",
+              "gutter": "24px"
+            },
+            "fontFamily": {
+              "headline-sm": ["Playfair Display"],
+              "label-md": ["Plus Jakarta Sans"],
+              "headline-md": ["Playfair Display"],
+              "display-lg-mobile": ["Playfair Display"],
+              "body-lg": ["Plus Jakarta Sans"],
+              "display-lg": ["Playfair Display"],
+              "body-md": ["Plus Jakarta Sans"],
+              "label-sm": ["Plus Jakarta Sans"]
+            },
+            "fontSize": {
+              "headline-sm": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+              "label-md": ["14px", {"lineHeight": "20px", "letterSpacing": "0.05em", "fontWeight": "600"}],
+              "headline-md": ["32px", {"lineHeight": "40px", "fontWeight": "600"}],
+              "display-lg-mobile": ["36px", {"lineHeight": "44px", "letterSpacing": "-0.01em", "fontWeight": "700"}],
+              "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+              "display-lg": ["48px", {"lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+              "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+              "label-sm": ["12px", {"lineHeight": "16px", "fontWeight": "500"}]
+            }
+          }
+        }
+      }
+    </script>
+
+    <!-- Custom CSS styles for high-fidelity overlays -->
     <style>
-        :root {
-            --blanco-puro: #FFFFFF;
-            --beige-calido: #FFFBF9;
-            --rosa-palo: #F9EBEA;
-            --rosa-intenso: #C28B8A;
-            --gris-oscuro: #4A4446;
-            --gris-claro: #F5F0F0;
-            --font-main: 'Poppins', sans-serif;
-            --font-display: 'Playfair Display', serif;
-            --radius-md: 16px;
-            --radius-pill: 50px;
-            --transition-smooth: all 0.3s ease;
-            --shadow-subtle: 0 4px 15px rgba(194, 139, 138, 0.08);
+        body {
+            background-color: #faf0f0;
+            background-image: url('media/background.png');
+            background-repeat: repeat;
+            background-attachment: fixed;
+            color: theme('colors.on-background');
+            font-family: 'Plus Jakarta Sans', sans-serif;
         }
-
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: var(--font-main); background-color: var(--beige-calido); color: var(--gris-oscuro); display: flex; flex-direction: column; min-height: 100vh; overflow-x: hidden;}
-        
-        /* HEADER MINIMALISTA */
-        header { background: var(--blanco-puro); padding: 1.2rem 5%; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--rosa-palo); position: sticky; top: 0; z-index: 100; box-shadow: var(--shadow-subtle);}
-        .logo { font-family: var(--font-display); font-size: 1.8rem; font-weight: 700; font-style: italic; color: var(--rosa-intenso); text-decoration: none; display: flex; align-items: center; gap: 10px; }
-        .logo img { width: 35px; height: 35px; object-fit: contain; mix-blend-mode: multiply; }
-        .back-link { font-size: 0.95rem; font-weight: 600; color: var(--gris-oscuro); text-decoration: none; transition: var(--transition-smooth); display: flex; align-items: center; gap: 8px; padding: 0.6rem 1.2rem; background: var(--fondo-claro); border-radius: 50px; border: 1px solid var(--gris-claro);}
-        .back-link:hover { color: var(--rosa-intenso); border-color: var(--rosa-intenso); background: var(--blanco-puro); transform: translateY(-2px);}
-
-        /* LAYOUT DASHBOARD */
-        .account-container { display: flex; flex-direction: column; max-width: 1200px; margin: 2rem auto; width: 100%; flex: 1; padding: 0 5%; gap: 2rem; animation: fadeInUp 0.5s ease;}
-        @media (min-width: 900px) { .account-container { flex-direction: row; margin: 4rem auto;} }
-
-        /* SIDEBAR (MENÚ) */
-        .account-sidebar { width: 100%; background: var(--blanco-puro); border-radius: var(--radius-md); border: 1px solid var(--rosa-palo); overflow: hidden; height: max-content; box-shadow: var(--shadow-subtle);}
-        @media (min-width: 900px) { .account-sidebar { width: 320px; position: sticky; top: 100px; } }
-        
-        .user-profile-header { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 1rem; padding: 3rem 1.5rem; border-bottom: 1px solid var(--rosa-palo); background: linear-gradient(180deg, var(--beige-calido) 0%, var(--blanco-puro) 100%); }
-        .user-avatar-large { width: 85px; height: 85px; border-radius: 50%; background: var(--rosa-intenso); color: var(--blanco-puro); display: flex; align-items: center; justify-content: center; font-size: 2.5rem; font-weight: 700; font-family: var(--font-display); box-shadow: 0 8px 20px rgba(194, 139, 138, 0.4); border: 4px solid var(--blanco-puro);}
-        .user-profile-header h3 { font-family: var(--font-display); font-size: 1.4rem; color: var(--gris-oscuro); line-height: 1.2; font-weight: 700;}
-        .user-profile-header p { font-size: 0.9rem; color: #888; }
-
-        .account-menu { display: flex; flex-direction: column; padding: 1.5rem 1rem; gap: 0.5rem; }
-        .account-menu-item { display: flex; align-items: center; gap: 1.2rem; width: 100%; padding: 1.2rem 1.5rem; background: transparent; border: none; border-radius: 12px; text-align: left; font-size: 0.95rem; font-weight: 600; color: #666; transition: var(--transition-smooth); cursor: pointer; border-left: 3px solid transparent;}
-        .account-menu-item svg { width: 22px; height: 22px; opacity: 0.6; transition: var(--transition-smooth); }
-        .account-menu-item:hover { background: var(--beige-calido); color: var(--rosa-intenso); border-left-color: var(--rosa-palo); transform: translateX(5px);}
-        .account-menu-item:hover svg { opacity: 1; color: var(--rosa-intenso); }
-        .account-menu-item.active { background: var(--rosa-intenso); color: var(--blanco-puro); box-shadow: 0 4px 15px rgba(194, 139, 138, 0.3); border-left-color: transparent; transform: none;}
-        .account-menu-item.active svg { opacity: 1; color: var(--blanco-puro); }
-        
-        .btn-logout { color: #e74c3c; margin-top: 1rem; border-top: 1px dashed var(--gris-claro); border-radius: 0; padding-top: 1.5rem; justify-content: center; border-left: none !important;}
-        .btn-logout:hover { background: transparent; color: #c0392b; transform: none; }
-        .btn-logout:hover svg { color: #c0392b; }
-
-        /* CONTENIDO PRINCIPAL */
-        .account-content { flex: 1; background: var(--blanco-puro); border-radius: var(--radius-md); border: 1px solid var(--rosa-palo); padding: 2rem; box-shadow: var(--shadow-subtle); min-height: 600px;}
-        @media (min-width: 900px) { .account-content { padding: 3.5rem; } }
-        
-        .content-view { display: none; animation: fadeInUp 0.4s ease forwards; }
-        .content-view.active { display: block; }
-        
-        .content-header { margin-bottom: 2.5rem; border-bottom: 2px solid var(--rosa-palo); padding-bottom: 1.5rem; }
-        .content-title { font-family: var(--font-display); font-size: 2rem; color: var(--gris-oscuro); margin-bottom: 0.5rem; font-weight: 700;}
-        .content-subtitle { font-size: 1rem; color: #888; }
-
-        /* --- VISTA: PEDIDOS REALES --- */
-        .order-card { border: 1px solid var(--gris-claro); border-radius: 16px; padding: 2rem; margin-bottom: 2rem; transition: var(--transition-smooth); box-shadow: 0 2px 10px rgba(0,0,0,0.02);}
-        .order-card:hover { border-color: var(--rosa-intenso); box-shadow: 0 8px 25px rgba(194, 139, 138, 0.12); }
-        .order-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem;}
-        .order-id { font-family: var(--font-display); font-size: 1.5rem; font-weight: 700; color: var(--gris-oscuro); }
-        .order-date { font-size: 0.9rem; color: #888; display: block; margin-top: 0.3rem;}
-        
-        .status-badge { padding: 0.5rem 1.5rem; border-radius: 50px; font-size: 0.85rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;}
-        .status-pendiente { background: #FEF9E7; color: #D4AC0D; border: 1px solid #F9E79F; }
-        .status-sin-pagar { background: #FEF5E7; color: #E67E22; border: 1px solid #FAD7A0; }
-        .status-pagado { background: #EBF5FB; color: #2874A6; border: 1px solid #D4E6F1; }
-        .status-preparando { background: #F4ECF7; color: #8E44AD; border: 1px solid #E8DAEF; }
-        .status-enviado { background: #E8F8F5; color: #1ABC9C; border: 1px solid #A3E4D7; }
-        .status-entregado { background: #EAFAF1; color: #27AE60; border: 1px solid #D1F2EB; }
-
-        /* LÍNEA DE TIEMPO (TRACKING) */
-        .tracking-timeline { display: flex; justify-content: space-between; position: relative; margin: 3rem 0; padding: 0 1rem;}
-        .tracking-timeline::before { content: ''; position: absolute; top: 18px; left: 10%; right: 10%; height: 4px; background: var(--gris-claro); z-index: 1;}
-        .tracking-step { position: relative; z-index: 2; display: flex; flex-direction: column; align-items: center; gap: 0.8rem; flex: 1; text-align: center;}
-        .step-icon { width: 40px; height: 40px; border-radius: 50%; background: var(--blanco-puro); border: 4px solid var(--gris-claro); display: flex; align-items: center; justify-content: center; font-size: 1rem; font-weight: bold; color: #ccc; transition: var(--transition-smooth);}
-        .step-text { font-size: 0.85rem; font-weight: 600; color: #aaa; line-height: 1.2;}
-        
-        .tracking-step.completed .step-icon { background: var(--rosa-intenso); border-color: var(--rosa-intenso); color: white; }
-        .tracking-step.completed .step-text { color: var(--gris-oscuro); }
-        .tracking-step.completed ~ .tracking-step::before { background: var(--rosa-intenso); } /* Solo si quisieramos rellenar la linea */
-        
-        .tracking-step.current .step-icon { border-color: var(--rosa-intenso); color: var(--rosa-intenso); box-shadow: 0 0 0 6px var(--rosa-palo); }
-        .tracking-step.current .step-text { color: var(--rosa-intenso); font-weight: 700;}
-        .tracking-step.pending .step-icon { border-color: #F39C12; color: #F39C12; }
-        .tracking-step.pending .step-text { color: #E67E22; font-weight: 600; }
-
-        /* ACCIONES ORDEN PENDIENTE */
-        .pending-actions { display: flex; gap: 1rem; margin-top: 1.5rem; flex-wrap: wrap; align-items: center; border-top: 2px dashed #FAD7A0; padding-top: 1.5rem; }
-        .btn-pay-now { background: var(--rosa-intenso); color: var(--blanco-puro); padding: 0.85rem 2rem; border-radius: 10px; border: none; font-weight: 700; cursor: pointer; font-size: 0.95rem; transition: var(--transition-smooth); display: inline-flex; align-items: center; gap: 8px; }
-        .btn-pay-now:hover { background: #a87675; transform: translateY(-2px); box-shadow: 0 6px 16px rgba(194,139,138,0.3); }
-        .btn-cancel-order { background: transparent; color: #c0392b; padding: 0.85rem 1.5rem; border-radius: 10px; border: 1px solid #e74c3c; font-weight: 600; cursor: pointer; font-size: 0.9rem; transition: var(--transition-smooth); }
-        .btn-cancel-order:hover { background: #fdf2f2; border-color: #c0392b; }
-        .btn-cancel-order:disabled { opacity: 0.5; cursor: not-allowed; }
-
-        .tracking-box { background: var(--beige-calido); padding: 1.5rem; border-radius: 12px; border: 1px dashed var(--rosa-intenso); font-size: 0.95rem; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem; margin-bottom: 1.5rem;}
-        .tracking-code { font-family: monospace; font-size: 1.2rem; font-weight: 700; color: var(--rosa-intenso); background: var(--blanco-puro); padding: 0.5rem 1.2rem; border-radius: 8px; border: 1px solid var(--rosa-intenso); letter-spacing: 1px;}
-
-        .order-footer { display: flex; justify-content: space-between; align-items: center; margin-top: 2rem; font-weight: 600; font-size: 1.2rem; color: var(--dark-studio); border-top: 2px dashed var(--gris-claro); padding-top: 1.5rem;}
-
-        /* --- VISTA: FAVORITOS --- */
-        .favorites-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 1.5rem; }
-        .fav-card { background: var(--blanco-puro); border-radius: var(--radius-md); overflow: hidden; border: 1px solid var(--rosa-palo); position: relative; transition: var(--transition-smooth); display: flex; flex-direction: column;}
-        .fav-card:hover { transform: translateY(-8px); box-shadow: 0 15px 30px rgba(194, 139, 138, 0.15); border-color: var(--rosa-intenso); }
-        .fav-img { aspect-ratio: 4/5; width: 100%; object-fit: cover; background: var(--gris-claro); }
-        .fav-info { padding: 1.2rem; text-align: center; flex: 1; display: flex; flex-direction: column; justify-content: space-between;}
-        .fav-title { font-size: 0.9rem; font-weight: 600; margin-bottom: 0.5rem; color: var(--gris-oscuro); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;}
-        .fav-price { font-weight: 700; color: var(--rosa-intenso); font-size: 1.1rem; margin-bottom: 1rem;}
-        .btn-remove-fav { position: absolute; top: 10px; right: 10px; background: rgba(255,255,255,0.9); border: none; width: 35px; height: 35px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; color: var(--danger-color); box-shadow: var(--shadow-subtle); transition: var(--transition-smooth); z-index: 2;}
-        .btn-remove-fav:hover { background: var(--danger-color); color: white; transform: scale(1.1); }
-        .btn-buy-fav { width: 100%; padding: 0.8rem; background-color: var(--rosa-palo); border: none; color: var(--gris-oscuro); border-radius: var(--radius-sm); font-weight: 600; font-size: 0.85rem; transition: var(--transition-smooth); cursor: pointer; text-decoration: none;}
-        .btn-buy-fav:hover { background-color: var(--rosa-intenso); color: var(--blanco-puro); }
-
-        .empty-state { text-align: center; padding: 5rem 2rem; background: var(--fondo-claro); border-radius: 16px; border: 2px dashed var(--gris-claro); }
-
-        /* --- VISTA: DIRECCIONES --- */
-        .input-group { margin-bottom: 1.5rem; position: relative; }
-        .input-group label { display: block; font-size: 0.85rem; font-weight: 600; color: #777; margin-bottom: 0.5rem; margin-left: 0.5rem;}
-        .input-group input, .input-group select { 
-            width: 100%; padding: 1.1rem 1.2rem; 
-            border: 1px solid var(--gris-claro); border-radius: 12px; 
-            font-family: var(--font-main); font-size: 0.95rem; 
-            outline: none; background: var(--fondo-claro); color: var(--gris-oscuro);
-            transition: var(--transition-smooth); 
+        .input-premium {
+            border: 1.5px solid #eedfdd;
+            background: #ffffff;
+            transition: all 0.3s ease;
         }
-        .input-group input:focus, .input-group select:focus { border-color: var(--rosa-intenso); background: var(--blanco-puro); box-shadow: 0 0 0 4px rgba(194, 139, 138, 0.15); }
-        .row { display: flex; gap: 1.5rem; flex-wrap: wrap;}
-        .row > * { flex: 1; min-width: 250px;}
-        
-        .btn-primary { background: var(--rosa-intenso); color: var(--blanco-puro); padding: 1.2rem 2.5rem; border-radius: 12px; border: none; font-weight: 600; font-size: 1.1rem; cursor: pointer; transition: var(--transition-smooth); text-transform: uppercase; letter-spacing: 1px; margin-top: 1rem; width: 100%; box-shadow: 0 8px 20px rgba(194, 139, 138, 0.2);}
-        .btn-primary:hover { background: #a87675; transform: translateY(-3px); box-shadow: 0 12px 25px rgba(194, 139, 138, 0.3); }
-
-        /* TOAST */
-        .toast-notification { position: fixed; bottom: -100px; left: 50%; transform: translateX(-50%); background: var(--gris-oscuro); color: var(--blanco-puro); padding: 14px 28px; border-radius: 50px; font-size: 0.95rem; font-weight: 500; box-shadow: 0 10px 30px rgba(0,0,0,0.2); z-index: 9999; transition: bottom 0.4s cubic-bezier(0.25, 0.8, 0.25, 1); display: flex; align-items: center; gap: 10px; }
-        .toast-notification.show { bottom: 30px; } 
-
-        .spinner { width: 50px; height: 50px; border: 4px solid var(--rosa-palo); border-top-color: var(--rosa-intenso); border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto; }
-        @keyframes spin { to { transform: rotate(360deg); } }
-        @keyframes fadeInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        .input-premium:focus {
+            border-color: #8a4d4e;
+            box-shadow: 0 0 0 4px rgba(138, 77, 78, 0.15);
+            outline: none;
+        }
+        .subtle-shadow {
+            box-shadow: 0 8px 32px rgba(138, 77, 78, 0.05);
+        }
+        .account-menu-item.active {
+            background-color: #8a4d4e;
+            color: #ffffff;
+            box-shadow: 0 4px 12px rgba(138, 77, 78, 0.2);
+        }
+        .logo-text {
+            font-family: 'Great Vibes', cursive;
+            background: linear-gradient(135deg, #8a4d4e 0%, #f7d6d0 50%, #8a4d4e 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-weight: normal;
+            display: inline-block;
+            filter: drop-shadow(0px 2px 3px rgba(33, 26, 25, 0.25));
+        }
+        .status-pendiente {
+            background-color: #fdf6e2;
+            color: #b78a10;
+            border: 1.5px solid #f5e4b3;
+        }
+        .status-sin-pagar {
+            background-color: #fff2e6;
+            color: #d35400;
+            border: 1.5px solid #ffd8b3;
+        }
+        .status-pagado {
+            background-color: #eafaf1;
+            color: #27ae60;
+            border: 1.5px solid #c2f0d5;
+        }
+        .status-preparando {
+            background-color: #faf0f0;
+            color: #8a4d4e;
+            border: 1.5px solid #ffdad9;
+        }
+        .status-enviado {
+            background-color: #ebf5fb;
+            color: #2980b9;
+            border: 1.5px solid #d4e6f1;
+        }
+        .status-entregado {
+            background-color: #eafaf1;
+            color: #27ae60;
+            border: 1.5px solid #c2f0d5;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        .animate-fade-in {
+            animation: fadeIn 0.2s ease-out forwards;
+        }
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(15px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .content-view {
+            display: none;
+        }
+        .content-view.active {
+            display: block;
+            animation: fadeInUp 0.4s ease forwards;
+        }
     </style>
 </head>
-<body>
 
-    <div id="toastNotification" class="toast-notification"><span id="toastIcon">✨</span> <span id="toastMsg">Mensaje</span></div>
+<body class="antialiased min-h-screen flex flex-col pt-16 md:pt-20">
 
-    <header>
-        <a href="index.html" class="logo"><img src="./ico.jpg" alt="Logo" onerror="this.src='https://via.placeholder.com/35x35?text=M'"> Mathsoluis</a>
-        <a href="index.html" class="back-link">
-            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
-            Ir de Shopping
+    <div id="toastNotification" class="fixed bottom-[-100px] left-1/2 -translate-x-1/2 bg-[#1b1b1c] text-[#fcf9f9] px-6 py-3.5 rounded-full text-sm font-medium shadow-2xl z-[9999] transition-all duration-500 flex items-center gap-2">
+        <span id="toastIcon">✨</span> <span id="toastMsg">Mensaje</span>
+    </div>
+
+    <!-- Header Minimalista -->
+    <header class="fixed top-0 w-full z-50 bg-white border-b border-[#eedfdd] px-margin-mobile md:px-margin-desktop py-4 flex justify-between items-center shadow-sm h-16 md:h-20">
+        <a href="index.html" class="inline-flex items-center gap-2.5 group cursor-pointer py-1 select-none" aria-label="Poppy Jeans Inicio">
+            <img src="./poppyjeanslogo.png" alt="Poppy Jeans Emblem" 
+                 class="h-8 w-8 md:h-10 md:w-10 rounded-full object-cover shadow-sm ring-2 ring-[#8a4d4e]/25 group-hover:ring-[#8a4d4e] group-hover:scale-105 transition-all duration-300">
+            <img src="./media/poppyjeans_logo_script.png" alt="Poppy Jeans" 
+                 class="h-6 md:h-8 object-contain transition-all duration-300">
+        </a>
+        <a href="shop.html" class="flex items-center gap-1.5 text-[#665c5b] hover:text-primary transition-all font-label-md text-xs font-bold">
+            <span class="material-symbols-outlined text-[18px]">keyboard_backspace</span>
+            <span>Seguir Comprando</span>
         </a>
     </header>
 
-    <div class="account-container">
+    <!-- Layout Dashboard -->
+    <div class="flex-1 w-full max-w-[1200px] mx-auto flex flex-col md:flex-row gap-8 py-8 px-margin-mobile md:px-margin-desktop">
         
         <!-- SIDEBAR DE NAVEGACIÓN -->
-        <aside class="account-sidebar">
-            <div class="user-profile-header">
-                <div class="user-avatar-large" id="profileAvatar">M</div>
+        <aside class="w-full md:w-[280px] bg-white border border-[#eedfdd]/50 rounded-2xl overflow-hidden shadow-sm h-fit shrink-0">
+            <div class="flex flex-col items-center text-center gap-2.5 p-8 border-b border-[#eedfdd]/50 bg-gradient-to-b from-[#fcf9f9] to-white">
+                <div class="w-16 h-16 rounded-full bg-primary text-white flex items-center justify-center font-headline-sm text-2xl font-bold border-4 border-white shadow-md select-none" id="profileAvatar">M</div>
                 <div>
-                    <h3 id="profileName">Cargando...</h3>
-                    <p id="profileEmail">cargando@correo.com</p>
+                    <h3 class="font-headline-sm text-base font-bold text-[#191E2A]" id="profileName">Cargando...</h3>
+                    <p class="text-xs text-[#665c5b]" id="profileEmail">cargando@correo.com</p>
                 </div>
             </div>
             
-            <nav class="account-menu">
-                <button class="account-menu-item active" data-target="view-pedidos" onclick="switchView(this)">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>
-                    Mis Pedidos Reales
+            <nav class="flex flex-col p-4 gap-1.5">
+                <button class="flex items-center gap-3 w-full px-4 py-3.5 rounded-xl font-bold text-xs text-[#665c5b] hover:bg-[#eedfdd]/20 transition-all text-left account-menu-item active" data-target="view-pedidos" onclick="switchView(this)">
+                    <span class="material-symbols-outlined text-[18px]">inventory_2</span>
+                    <span>Mis Pedidos</span>
                 </button>
-                <button class="account-menu-item" data-target="view-favoritos" onclick="switchView(this)">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
-                    Mi Lista de Deseos
+                <button class="flex items-center gap-3 w-full px-4 py-3.5 rounded-xl font-bold text-xs text-[#665c5b] hover:bg-[#eedfdd]/20 transition-all text-left account-menu-item" data-target="view-favoritos" onclick="switchView(this)">
+                    <span class="material-symbols-outlined text-[18px]">favorite</span>
+                    <span>Lista de Deseos</span>
                 </button>
-                <button class="account-menu-item" data-target="view-direcciones" onclick="switchView(this)">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
-                    Datos y Despacho
+                <button class="flex items-center gap-3 w-full px-4 py-3.5 rounded-xl font-bold text-xs text-[#665c5b] hover:bg-[#eedfdd]/20 transition-all text-left account-menu-item" data-target="view-direcciones" onclick="switchView(this)">
+                    <span class="material-symbols-outlined text-[18px]">local_shipping</span>
+                    <span>Datos y Despacho</span>
                 </button>
-                <button class="account-menu-item btn-logout" onclick="logoutCustomer()">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
-                    Cerrar Sesión
+                <button class="flex items-center gap-3 w-full px-4 py-3.5 rounded-xl font-bold text-xs text-error hover:bg-red-50 transition-all text-left border-t border-[#eedfdd]/50 pt-6 mt-4 rounded-none rounded-b-xl" onclick="logoutCustomer()">
+                    <span class="material-symbols-outlined text-[18px]">logout</span>
+                    <span>Cerrar Sesión</span>
                 </button>
             </nav>
         </aside>
 
-        <!-- ÁREA PRINCIPAL -->
-        <main class="account-content">
+        <!-- AREA PRINCIPAL -->
+        <main class="flex-1 bg-white border border-[#eedfdd]/50 rounded-2xl p-6 md:p-10 shadow-sm min-h-[500px]">
             
-            <!-- VISTA: MIS PEDIDOS (CONECTADO A LA API) -->
+            <!-- VISTA: PEDIDOS -->
             <div id="view-pedidos" class="content-view active">
-                <div class="content-header">
-                    <h2 class="content-title">Historial de Pedidos</h2>
-                    <p class="content-subtitle">Revisa el estado de tus compras y haz seguimiento logístico.</p>
+                <div class="pb-4 border-b border-[#eedfdd]/50 mb-6 flex flex-col gap-1">
+                    <h2 class="font-headline-sm text-xl font-bold text-[#191E2A]">Historial de Pedidos</h2>
+                    <p class="text-xs text-[#665c5b]">Revisa el estado logístico de tus compras y comprobantes de pago.</p>
                 </div>
 
-                <div id="ordersContainer">
-                    <div class="spinner" style="margin: 3rem auto;"></div>
-                    <p style="text-align:center; color:#888; margin-top:1rem;">Buscando tus pedidos en el sistema...</p>
+                <div id="ordersContainer" class="flex flex-col gap-6">
+                    <div class="py-12 text-center flex flex-col items-center gap-3">
+                        <div class="w-8 h-8 border-4 border-[#eedfdd] border-t-primary rounded-full animate-spin"></div>
+                        <p class="text-xs text-[#665c5b] font-semibold">Buscando tus pedidos en el sistema...</p>
+                    </div>
                 </div>
             </div>
 
-            <!-- VISTA: MIS FAVORITOS (WISHLIST) -->
+            <!-- VISTA: FAVORITOS -->
             <div id="view-favoritos" class="content-view">
-                <div class="content-header">
-                    <h2 class="content-title">Mi Lista de Deseos ❤️</h2>
-                    <p class="content-subtitle">Las prendas que más te gustaron, guardadas para cuando estés lista.</p>
+                <div class="pb-4 border-b border-[#eedfdd]/50 mb-6 flex flex-col gap-1">
+                    <h2 class="font-headline-sm text-xl font-bold text-[#191E2A]">Lista de Deseos ❤️</h2>
+                    <p class="text-xs text-[#665c5b]">Tus jeans y chaquetas favoritas, guardados en un solo lugar.</p>
                 </div>
 
-                <div id="favoritesContainer" class="favorites-grid">
-                    <!-- Se renderizará vía JS -->
+                <div id="favoritesContainer" class="grid grid-cols-2 md:grid-cols-3 gap-4">
+                    <!-- Wishlist inyectada por JS -->
+                    <div class="empty-state py-12 text-center col-span-full flex flex-col items-center gap-3">
+                        <span class="text-4xl">💔</span>
+                        <h3 class="font-headline-sm text-sm font-bold text-primary italic">No tienes productos en tu lista</h3>
+                        <a href="shop.html" class="bg-primary text-white font-label-md text-2xs py-2.5 px-6 rounded-full font-bold uppercase tracking-wider shadow mt-2">Ir al Shop</a>
+                    </div>
                 </div>
             </div>
 
-            <!-- VISTA: MIS DIRECCIONES -->
+            <!-- VISTA: DATOS Y DESPACHO -->
             <div id="view-direcciones" class="content-view">
-                <div class="content-header">
-                    <h2 class="content-title">Mis Datos y Direcciones</h2>
-                    <p class="content-subtitle">Configura tus datos para que tu próximo checkout sea aún más rápido.</p>
+                <div class="pb-4 border-b border-[#eedfdd]/50 mb-6 flex flex-col gap-1">
+                    <h2 class="font-headline-sm text-xl font-bold text-[#191E2A]">Mis Datos y Despacho</h2>
+                    <p class="text-xs text-[#665c5b]">Configura tus direcciones por defecto para finalizar tus compras rápido.</p>
                 </div>
 
-                <form onsubmit="saveAddress(event)">
-                    <div class="row">
-                        <div class="input-group">
-                            <label>Nombre del Destinatario</label>
-                            <input type="text" id="accName" required>
+                <form onsubmit="saveAddress(event)" class="flex flex-col gap-4">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div class="flex flex-col gap-1.5">
+                            <label class="text-xs font-bold text-[#665c5b] ml-1">Nombre Completo</label>
+                            <input type="text" id="accName" required class="input-premium px-4 py-3 rounded-xl text-sm w-full">
                         </div>
-                        <div class="input-group">
-                            <label>Teléfono Móvil (WhatsApp)</label>
-                            <input type="text" id="accPhone" placeholder="+56 9...">
+                        <div class="flex flex-col gap-1.5">
+                            <label class="text-xs font-bold text-[#665c5b] ml-1">Teléfono Móvil (WhatsApp)</label>
+                            <input type="text" id="accPhone" placeholder="+56 9..." class="input-premium px-4 py-3 rounded-xl text-sm w-full">
                         </div>
                     </div>
-                    <div class="input-group">
-                        <label>Dirección Exacta</label>
-                        <input type="text" id="accAddress" placeholder="Ej: Av. Las Condes 1234, Depto 45">
+                    
+                    <div class="flex flex-col gap-1.5">
+                        <label class="text-xs font-bold text-[#665c5b] ml-1">Dirección Exacta</label>
+                        <input type="text" id="accAddress" placeholder="Ej: Av. Las Condes 1234, Depto 45" class="input-premium px-4 py-3 rounded-xl text-sm w-full">
                     </div>
-                    <div class="row">
-                        <div class="input-group">
-                            <label>Comuna</label>
-                            <input type="text" id="accComuna" placeholder="Ej: Las Condes">
+                    
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div class="flex flex-col gap-1.5">
+                            <label class="text-xs font-bold text-[#665c5b] ml-1">Comuna</label>
+                            <input type="text" id="accComuna" placeholder="Ej: Las Condes" class="input-premium px-4 py-3 rounded-xl text-sm w-full">
                         </div>
-                        <div class="input-group">
-                            <label>Región</label>
-                            <select id="accRegion" style="cursor: pointer;">
+                        <div class="flex flex-col gap-1.5 relative">
+                            <label class="text-xs font-bold text-[#665c5b] ml-1">Región</label>
+                            <select id="accRegion" class="input-premium px-4 py-3 rounded-xl text-sm w-full appearance-none cursor-pointer pr-10">
                                 <option value="" disabled selected>Selecciona tu región...</option>
-                                <option value="Región Metropolitana" style="font-weight: bold; background: var(--fondo-claro);">⭐ Región Metropolitana</option>
+                                <option value="Región Metropolitana" class="font-bold bg-[#fcf9f9]">⭐ Región Metropolitana</option>
                                 <option disabled>──────────</option>
                                 <option value="Arica y Parinacota">Arica y Parinacota</option>
                                 <option value="Tarapacá">Tarapacá</option>
@@ -291,21 +319,29 @@
                                 <option value="Aysén">Aysén</option>
                                 <option value="Magallanes">Magallanes y Antártica</option>
                             </select>
+                            <span class="material-symbols-outlined absolute right-3 top-[38px] text-[#665c5b] pointer-events-none text-[20px]">expand_more</span>
                         </div>
                     </div>
                     
-                    <button type="submit" class="btn-primary">Guardar Mis Datos</button>
+                    <button type="submit" class="w-full bg-primary text-white font-label-md text-xs py-4 rounded-full uppercase tracking-wider font-bold shadow-md hover:bg-primary/95 hover:-translate-y-0.5 active:scale-98 transition-all mt-4">Guardar Cambios</button>
                 </form>
             </div>
 
         </main>
     </div>
 
-    <!-- SCRIPT LOGIC -->
-    <script>
-        const API_BASE_URL = 'https://mathsoluis-api.studiopixelchile.workers.dev';
+    <!-- Footer Corporativo Mínimo -->
+    <footer class="bg-surface-container-low border-t border-primary/10 py-6 text-center text-xs text-[#665c5b]">
+        <p class="font-medium">© 2024 Poppy Jeans. Designed for the romantic modern soul.</p>
+    </footer>
 
-        // Fetch robusto: timeout 12 s + 2 reintentos con backoff exponencial (solo GET).
+    <!-- SCRIPTS -->
+    <script>
+        const API_BASE_URL = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
+            ? 'http://localhost:8788'
+            : 'https://api.poppyjeans.cl';
+
+        // Fetch robusto: timeout 12 s + 2 reintentos con backoff exponencial
         async function fetchWithRetry(url, opts = {}, retries = 2, baseDelay = 400) {
             const isGet = !opts.method || opts.method.toUpperCase() === 'GET';
             for (let attempt = 0; attempt <= retries; attempt++) {
@@ -327,15 +363,22 @@
 
         function showToast(message, type = 'success') {
             const toast = document.getElementById('toastNotification');
-            document.getElementById('toastMsg').textContent = message;
-            toast.className = `toast-notification show ${type === 'error' ? 'error' : ''}`;
-            setTimeout(() => { toast.classList.remove('show'); }, 3500);
+            const msg = document.getElementById('toastMsg');
+            const icon = document.getElementById('toastIcon');
+            msg.textContent = message;
+            icon.textContent = type === 'error' ? '❌' : '✨';
+            
+            toast.classList.remove('bottom-[-100px]');
+            toast.classList.add('bottom-8');
+            setTimeout(() => {
+                toast.classList.remove('bottom-8');
+                toast.classList.add('bottom-[-100px]');
+            }, 3500);
         }
 
         const formatCurrency = (amount) => '$' + amount.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
 
-        // 1. VERIFICACIÓN DE SESIÓN
-        const currentCustomer = JSON.parse(localStorage.getItem('mathsoluis_customer'));
+        const currentCustomer = JSON.parse(localStorage.getItem('poppyjeans_customer'));
         
         window.onload = () => {
             if (!currentCustomer) {
@@ -343,24 +386,22 @@
                 return;
             }
 
-            // Llenar Dashboard Profile
+            // Llenar datos de perfil
             document.getElementById('profileName').textContent = currentCustomer.name;
             document.getElementById('profileEmail').textContent = currentCustomer.email;
             document.getElementById('profileAvatar').textContent = currentCustomer.name.charAt(0).toUpperCase();
 
-            // Llenar Formulario de Direcciones
+            // Rellenar formulario direcciones
             document.getElementById('accName').value = currentCustomer.name;
-            if(currentCustomer.telefono) document.getElementById('accPhone').value = currentCustomer.telefono;
-            if(currentCustomer.direccion) document.getElementById('accAddress').value = currentCustomer.direccion;
-            if(currentCustomer.comuna) document.getElementById('accComuna').value = currentCustomer.comuna;
-            if(currentCustomer.region) document.getElementById('accRegion').value = currentCustomer.region;
+            if (currentCustomer.telefono) document.getElementById('accPhone').value = currentCustomer.telefono;
+            if (currentCustomer.direccion) document.getElementById('accAddress').value = currentCustomer.direccion;
+            if (currentCustomer.comuna) document.getElementById('accComuna').value = currentCustomer.comuna;
+            if (currentCustomer.region) document.getElementById('accRegion').value = currentCustomer.region;
 
-            // Iniciar renders desde la API Real
             fetchCustomerOrders();
             fetchFavorites();
         };
 
-        // 2. NAVEGACIÓN TABS LATERALES
         window.switchView = (btnElem) => {
             document.querySelectorAll('.account-menu-item').forEach(b => b.classList.remove('active'));
             document.querySelectorAll('.content-view').forEach(v => v.classList.remove('active'));
@@ -369,7 +410,6 @@
             document.getElementById(targetId).classList.add('active');
         };
 
-        // 3. GUARDAR DIRECCIÓN LOCAL
         window.saveAddress = (e) => {
             e.preventDefault();
             currentCustomer.name = document.getElementById('accName').value.trim();
@@ -378,57 +418,75 @@
             currentCustomer.comuna = document.getElementById('accComuna').value.trim();
             currentCustomer.region = document.getElementById('accRegion').value;
 
-            localStorage.setItem('mathsoluis_customer', JSON.stringify(currentCustomer));
+            localStorage.setItem('poppyjeans_customer', JSON.stringify(currentCustomer));
             document.getElementById('profileName').textContent = currentCustomer.name;
             document.getElementById('profileAvatar').textContent = currentCustomer.name.charAt(0).toUpperCase();
-            showToast('¡Datos de envío actualizados correctamente!');
+            showToast('¡Datos de despacho actualizados con éxito!');
         };
 
-        // 4. CERRAR SESIÓN
         window.logoutCustomer = () => {
-            localStorage.removeItem('mathsoluis_customer');
+            localStorage.removeItem('poppyjeans_customer');
+            localStorage.removeItem('poppyjeans_customer_token');
             window.location.href = 'index.html';
         };
 
-        // ========================================================================
-        // CONEXIÓN A PEDIDOS REALES (BACKEND)
-        // ========================================================================
+        // HISTORIAL DE PEDIDOS
         async function fetchCustomerOrders() {
             const container = document.getElementById('ordersContainer');
             try {
-                // Hacemos el llamado a la API
-                const response = await fetchWithRetry(`${API_BASE_URL}/api/orders/customer/${encodeURIComponent(currentCustomer.email)}`);
+                const token = localStorage.getItem('poppyjeans_customer_token');
+                const response = await fetchWithRetry(
+                    `${API_BASE_URL}/api/orders/customer/${encodeURIComponent(currentCustomer.email)}`,
+                    token ? { headers: { 'Authorization': `Bearer ${token}` } } : {}
+                );
                 if (!response.ok) {
                     const errorText = await response.text();
-                    console.error("[Mathsoluis Perfil] Error del servidor:", errorText);
-                    throw new Error("Status: " + response.status + " - " + errorText);
+                    throw new Error(errorText);
                 }
                 const result = await response.json();
                 
                 if (result.success) {
-                    // Filtramos SOLO los pedidos que pertenecen al correo del cliente logueado
-                    const myOrders = result.data;
+                    const myOrders = result.data || [];
                     
                     if (myOrders.length === 0) {
                         container.innerHTML = `
-                            <div class="empty-state">
-                                <div style="font-size: 4rem; margin-bottom: 1rem; opacity: 0.5;">🛍️</div>
-                                <h3 style="font-family: var(--font-display); color: var(--dark-studio); font-size: 1.5rem; margin-bottom: 0.5rem;">Aún no tienes pedidos</h3>
-                                <p style="color: #888; margin-bottom: 2rem;">Tu historial está vacío. ¡Anímate a realizar tu primera compra con nosotros!</p>
-                                <a href="index.html#catalogo" class="btn-primary" style="text-decoration:none; padding: 1rem 2.5rem; width:auto; display:inline-block;">Ir de Shopping</a>
+                            <div class="py-12 text-center flex flex-col items-center gap-4 border border-dashed border-[#eedfdd] rounded-2xl bg-[#fcf9f9]">
+                                <span class="text-4xl select-none">🛍️</span>
+                                <div class="flex flex-col gap-1 px-4">
+                                    <h3 class="font-headline-sm text-sm font-bold text-primary italic">No tienes compras registradas</h3>
+                                    <p class="text-2xs text-[#665c5b] max-w-[280px]">Parece que aún no has comprado jeans o chaquetas en Poppy Jeans.</p>
+                                </div>
+                                <a href="shop.html" class="bg-primary text-white font-label-md text-2xs py-2.5 px-6 rounded-full font-bold uppercase tracking-wider shadow active:scale-95 transition-all mt-2">Ir al Shop</a>
                             </div>`;
                         return;
                     }
 
-                    // Renderizar las Tarjetas de los Pedidos Reales
+                    // Pre-cargar detalles de cada orden en paralelo
+                    await Promise.all(myOrders.map(async (order) => {
+                        try {
+                            const token = localStorage.getItem('poppyjeans_customer_token');
+                            const detailsRes = await fetch(`${API_BASE_URL}/api/orders/${order.id}?email=${encodeURIComponent(currentCustomer.email)}`, {
+                                headers: token ? { 'Authorization': `Bearer ${token}` } : {}
+                            });
+                            const detailsJson = await detailsRes.json();
+                            if (detailsJson.success) {
+                                order.items = detailsJson.data.items || [];
+                            } else {
+                                order.items = [];
+                            }
+                        } catch (e) {
+                            order.items = [];
+                        }
+                    }));
+
                     let ordersHTML = '';
                     myOrders.forEach(order => {
                         const dateStr = new Date(order.created_at || order.fecha_creacion).toLocaleDateString('es-CL', { day: '2-digit', month: 'short', year: 'numeric' });
                         
-                        // Lógica de Tracking
+                        // Lógica de estados y barra de progreso
                         let step1 = 'completed', step2 = '', step3 = '', step4 = '';
                         let statusColor = 'status-pendiente';
-                        let trackingMsg = 'Estamos revisando tu pago.';
+                        let trackingMsg = 'Estamos verificando tu pago...';
                         let isPendingPayment = false;
                         let badgeText = order.estado || 'Pendiente';
                         let step1Icon = '✔';
@@ -442,132 +500,254 @@
                             step1 = 'pending';
                             step1Icon = '⏳';
                             step1Label = 'Esperando Pago';
-                            trackingMsg = 'Tu orden fue creada. Solo falta completar el pago para que comencemos a prepararla.';
+                            trackingMsg = 'Tu orden fue creada. Completa el pago para comenzar a prepararla.';
                         } else if (estado.includes('pagado')) {
                             statusColor = 'status-pagado';
                             step2 = 'current';
-                            trackingMsg = 'Tu pago ha sido confirmado. Pronto comenzaremos a armarlo.';
+                            trackingMsg = 'Pago aprobado. Pronto comenzaremos a empaquetar.';
                         } else if (estado.includes('preparan')) {
                             statusColor = 'status-preparando';
                             step2 = 'completed'; step3 = 'current';
-                            trackingMsg = '¡Empaquetado con amor! Tu paquete está siendo preparado en nuestra bodega.';
+                            trackingMsg = '¡Empaquetado! Tu paquete se encuentra en preparación de envío.';
                         } else if (estado.includes('envia') || estado.includes('despacha')) {
                             statusColor = 'status-enviado';
                             step2 = 'completed'; step3 = 'completed'; step4 = 'current';
-                            trackingMsg = '¡Tu pedido va en camino por Blue Express!';
+                            trackingMsg = '¡Tu pedido va en ruta por Blue Express!';
                         } else if (estado.includes('entrega')) {
                             statusColor = 'status-entregado';
                             step2 = 'completed'; step3 = 'completed'; step4 = 'completed';
-                            trackingMsg = 'Entregado con éxito. ¡Esperamos que lo disfrutes!';
+                            trackingMsg = '¡Entregado! Esperamos que disfrutes tu mezclilla Poppy Jeans.';
                         }
 
-                        const trackingCodeStr = order.tracking_code ? order.tracking_code : 'Aún no asignado';
+                        const trackingCodeStr = order.tracking_code ? order.tracking_code : 'Sin asignar';
+
+                        let itemsHTML = '';
+                        if (order.items && order.items.length > 0) {
+                            itemsHTML = `
+                                <div class="mt-4 border-t border-[#eedfdd]/50 pt-4 flex flex-col gap-3">
+                                    <span class="text-[10px] font-bold text-[#857372] uppercase tracking-wider">Productos en esta orden</span>
+                                    <div class="flex flex-col gap-2.5">
+                                        ${order.items.map(it => {
+                                            const hasStock = it.disponible;
+                                            const stockBadge = hasStock 
+                                                ? `<span class="bg-emerald-50 text-emerald-700 text-[10px] font-bold px-2.5 py-0.5 rounded-full border border-emerald-200">En Stock</span>`
+                                                : `<span class="bg-rose-50 text-rose-700 text-[10px] font-bold px-2.5 py-0.5 rounded-full border border-rose-200">${it.stock_disponible > 0 ? `Solo ${it.stock_disponible} disp.` : 'Agotado'}</span>`;
+                                            const sizeText = it.variant_details ? `<span class="text-[10px] text-[#665c5b] bg-[#f6f3f3] px-2 py-0.5 rounded-md border border-[#eedfdd]/40 font-semibold">${it.variant_details}</span>` : '';
+                                            return `
+                                                <div class="flex items-center gap-3.5 bg-[#fcf9f9]/40 border border-[#eedfdd]/30 rounded-xl p-2.5 hover:bg-[#fcf9f9]/80 transition-colors">
+                                                    <img src="${it.imagen_url || './ico.jpg'}" class="w-12 h-16 object-cover rounded-lg border border-[#eedfdd]/50 bg-white" alt="${it.product_name}">
+                                                    <div class="flex-1 min-w-0">
+                                                        <span class="block font-bold text-xs text-[#191E2A] truncate" title="${it.product_name}">${it.product_name}</span>
+                                                        <div class="flex items-center gap-2 mt-1.5">
+                                                            <span class="text-[11px] text-[#665c5b]">Cant: <strong class="text-primary font-bold">${it.cantidad}</strong></span>
+                                                            ${sizeText}
+                                                        </div>
+                                                    </div>
+                                                    <div class="text-right shrink-0 flex flex-col items-end gap-1.5">
+                                                        <span class="font-mono text-xs font-bold text-[#191E2A]">${formatCurrency(it.precio_unitario * it.cantidad)}</span>
+                                                        ${stockBadge}
+                                                    </div>
+                                                </div>
+                                            `;
+                                        }).join('')}
+                                    </div>
+                                </div>
+                            `;
+                        }
 
                         ordersHTML += `
-                            <div class="order-card">
-                                <div class="order-header">
+                            <div class="border border-[#eedfdd] rounded-2xl p-6 shadow-sm bg-white flex flex-col gap-5">
+                                <div class="flex justify-between items-start gap-4">
                                     <div>
-                                        <span class="order-id">Orden #${order.id}</span>
-                                        <span class="order-date">Registrada el ${dateStr}</span>
+                                        <span class="font-headline-sm text-base font-bold text-[#191E2A]">Orden #${order.id}</span>
+                                        <span class="block text-2xs text-[#665c5b] mt-0.5">Registrado el ${dateStr}</span>
                                     </div>
-                                    <div class="status-badge ${statusColor}" style="margin-top: 5px;">${badgeText}</div>
+                                    <div class="px-4 py-1.5 rounded-full text-2xs font-bold uppercase tracking-wider ${statusColor}">${badgeText}</div>
                                 </div>
                                 
-                                <div class="tracking-timeline">
-                                    <div class="tracking-step ${step1}">
-                                        <div class="step-icon">${step1Icon}</div>
-                                        <span class="step-text">${step1Label}</span>
+                                <!-- Timeline visual -->
+                                <div class="flex justify-between relative mt-2 px-2 select-none">
+                                    <div class="absolute top-4 left-[10%] right-[10%] h-[3px] bg-[#eedfdd] z-0"></div>
+                                    
+                                    <div class="flex flex-col items-center gap-1.5 relative z-10 flex-1">
+                                        <div class="w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs shadow-sm border-2 ${step1 === 'completed' ? 'bg-primary border-primary text-white' : (step1 === 'pending' ? 'bg-white border-[#e67e22] text-[#e67e22] ring-4 ring-orange-100' : 'bg-white border-[#eedfdd] text-[#665c5b]/40')}">${step1Icon}</div>
+                                        <span class="text-[9px] font-bold text-[#665c5b]">${step1Label}</span>
                                     </div>
-                                    <div class="tracking-step ${step2}">
-                                        <div class="step-icon">2</div>
-                                        <span class="step-text">En Preparación</span>
+                                    <div class="flex flex-col items-center gap-1.5 relative z-10 flex-1">
+                                        <div class="w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs shadow-sm border-2 ${step2 === 'completed' ? 'bg-primary border-primary text-white' : (step2 === 'current' ? 'bg-white border-primary text-primary ring-4 ring-[#f0dfde]' : 'bg-white border-[#eedfdd] text-[#665c5b]/40')}">2</div>
+                                        <span class="text-[9px] font-bold text-[#665c5b]">En Preparación</span>
                                     </div>
-                                    <div class="tracking-step ${step3}">
-                                        <div class="step-icon">3</div>
-                                        <span class="step-text">En Ruta (Local)</span>
+                                    <div class="flex flex-col items-center gap-1.5 relative z-10 flex-1">
+                                        <div class="w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs shadow-sm border-2 ${step3 === 'completed' ? 'bg-primary border-primary text-white' : (step3 === 'current' ? 'bg-white border-primary text-primary ring-4 ring-[#f0dfde]' : 'bg-white border-[#eedfdd] text-[#665c5b]/40')}">3</div>
+                                        <span class="text-[9px] font-bold text-[#665c5b]">En Ruta</span>
                                     </div>
-                                    <div class="tracking-step ${step4}">
-                                        <div class="step-icon">4</div>
-                                        <span class="step-text">Entregado</span>
+                                    <div class="flex flex-col items-center gap-1.5 relative z-10 flex-1">
+                                        <div class="w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs shadow-sm border-2 ${step4 === 'completed' ? 'bg-primary border-primary text-white' : (step4 === 'current' ? 'bg-white border-primary text-primary ring-4 ring-[#f0dfde]' : 'bg-white border-[#eedfdd] text-[#665c5b]/40')}">4</div>
+                                        <span class="text-[9px] font-bold text-[#665c5b]">Entregado</span>
                                     </div>
                                 </div>
                                 
-                                <div class="tracking-box">
-                                    <div>
-                                        <strong style="display:flex; align-items:center; gap:5px; margin-bottom:5px; color:var(--dark-studio);">
-                                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--rosa-intenso)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path></svg>
-                                            Estado Logístico
-                                        </strong>
-                                        <span style="color:#666;">${trackingMsg}</span>
+                                <div class="bg-[#fcf9f9] border border-[#eedfdd]/50 rounded-xl p-4 flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center">
+                                    <div class="flex flex-col gap-0.5">
+                                        <span class="text-[9px] font-bold text-[#857372] uppercase tracking-wider">Estado Logístico</span>
+                                        <span class="text-xs text-[#665c5b] font-medium">${trackingMsg}</span>
                                     </div>
-                                    <div style="text-align:right; margin-top: 10px;">
-                                        <span style="font-size:0.75rem; color:#888; display:block; margin-bottom:5px; text-transform:uppercase;">Nº Seguimiento Blue Express</span>
-                                        <span class="tracking-code">${trackingCodeStr}</span>
+                                    <div class="text-left sm:text-right shrink-0">
+                                        <span class="text-[9px] font-bold text-[#857372] uppercase tracking-wider">Rastreo Blue Express</span>
+                                        <span class="block font-mono text-xs font-bold text-primary mt-0.5 bg-white border border-[#eedfdd] px-2.5 py-1 rounded-lg">${trackingCodeStr}</span>
                                     </div>
                                 </div>
 
-                                <div class="order-footer">
-                                    <span style="color: #888; font-size: 0.95rem; font-weight: 500;">Destinatario: ${order.cliente_nombre || currentCustomer.name}</span>
-                                    <span>Total: <span style="color: var(--rosa-intenso);">${formatCurrency(order.total)}</span></span>
+                                ${itemsHTML}
+
+                                <div class="flex justify-between items-center pt-4 border-t border-[#eedfdd]/50 font-bold text-sm text-[#191E2A]">
+                                    <span class="text-xs text-[#665c5b] font-medium">Destinatario: ${order.cliente_nombre || currentCustomer.name}</span>
+                                    <span>Total: <span class="text-primary font-extrabold text-base">${formatCurrency(order.total)}</span></span>
                                 </div>
                                 ${isPendingPayment ? `
-                                <div class="pending-actions">
-                                    <button class="btn-pay-now" onclick="reanudarPago(${order.id})">💳 Pagar Ahora</button>
-                                    <button class="btn-cancel-order" onclick="cancelOrder(${order.id}, this)">Cancelar Pedido</button>
+                                <div class="flex gap-3 pt-3 border-t border-orange-100 mt-2">
+                                    <button class="bg-primary text-white font-label-md text-xs py-3.5 px-6 rounded-full font-bold uppercase tracking-wider hover:bg-primary/90 hover:-translate-y-0.5 transition-all flex items-center gap-1.5 shadow active:scale-95 duration-300" onclick="reanudarPago(${order.id})">💳 Pagar Ahora</button>
+                                    <button class="border border-secondary text-secondary font-label-md text-xs py-3.5 px-6 rounded-full font-bold uppercase tracking-wider hover:bg-red-50 hover:text-error hover:border-error transition-all active:scale-95 duration-300" onclick="cancelOrder(${order.id}, this)">Cancelar Pedido</button>
                                 </div>` : ''}
                             </div>
                         `;
                     });
 
                     container.innerHTML = ordersHTML;
-
                 } else {
-                    container.innerHTML = '<p style="color:red;">No se pudieron cargar los pedidos.</p>';
+                    container.innerHTML = '<p class="text-xs font-semibold text-error text-center py-6">No se pudieron recuperar tus pedidos.</p>';
                 }
             } catch (error) {
-                console.error("[Mathsoluis Perfil] Error al cargar pedidos:", error.message);
-                container.innerHTML = `<p style="color:red; padding: 1rem; text-align:center;">No se pudieron cargar tus pedidos.<br><small style="color:#aaa;">${error.message}</small></p>`;
+                container.innerHTML = `<p class="text-xs font-semibold text-error text-center py-6">No se pudieron recuperar tus pedidos.<br><small class="text-[#665c5b]/60">${error.message}</small></p>`;
             }
         }
 
-        // ========================================================================
-        // ACCIONES SOBRE ÓRDENES PENDIENTES
-        // ========================================================================
+        // FUNCIÓN AUXILIAR: Modal moderno de quiebre de stock
+        function showStockShortageModal(orderId, disponibles, agotados, onConfirm, onCancel) {
+            const backdrop = document.createElement('div');
+            backdrop.className = 'fixed inset-0 bg-[#1b1b1c]/60 backdrop-blur-sm z-[9999] flex items-center justify-center p-4 animate-fade-in';
+            
+            const styles = `
+                @keyframes modalIn {
+                    from { opacity: 0; transform: translateY(20px) scale(0.95); }
+                    to { opacity: 1; transform: translateY(0) scale(1); }
+                }
+                .animate-modal-in {
+                    animation: modalIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+                }
+            `;
+            let styleTag = document.getElementById('modal-animation-styles');
+            if (!styleTag) {
+                styleTag = document.createElement('style');
+                styleTag.id = 'modal-animation-styles';
+                styleTag.innerHTML = styles;
+                document.head.appendChild(styleTag);
+            }
 
-        // ────────────────────────────────────────────────────────────────────
-        // REANUDAR PAGO DE UNA ORDEN PENDIENTE
-        // 1) Trae la orden + stock ACTUAL desde el backend.
-        // 2) Valida disponibilidad ítem por ítem.
-        // 3) Camino feliz (todo en stock) → rehidrata el carrito y va a checkout
-        //    en modo "actualizar orden existente" (?orderId=), sin duplicar.
-        // 4) Camino con quiebre → informa qué falta y ofrece rearmar el carrito
-        //    solo con lo disponible y cancelar la orden vieja.
-        // NOTA: la clave real del carrito en esta tienda es 'mathsoluis_cart'
-        //       (no 'cart'); usarla es lo que permite que checkout la lea.
-        // ────────────────────────────────────────────────────────────────────
+            const hasDisponibles = disponibles.length > 0;
+            
+            const content = `
+                <div class="bg-white border border-[#eedfdd] rounded-2xl p-6 md:p-8 w-full max-w-[500px] shadow-2xl flex flex-col gap-6 animate-modal-in">
+                    <div class="flex items-center gap-3 text-[#ba1a1a]">
+                        <span class="material-symbols-outlined text-[32px]">warning</span>
+                        <div>
+                            <h3 class="font-headline-sm text-base font-bold text-[#1b1b1c]">Quiebre de Stock (Orden #${orderId})</h3>
+                            <p class="text-[11px] text-[#665c5b]">Algunos productos de tu pedido ya no se encuentran disponibles.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="flex flex-col gap-3">
+                        <span class="text-[10px] font-bold text-[#857372] uppercase tracking-wider">Productos Agotados o Insuficientes</span>
+                        <div class="flex flex-col gap-2.5 max-h-[200px] overflow-y-auto pr-1">
+                            ${agotados.map(it => `
+                                <div class="flex items-center gap-3 bg-red-50/50 border border-red-100 rounded-xl p-2.5">
+                                    <img src="${it.imagen_url || './ico.jpg'}" class="w-10 h-14 object-cover rounded-lg border border-red-200/50 bg-white" alt="${it.product_name}">
+                                    <div class="flex-1 min-w-0">
+                                        <span class="block font-bold text-xs text-red-950 truncate">${it.product_name}</span>
+                                        <span class="block text-[11px] text-red-900/75 mt-0.5">${it.variant_details || 'Estándar'}</span>
+                                    </div>
+                                    <div class="text-right shrink-0">
+                                        <span class="block text-[10px] font-semibold text-red-700 bg-red-100/50 px-2.5 py-0.5 rounded-full border border-red-200">
+                                            ${it.stock_disponible > 0 ? `Solo ${it.stock_disponible} disp.` : 'Agotado'}
+                                        </span>
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+
+                    ${hasDisponibles ? `
+                    <div class="flex flex-col gap-3">
+                        <span class="text-[10px] font-bold text-[#857372] uppercase tracking-wider">Productos Disponibles (Se conservarán)</span>
+                        <div class="flex flex-col gap-2.5 max-h-[150px] overflow-y-auto pr-1">
+                            ${disponibles.map(it => `
+                                <div class="flex items-center gap-3 bg-[#fcf9f9]/50 border border-[#eedfdd]/30 rounded-xl p-2.5">
+                                    <img src="${it.imagen_url || './ico.jpg'}" class="w-10 h-14 object-cover rounded-lg border border-[#eedfdd]/50 bg-white" alt="${it.product_name}">
+                                    <div class="flex-1 min-w-0">
+                                        <span class="block font-bold text-xs text-[#191E2A] truncate">${it.product_name}</span>
+                                        <span class="block text-[11px] text-[#665c5b] mt-0.5">${it.variant_details || 'Estándar'} · Cant: ${it.cantidad}</span>
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                    ` : ''}
+
+                    <p class="text-xs text-[#665c5b] leading-relaxed">
+                        ${hasDisponibles 
+                            ? '¿Deseas <strong>cancelar la orden actual y rearmar tu carrito</strong> con los productos disponibles para proceder al pago?'
+                            : 'No queda stock disponible para completar esta compra. ¿Deseas cancelar el pedido para liberar el registro?'}
+                    </p>
+
+                    <div class="flex flex-col sm:flex-row gap-3 pt-2 border-t border-[#eedfdd]/50">
+                        <button id="modalConfirmBtn" class="flex-1 bg-primary text-white font-label-md text-xs py-3.5 rounded-full font-bold uppercase tracking-wider hover:bg-primary/95 transition-all shadow-md active:scale-95 duration-300">
+                            ${hasDisponibles ? 'Rearmar Carrito' : 'Cancelar Pedido'}
+                        </button>
+                        <button id="modalCancelBtn" class="flex-1 border border-secondary text-secondary font-label-md text-xs py-3.5 rounded-full font-bold uppercase tracking-wider hover:bg-[#eedfdd]/20 transition-all active:scale-95 duration-300">
+                            Volver
+                        </button>
+                    </div>
+                </div>
+            `;
+
+            backdrop.innerHTML = content;
+            document.body.appendChild(backdrop);
+
+            backdrop.querySelector('#modalConfirmBtn').addEventListener('click', () => {
+                backdrop.remove();
+                onConfirm();
+            });
+
+            backdrop.querySelector('#modalCancelBtn').addEventListener('click', () => {
+                backdrop.remove();
+                if (onCancel) onCancel();
+            });
+        }
+
+        // ACCIONES PENDIENTES
         window.reanudarPago = async (orderId) => {
-            showToast('Verificando disponibilidad de tu pedido…');
+            showToast('Verificando disponibilidad de stock...');
 
-            // Paso 1: obtener la orden con el stock actual de cada ítem
             let order;
             try {
-                const res = await fetch(`${API_BASE_URL}/api/orders/${orderId}?email=${encodeURIComponent(currentCustomer.email)}`);
+                const token = localStorage.getItem('poppyjeans_customer_token');
+                const res = await fetch(`${API_BASE_URL}/api/orders/${orderId}?email=${encodeURIComponent(currentCustomer.email)}`, {
+                    headers: token ? { 'Authorization': `Bearer ${token}` } : {}
+                });
                 const json = await res.json();
                 if (!json.success) throw new Error(json.error || 'No se pudo cargar el pedido.');
                 order = json.data;
             } catch (e) {
-                showToast('❌ ' + e.message);
+                showToast('❌ ' + e.message, 'error');
                 return;
             }
 
             const items = order.items || [];
             if (items.length === 0) {
-                showToast('❌ Este pedido no tiene productos para pagar.');
+                showToast('❌ El pedido no tiene productos.', 'error');
                 return;
             }
 
-            // Reconstruye un ítem con la MISMA estructura que genera la tienda
-            // (producto.html), para que checkout y el backend lo interpreten igual.
             const toCartItem = (it) => {
                 const base = `cart_${it.product_id}_${it.variant_id}`;
                 let cartId, kitSizes = null;
@@ -586,103 +766,115 @@
                     price: it.precio_unitario,
                     weight: it.weight || 0,
                     img: it.imagen_url || './ico.jpg',
-                    quantity: it.cantidad,
+                    quantity: it.quantity,
                     maxStock: it.stock_disponible
                 };
                 if (kitSizes) item.kitSizes = kitSizes;
                 return item;
             };
 
-            // Paso 2: separar disponibles vs. agotados según el stock real
             const disponibles = items.filter(it => it.disponible);
             const agotados    = items.filter(it => !it.disponible);
 
-            // Paso 3 — CAMINO FELIZ: todo disponible → rehidratar y pagar
+            // Camino sin stock de ningún producto
+            if (disponibles.length === 0) {
+                try {
+                    const token = localStorage.getItem('poppyjeans_customer_token');
+                    const headers = { 'Content-Type': 'application/json' };
+                    if (token) headers['Authorization'] = `Bearer ${token}`;
+                    await fetch(`${API_BASE_URL}/api/orders/${orderId}/cancel`, {
+                        method: 'PUT',
+                        headers: headers,
+                        body: JSON.stringify({ email: currentCustomer.email })
+                    });
+                } catch (e) {
+                    console.error('Error al cancelar pedido sin stock:', e);
+                }
+                localStorage.removeItem('poppyjeans_cart');
+                alert(`⚠️ Sin Stock Disponible:\n\nLos productos del pedido #${orderId} ya no cuentan con stock en el inventario. El pedido ha sido cancelado y el carrito eliminado.`);
+                await fetchCustomerOrders();
+                return;
+            }
+
+            // Camino feliz (todos disponibles)
             if (agotados.length === 0) {
-                localStorage.setItem('mathsoluis_cart', JSON.stringify(items.map(toCartItem)));
+                localStorage.setItem('poppyjeans_cart', JSON.stringify(items.map(toCartItem)));
                 window.location.href = `checkout.html?orderId=${orderId}`;
                 return;
             }
 
-            // Paso 4 — CAMINO CON QUIEBRE: informar exactamente qué falta
-            const listaFaltante = agotados.map(it =>
-                `• ${it.product_name}${it.stock_disponible > 0
-                    ? ` (solo ${it.stock_disponible} disp., pediste ${it.cantidad})`
-                    : ' (sin stock)'}`
-            ).join('\n');
+            // Camino con quiebre parcial (algunos agotados)
+            const onConfirm = async () => {
+                // Cancelar vieja
+                try {
+                    const token = localStorage.getItem('poppyjeans_customer_token');
+                    const headers = { 'Content-Type': 'application/json' };
+                    if (token) headers['Authorization'] = `Bearer ${token}`;
+                    const cancelRes = await fetch(`${API_BASE_URL}/api/orders/${orderId}/cancel`, {
+                        method: 'PUT',
+                        headers: headers,
+                        body: JSON.stringify({ email: currentCustomer.email })
+                    });
+                    const cancelJson = await cancelRes.json();
+                    if (!cancelJson.success) throw new Error(cancelJson.error || 'No se pudo cancelar el pedido.');
+                } catch (e) {
+                    showToast('❌ Error al cancelar: ' + e.message, 'error');
+                    return;
+                }
 
-            const mensaje =
-                `Algunos productos de tu pedido #${orderId} ya no están disponibles:\n\n${listaFaltante}\n\n` +
-                (disponibles.length > 0
-                    ? '¿Deseas crear un nuevo carrito con los productos disponibles y cancelar este pedido?'
-                    : 'No queda stock de ningún producto. ¿Deseas cancelar este pedido?');
+                // Actualizar carrito
+                if (disponibles.length > 0) {
+                    localStorage.setItem('poppyjeans_cart', JSON.stringify(disponibles.map(toCartItem)));
+                    showToast('🛒 Carrito actualizado con prendas disponibles.');
+                    setTimeout(() => { window.location.href = 'shop.html'; }, 1300);
+                } else {
+                    localStorage.removeItem('poppyjeans_cart');
+                    showToast('✅ Pedido cancelado correctamente.');
+                    await fetchCustomerOrders();
+                }
+            };
 
-            if (!confirm(mensaje)) return;
-
-            // Paso 5: cancelar la orden vieja en el backend
-            try {
-                const cancelRes = await fetch(`${API_BASE_URL}/api/orders/${orderId}/cancel`, {
-                    method: 'PUT',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ email: currentCustomer.email })
-                });
-                const cancelJson = await cancelRes.json();
-                if (!cancelJson.success) throw new Error(cancelJson.error || 'No se pudo cancelar el pedido.');
-            } catch (e) {
-                showToast('❌ Error al cancelar: ' + e.message);
-                return;
-            }
-
-            // Rearmar carrito solo con lo disponible y mandar a la tienda
-            if (disponibles.length > 0) {
-                localStorage.setItem('mathsoluis_cart', JSON.stringify(disponibles.map(toCartItem)));
-                showToast('🛒 Carrito actualizado con los productos disponibles.');
-                setTimeout(() => { window.location.href = 'index.html#catalogo'; }, 1300);
-            } else {
-                showToast('✅ Pedido cancelado. No había stock disponible.');
-                await fetchCustomerOrders();
-            }
+            showStockShortageModal(orderId, disponibles, agotados, onConfirm);
         };
 
-        // Cancela una orden pendiente de pago y refresca el historial
         window.cancelOrder = async (orderId, btn) => {
-            if (!confirm('¿Seguro que deseas cancelar este pedido?\nEsta acción no se puede deshacer.')) return;
+            if (!confirm('¿Seguro que deseas cancelar este pedido?\nEsta acción es irreversible.')) return;
             const originalText = btn.textContent;
             btn.disabled = true;
-            btn.textContent = 'Cancelando…';
+            btn.textContent = 'Cancelando...';
             try {
+                const token = localStorage.getItem('poppyjeans_customer_token');
+                const headers = { 'Content-Type': 'application/json' };
+                if (token) headers['Authorization'] = `Bearer ${token}`;
                 const res = await fetch(`${API_BASE_URL}/api/orders/${orderId}/cancel`, {
                     method: 'PUT',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: headers,
                     body: JSON.stringify({ email: currentCustomer.email })
                 });
                 const data = await res.json();
                 if (data.success) {
-                    showToast('✅ Pedido cancelado correctamente.');
+                    showToast('✅ Pedido cancelado con éxito.');
                     await fetchCustomerOrders();
                 } else {
-                    throw new Error(data.error || 'No se pudo cancelar el pedido.');
+                    throw new Error(data.error || 'Error cancelando pedido');
                 }
             } catch (e) {
                 btn.disabled = false;
                 btn.textContent = originalText;
-                showToast('❌ Error: ' + e.message);
+                showToast('❌ Error: ' + e.message, 'error');
             }
         };
 
-        // ========================================================================
-        // SISTEMA DE FAVORITOS (Lee API Real y LocalStorage)
-        // ========================================================================
+        // FAVORITOS WISHLIST
         async function fetchFavorites() {
-            let favList = JSON.parse(localStorage.getItem('mathsoluis_favorites')) || [];
+            let favList = JSON.parse(localStorage.getItem('poppyjeans_favorites')) || [];
             const container = document.getElementById('favoritesContainer');
             
-            if (favList.length === 0) return; // Mantiene el empty state inicial
+            if (favList.length === 0) return;
 
-            container.innerHTML = '<div class="spinner" style="grid-column: 1/-1; margin: 2rem auto;"></div>';
+            container.innerHTML = '<div class="py-12 text-center col-span-full flex flex-col items-center gap-3"><div class="w-8 h-8 border-4 border-[#eedfdd] border-t-primary rounded-full animate-spin"></div></div>';
 
             try {
-                // Consulta al catálogo
                 const response = await fetchWithRetry(`${API_BASE_URL}/api/products`);
                 if (!response.ok) throw new Error(`HTTP ${response.status}`);
                 const result = await response.json();
@@ -692,10 +884,10 @@
                     
                     if(favProducts.length === 0) {
                         container.innerHTML = `
-                            <div class="empty-state" style="grid-column: 1/-1;">
-                                <div style="font-size: 3rem; margin-bottom: 1rem;">💔</div>
-                                <h3>Tus favoritos ya no están disponibles</h3>
-                                <p>Parece que las prendas que guardaste se agotaron o fueron retiradas.</p>
+                            <div class="empty-state py-12 text-center col-span-full flex flex-col items-center gap-3">
+                                <span class="text-4xl">💔</span>
+                                <h3 class="font-headline-sm text-sm font-bold text-primary italic">Tus favoritos ya no están disponibles</h3>
+                                <p class="text-2xs text-[#665c5b]">Parece que los artículos que agregaste se agotaron.</p>
                             </div>`;
                         return;
                     }
@@ -703,41 +895,42 @@
                     container.innerHTML = '';
                     favProducts.forEach(p => {
                         let priceStr = formatCurrency(p.precio_normal);
-                        if(p.en_oferta === 1) priceStr = `<span style="color:var(--danger-color);">${formatCurrency(p.precio_oferta)}</span>`;
+                        if(p.en_oferta === 1) priceStr = `<span class="text-[#665c5b]/60 line-through text-[10px]">${formatCurrency(p.precio_normal)}</span> <span class="text-error font-bold">${formatCurrency(p.precio_oferta)}</span>`;
                         
                         let img = p.variantes && p.variantes.length > 0 ? p.variantes[0].imagen_1 : './ico.jpg';
 
                         container.insertAdjacentHTML('beforeend', `
-                            <div class="fav-card" id="fav-card-${p.id}">
-                                <button class="btn-remove-fav" onclick="removeFavorite(${p.id})" title="Quitar de la lista">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" stroke="none"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
+                            <div class="bg-white border border-[#eedfdd]/50 rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-all duration-300 flex flex-col relative" id="fav-card-${p.id}">
+                                <button class="absolute top-2.5 right-2.5 w-7 h-7 rounded-full bg-white/90 backdrop-blur-sm flex items-center justify-center shadow-sm z-10 text-error hover:scale-110 active:scale-95 transition-all" onclick="removeFavorite(${p.id})" title="Eliminar de favoritos">
+                                    <span class="material-symbols-outlined text-[16px]">delete</span>
                                 </button>
-                                <img src="${img}" class="fav-img" alt="${p.nombre}">
-                                <div class="fav-info">
-                                    <h4 class="fav-title">${p.nombre}</h4>
-                                    <div class="fav-price">${priceStr}</div>
-                                    <a href="index.html#catalogo" class="btn-buy-fav" style="display:block;">Ir a comprar</a>
+                                <img src="${img}" class="aspect-[3/4] object-cover bg-surface-variant cursor-pointer" alt="${p.nombre}" onclick="window.location.href='producto.html?id=${p.id}'">
+                                <div class="p-3.5 flex flex-col flex-1 gap-2 text-center">
+                                    <h4 class="font-label-md text-2xs font-bold text-[#1b1b1c] truncate hover:text-[#8a4d4e] transition-colors cursor-pointer" onclick="window.location.href='producto.html?id=${p.id}'">${p.nombre}</h4>
+                                    <div class="text-xs mt-0.5">${priceStr}</div>
+                                    <a href="producto.html?id=${p.id}" class="mt-auto block text-center bg-[#eedfdd]/40 text-[#8a4d4e] py-2 rounded-full font-bold text-[10px] uppercase tracking-wider hover:bg-[#8a4d4e] hover:text-white transition-all active:scale-95 duration-300">Comprar</a>
                                 </div>
                             </div>
                         `);
                     });
                 }
             } catch (error) {
-                container.innerHTML = '<p style="grid-column: 1/-1; text-align:center; color:red;">Error cargando favoritos.</p>';
+                container.innerHTML = '<p class="col-span-full text-center text-xs text-error font-semibold py-6">Error cargando favoritos.</p>';
             }
         }
 
         window.removeFavorite = (id) => {
-            let favList = JSON.parse(localStorage.getItem('mathsoluis_favorites')) || [];
+            let favList = JSON.parse(localStorage.getItem('poppyjeans_favorites')) || [];
             favList = favList.filter(favId => favId !== id);
-            localStorage.setItem('mathsoluis_favorites', JSON.stringify(favList));
+            localStorage.setItem('poppyjeans_favorites', JSON.stringify(favList));
             
             const card = document.getElementById(`fav-card-${id}`);
             if(card) {
                 card.style.opacity = '0';
+                card.style.transform = 'scale(0.95)';
                 setTimeout(() => { card.remove(); if(favList.length === 0) fetchFavorites(); }, 300);
             }
-            showToast('Producto eliminado de tu Wishlist');
+            showToast('Producto eliminado de favoritos');
         };
     </script>
 </body>
