@@ -222,7 +222,7 @@ async function sendWelcomeEmail(env, email, nombre) {
   try {
     const resendRes = await fetch('https://api.resend.com/emails', {
       method: 'POST', headers: { 'Authorization': `Bearer ${env.RESEND_API_KEY}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ from: 'PoppyJeans <pedidos@poppyjeans.cl>', to: [email], subject: '¡Bienvenida a PoppyJeans! 💖', html: htmlContent })
+      body: JSON.stringify({ from: env.FROM_EMAIL || 'PoppyJeans <pedidos@poppyjeans.cl>', to: [email], subject: '¡Bienvenida a PoppyJeans! 💖', html: htmlContent })
     });
     if (!resendRes.ok) {
       const dataError = await resendRes.json().catch(async () => ({ raw: await resendRes.text() }));
@@ -311,7 +311,7 @@ async function sendOrderConfirmationEmail(env, customer, orderId, cart, total) {
   try {
     const resendRes = await fetch('https://api.resend.com/emails', {
       method: 'POST', headers: { 'Authorization': `Bearer ${env.RESEND_API_KEY}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ from: 'PoppyJeans <pedidos@poppyjeans.cl>', to: [customer.email], subject: `Confirmación de Pedido #${orderId} 💖`, html: htmlContent })
+      body: JSON.stringify({ from: env.FROM_EMAIL || 'PoppyJeans <pedidos@poppyjeans.cl>', to: [customer.email], subject: `Confirmación de Pedido #${orderId} 💖`, html: htmlContent })
     });
     if (!resendRes.ok) {
       const dataError = await resendRes.json().catch(async () => ({ raw: await resendRes.text() }));
@@ -433,7 +433,7 @@ async function sendOrderStatusChangeEmail(env, order, customerEmail, customerNam
   try {
     const resendRes = await fetch('https://api.resend.com/emails', {
       method: 'POST', headers: { 'Authorization': `Bearer ${env.RESEND_API_KEY}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ from: 'PoppyJeans <pedidos@poppyjeans.cl>', to: [customerEmail], subject, html: htmlContent })
+      body: JSON.stringify({ from: env.FROM_EMAIL || 'PoppyJeans <pedidos@poppyjeans.cl>', to: [customerEmail], subject, html: htmlContent })
     });
     if (!resendRes.ok) {
       const dataError = await resendRes.json().catch(async () => ({ raw: await resendRes.text() }));
@@ -589,6 +589,77 @@ export default {
         return new Response(object.body, { headers });
       } catch (error) {
         return new Response(error.message, { status: 500, headers: corsHeaders });
+      }
+    }
+
+    // ========================================================================
+    // INTERCEPTOR OPEN GRAPH DINÁMICO (WhatsApp, Facebook, Twitter, Telegram)
+    // Inyecta título, descripción y primera imagen de variante para links de producto
+    // ========================================================================
+    if ((url.pathname === "/producto.html" || url.pathname === "/producto") && url.searchParams.has("id")) {
+      const productId = parseInt(url.searchParams.get("id"), 10);
+      const requestedVariant = url.searchParams.get("variant") || url.searchParams.get("v") || url.searchParams.get("color");
+
+      try {
+        if (productId && env.DB) {
+          const product = await env.DB.prepare("SELECT * FROM Products WHERE id = ?").bind(productId).first();
+          if (product) {
+            const variantsRes = await env.DB.prepare("SELECT * FROM ProductVariants WHERE product_id = ? ORDER BY id ASC").bind(productId).all();
+            const variants = (variantsRes && variantsRes.results) ? variantsRes.results : [];
+
+            let selectedVariant = null;
+            if (variants.length > 0) {
+              if (requestedVariant) {
+                selectedVariant = variants.find(v => (v.color_name && v.color_name.toLowerCase() === requestedVariant.toLowerCase()) || String(v.id) === requestedVariant);
+              }
+              if (!selectedVariant) selectedVariant = variants[0];
+            }
+
+            let ogImg = null;
+            if (selectedVariant) {
+              ogImg = selectedVariant.imagen_1 || selectedVariant.imagen_2 || selectedVariant.imagen_3 || selectedVariant.imagen_url;
+              if (!ogImg && selectedVariant.fotos) {
+                try {
+                  const arr = JSON.parse(selectedVariant.fotos);
+                  if (Array.isArray(arr) && arr.length > 0) ogImg = arr[0];
+                } catch (_) {}
+              }
+            }
+            if (!ogImg && product.imagen_url) ogImg = product.imagen_url;
+            if (!ogImg) ogImg = "https://poppyjeans.cl/media/og-logo.jpg";
+
+            const colorLabel = (selectedVariant && selectedVariant.color_name) ? ` (${selectedVariant.color_name})` : "";
+            const pageTitle = `${product.nombre}${colorLabel} | Poppy Jeans`;
+            const rawDesc = product.description || product.descripcion || "Descubre el calce perfecto con nuestra colección de Denim Premium y Alta Costura. Envíos a todo Chile.";
+            const pageDesc = rawDesc.replace(/<[^>]*>?/gm, '').replace(/\s+/g, ' ').trim().slice(0, 200);
+            const pageUrl = request.url;
+
+            let originResponse = null;
+            if (env.ASSETS) {
+              originResponse = await env.ASSETS.fetch(request);
+            } else {
+              const fetchUrl = new URL("/producto.html", request.url);
+              originResponse = await fetch(fetchUrl.toString(), { headers: request.headers });
+            }
+
+            if (originResponse && originResponse.ok) {
+              const rewriter = new HTMLRewriter()
+                .on('title', { element(e) { e.setInnerContent(pageTitle); } })
+                .on('meta[property="og:title"]', { element(e) { e.setAttribute('content', pageTitle); } })
+                .on('meta[name="twitter:title"]', { element(e) { e.setAttribute('content', pageTitle); } })
+                .on('meta[property="og:description"]', { element(e) { e.setAttribute('content', pageDesc); } })
+                .on('meta[name="twitter:description"]', { element(e) { e.setAttribute('content', pageDesc); } })
+                .on('meta[property="og:image"]', { element(e) { e.setAttribute('content', ogImg); } })
+                .on('meta[name="twitter:image"]', { element(e) { e.setAttribute('content', ogImg); } })
+                .on('meta[property="og:url"]', { element(e) { e.setAttribute('content', pageUrl); } })
+                .on('meta[name="twitter:url"]', { element(e) { e.setAttribute('content', pageUrl); } });
+
+              return rewriter.transform(originResponse);
+            }
+          }
+        }
+      } catch (ogErr) {
+        console.error("Error injectando Open Graph tags:", ogErr);
       }
     }
 

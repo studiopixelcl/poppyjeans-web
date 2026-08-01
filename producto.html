@@ -9,20 +9,22 @@
     <link rel="icon" href="./favicon.png" type="image/png">
 
     <!-- Metadatos SEO y Open Graph -->
-    <meta name="description" content="Descubre los detalles de nuestras exclusivas prendas de Denim Premium y Alta Costura. Calce perfecto, durabilidad y estilo. Envíos a todo Chile.">
+    <meta name="description" id="metaDesc" content="Descubre los detalles de nuestras exclusivas prendas de Denim Premium y Alta Costura. Calce perfecto, durabilidad y estilo. Envíos a todo Chile.">
     <meta property="og:type" content="product">
-    <meta property="og:url" content="https://www.poppyjeans.cl/producto.html">
-    <meta property="og:title" content="Producto | Poppy Jeans">
-    <meta property="og:description" content="Descubre los detalles de nuestras exclusivas prendas de Denim Premium y Alta Costura. Calce perfecto, durabilidad y estilo. Envíos a todo Chile.">
-    <meta property="og:image" content="https://www.poppyjeans.cl/poppyjeanslogo.png">
+    <meta property="og:url" id="ogUrl" content="https://poppyjeans.cl/producto.html">
+    <meta property="og:title" id="ogTitle" content="Producto | Poppy Jeans">
+    <meta property="og:description" id="ogDesc" content="Descubre los detalles de nuestras exclusivas prendas de Denim Premium y Alta Costura. Calce perfecto, durabilidad y estilo. Envíos a todo Chile.">
+    <meta property="og:image" id="ogImage" content="https://poppyjeans.cl/media/og-logo.jpg">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
     <meta property="og:site_name" content="Poppy Jeans">
 
     <!-- Twitter Cards -->
     <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:url" content="https://www.poppyjeans.cl/producto.html">
-    <meta name="twitter:title" content="Producto | Poppy Jeans">
-    <meta name="twitter:description" content="Descubre los detalles de nuestras exclusivas prendas de Denim Premium y Alta Costura. Calce perfecto, durabilidad y estilo. Envíos a todo Chile.">
-    <meta name="twitter:image" content="https://www.poppyjeans.cl/poppyjeanslogo.png">
+    <meta name="twitter:url" id="twUrl" content="https://poppyjeans.cl/producto.html">
+    <meta name="twitter:title" id="twTitle" content="Producto | Poppy Jeans">
+    <meta name="twitter:description" id="twDesc" content="Descubre los detalles de nuestras exclusivas prendas de Denim Premium y Alta Costura. Calce perfecto, durabilidad y estilo. Envíos a todo Chile.">
+    <meta name="twitter:image" id="twImage" content="https://poppyjeans.cl/media/og-logo.jpg">
 
     <!-- Preconnect & Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -906,8 +908,27 @@
             }
         }
 
+        function updateDynamicMetaTags(title, description, imageUrl) {
+            if (title) {
+                document.title = title;
+                ['ogTitle', 'twTitle'].forEach(id => { const el = document.getElementById(id); if (el) el.setAttribute('content', title); });
+            }
+            if (description) {
+                const cleanDesc = description.replace(/<[^>]*>?/gm, '').replace(/\s+/g, ' ').trim().slice(0, 200);
+                ['metaDesc', 'ogDesc', 'twDesc'].forEach(id => { const el = document.getElementById(id); if (el) el.setAttribute('content', cleanDesc); });
+            }
+            if (imageUrl) {
+                ['ogImage', 'twImage'].forEach(id => { const el = document.getElementById(id); if (el) el.setAttribute('content', imageUrl); });
+            }
+            ['ogUrl', 'twUrl'].forEach(id => { const el = document.getElementById(id); if (el) el.setAttribute('content', window.location.href); });
+        }
+
         function renderProductPage() {
-            document.title = `${currentProduct.nombre} | Poppy Jeans`;
+            updateDynamicMetaTags(
+                `${currentProduct.nombre} | Poppy Jeans`,
+                currentProduct.description || currentProduct.descripcion,
+                currentProduct.imagen_url || 'https://poppyjeans.cl/media/og-logo.jpg'
+            );
             
             document.getElementById('bcProductName').textContent = currentProduct.nombre;
             document.getElementById('bcCategory').textContent = currentProduct.categoria_nombre || 'Colección';
@@ -1319,6 +1340,10 @@
             updateGalleryUI();
 
             document.getElementById('selectedColorName').textContent = variant.color_name;
+            
+            const firstVariantPhoto = currentImages[0] || (currentProduct ? currentProduct.imagen_url : null) || 'https://poppyjeans.cl/media/og-logo.jpg';
+            const variantTitle = `${currentProduct.nombre} (${variant.color_name}) | Poppy Jeans`;
+            updateDynamicMetaTags(variantTitle, currentProduct.description || currentProduct.descripcion, firstVariantPhoto);
             
             // Selector de Colores
             document.getElementById('colorsContainer').innerHTML = currentProduct.variantes.map((v, i) => {
