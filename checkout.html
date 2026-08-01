@@ -29,6 +29,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=Plus+Jakarta+Sans:ital,wght@0,200..800;1,200..800&display=swap" rel="stylesheet"/>
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
 
     <!-- Tailwind CSS with custom theme config -->
     <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
@@ -170,8 +171,47 @@
                     <h2 class="font-headline-sm text-lg font-bold text-[#191E2A]">Información de Contacto</h2>
                 </div>
                 
-                <div class="p-4 rounded-2xl bg-surface-container-low border border-dashed border-primary text-xs font-semibold text-[#8a4d4e]" id="loggedInAlert" style="display: none;">
-                    Conectado de forma segura como <strong id="loggedNameLabel" class="text-primary font-bold"></strong>.
+                <!-- ALERTA SESIÓN INICIADA -->
+                <div class="p-4 rounded-2xl bg-[#E8FAF1] border border-[#27AE60]/30 flex items-center justify-between text-xs shadow-sm" id="loggedInAlert" style="display: none;">
+                    <div class="flex items-center gap-2 text-[#191E2A]">
+                        <span class="material-symbols-outlined text-[#27AE60] text-[20px]">check_circle</span>
+                        <span>Conectado como <strong id="loggedNameLabel" class="text-primary font-bold"></strong> (<span id="loggedEmailLabel" class="text-[#665c5b]"></span>)</span>
+                    </div>
+                    <button type="button" onclick="logoutCheckoutCustomer()" class="text-[11px] text-[#8a4d4e] hover:underline font-bold transition-all">Cerrar Sesión</button>
+                </div>
+
+                <!-- BLOQUE: INICIAR SESIÓN / GOOGLE PARA INVITADOS -->
+                <div id="guestLoginPrompt" class="p-5 rounded-2xl bg-gradient-to-r from-[#FFFBF8] via-[#FFFDFD] to-[#FFFBF8] border border-[#eedfdd] flex flex-col gap-4 shadow-sm">
+                    <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-1 border-b border-[#eedfdd]/50 pb-3">
+                        <div class="flex items-center gap-2">
+                            <span class="material-symbols-outlined text-primary text-[20px]">account_circle</span>
+                            <span class="text-xs font-bold text-[#191E2A]">¿Ya tienes una cuenta en Poppy Jeans?</span>
+                        </div>
+                        <span class="text-[11px] text-[#665c5b]">Ahorra tiempo al comprar</span>
+                    </div>
+
+                    <!-- Botones de Inicio de Sesión -->
+                    <div class="flex flex-col sm:flex-row gap-3 items-center w-full">
+                        <!-- Google Sign In -->
+                        <div class="w-full sm:flex-1 flex justify-center items-center">
+                            <div id="g_id_onload"
+                                 data-client_id="1066740303615-7r15mbch99m1p1tcf5j4j8onn9oe51ls.apps.googleusercontent.com"
+                                 data-context="use"
+                                 data-ux_mode="popup"
+                                 data-callback="handleGoogleLogin"
+                                 data-auto_prompt="false">
+                            </div>
+                            <div class="g_id_signin w-full flex justify-center" data-type="standard" data-size="large" data-theme="outline" data-text="continue_with" data-shape="pill" data-logo_alignment="left" data-width="280"></div>
+                        </div>
+
+                        <div class="hidden sm:flex items-center text-[10px] text-[#665c5b]/60 font-bold uppercase tracking-widest px-1">o</div>
+
+                        <!-- Botón Iniciar Sesión con Correo -->
+                        <button type="button" onclick="openCheckoutLoginModal()" class="w-full sm:flex-1 bg-white border border-[#8a4d4e]/40 text-[#8a4d4e] hover:bg-primary hover:text-white px-5 py-3 rounded-full text-xs font-bold transition-all duration-300 shadow-sm flex items-center justify-center gap-2 group">
+                            <span class="material-symbols-outlined text-[18px] group-hover:scale-110 transition-transform">lock</span>
+                            <span>Ingresar con Correo / Clave</span>
+                        </button>
+                    </div>
                 </div>
 
                 <div class="flex flex-col gap-4">
@@ -315,18 +355,54 @@
 
                 <p class="text-xs text-[#665c5b] leading-relaxed">Al presionar el botón de pago, te redirigiremos a la pasarela encriptada de Transbank Webpay Plus para completar la transacción de forma 100% segura.</p>
                 
-                <div class="bg-white border border-[#eedfdd] rounded-2xl p-8 flex flex-col items-center text-center gap-4 subtle-shadow">
-                    <img src="https://transbankdevelopers.cl/public/library/img/svg/logo_webpay_plus.svg" alt="Webpay Plus" class="max-w-[150px] w-full select-none">
+                <div class="bg-gradient-to-b from-white to-[#fcfaf9] border border-[#eedfdd] rounded-3xl p-6 md:p-8 flex flex-col items-center text-center gap-6 shadow-md relative overflow-hidden">
+                    <div class="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-[#00A499] via-[#00c9bd] to-[#00786f]"></div>
+
+                    <!-- Badge Transbank + Tarjetas -->
+                    <div class="flex flex-col items-center gap-2">
+                        <img src="https://transbankdevelopers.cl/public/library/img/svg/logo_webpay_plus.svg" alt="Webpay Plus Transbank" class="max-w-[160px] w-full select-none drop-shadow-sm">
+                        <div class="flex items-center gap-2 text-[10px] text-[#665c5b] font-semibold bg-[#f6f3f3] px-3.5 py-1 rounded-full border border-[#eedfdd]/50 mt-1">
+                            <span>💳 Débito</span>
+                            <span>•</span>
+                            <span>💳 Crédito</span>
+                            <span>•</span>
+                            <span>🏦 Prepago</span>
+                        </div>
+                    </div>
                     
-                    <div class="flex flex-col gap-1 mt-2">
-                        <span class="text-xs text-[#665c5b] font-medium tracking-wide uppercase">Monto total a pagar</span>
-                        <span class="font-headline-sm text-3xl font-bold text-primary" id="finalPayAmount">$0</span>
+                    <div class="flex flex-col gap-1 w-full bg-white p-4 rounded-2xl border border-[#eedfdd]/60 shadow-inner">
+                        <span class="text-[11px] text-[#665c5b] font-bold tracking-wider uppercase">Monto Total a Pagar</span>
+                        <span class="font-headline-sm text-3xl md:text-4xl font-extrabold text-primary" id="finalPayAmount">$0</span>
                     </div>
 
-                    <button class="w-full bg-[#00A499] text-white font-label-md text-sm py-4.5 rounded-xl uppercase tracking-wider font-bold shadow-lg hover:bg-[#008d83] hover:-translate-y-0.5 transition-all mt-4 flex items-center justify-center gap-2" id="btnPay" onclick="processPayment()">
-                        <span class="material-symbols-outlined text-[20px]">credit_card</span>
-                        <span>PAGAR CON WEBPAY</span>
+                    <!-- BOTÓN PRINCIPAL WEBPAY ENHANCED -->
+                    <button class="w-full bg-gradient-to-r from-[#00A499] via-[#00b2a6] to-[#00877d] hover:from-[#00877d] hover:to-[#007068] text-white font-label-md text-sm md:text-base py-4.5 px-6 rounded-2xl uppercase tracking-wider font-bold shadow-xl shadow-[#00A499]/25 hover:shadow-2xl hover:shadow-[#00A499]/40 active:scale-[0.99] transition-all duration-300 flex items-center justify-between group cursor-pointer" id="btnPay" onclick="processPayment()">
+                        <div class="flex items-center gap-3">
+                            <div class="w-8 h-8 rounded-xl bg-white/20 flex items-center justify-center group-hover:scale-110 transition-transform">
+                                <span class="material-symbols-outlined text-[20px] text-white">lock</span>
+                            </div>
+                            <span class="tracking-widest font-extrabold">PAGAR CON WEBPAY</span>
+                        </div>
+                        <div class="flex items-center gap-1.5 bg-white/20 px-3.5 py-1.5 rounded-xl text-xs md:text-sm font-black tracking-normal">
+                            <span id="btnPayAmount">$0</span>
+                            <span class="material-symbols-outlined text-[18px]">arrow_forward</span>
+                        </div>
                     </button>
+
+                    <!-- GARANTÍA Y SEGURIDAD -->
+                    <div class="flex items-center justify-center gap-4 text-[11px] text-[#665c5b] font-medium pt-1">
+                        <span class="flex items-center gap-1 text-[#27AE60]">
+                            <span class="material-symbols-outlined text-[16px]">verified_user</span> Boleta Oficial
+                        </span>
+                        <span>•</span>
+                        <span class="flex items-center gap-1 text-[#00A499]">
+                            <span class="material-symbols-outlined text-[16px]">security</span> SSL 256-bit
+                        </span>
+                        <span>•</span>
+                        <span class="flex items-center gap-1">
+                            <span class="material-symbols-outlined text-[16px]">bolt</span> Confirmación Inmediata
+                        </span>
+                    </div>
                 </div>
 
                 <div class="text-center mt-2">
@@ -895,15 +971,190 @@
                     form.submit();
                 } else {
                     showToast('Error: ' + (result.error || 'No se pudo iniciar el pago'), 'error');
-                    btn.innerHTML = `<span class="material-symbols-outlined text-[20px]">credit_card</span><span>PAGAR CON WEBPAY</span>`;
+                    btn.innerHTML = `
+                        <div class="flex items-center gap-3">
+                            <div class="w-8 h-8 rounded-xl bg-white/20 flex items-center justify-center">
+                                <span class="material-symbols-outlined text-[20px] text-white">lock</span>
+                            </div>
+                            <span class="tracking-widest font-extrabold">PAGAR CON WEBPAY</span>
+                        </div>
+                        <div class="flex items-center gap-1.5 bg-white/20 px-3.5 py-1.5 rounded-xl text-xs md:text-sm font-black tracking-normal">
+                            <span id="btnPayAmount">${document.getElementById('summTotal') ? document.getElementById('summTotal').textContent : '$0'}</span>
+                            <span class="material-symbols-outlined text-[18px]">arrow_forward</span>
+                        </div>
+                    `;
                     btn.disabled = false;
                 }
             } catch (error) {
                 showToast('Error de conexión. Revisa tu conexión de red.', 'error');
-                btn.innerHTML = `<span class="material-symbols-outlined text-[20px]">credit_card</span><span>PAGAR CON WEBPAY</span>`;
+                btn.innerHTML = `
+                    <div class="flex items-center gap-3">
+                        <div class="w-8 h-8 rounded-xl bg-white/20 flex items-center justify-center">
+                            <span class="material-symbols-outlined text-[20px] text-white">lock</span>
+                        </div>
+                        <span class="tracking-widest font-extrabold">PAGAR CON WEBPAY</span>
+                    </div>
+                    <div class="flex items-center gap-1.5 bg-white/20 px-3.5 py-1.5 rounded-xl text-xs md:text-sm font-black tracking-normal">
+                        <span id="btnPayAmount">${document.getElementById('summTotal') ? document.getElementById('summTotal').textContent : '$0'}</span>
+                        <span class="material-symbols-outlined text-[18px]">arrow_forward</span>
+                    </div>
+                `;
                 btn.disabled = false;
             }
         };
+
+        // Lógica de Autenticación en Checkout (Google & Email/Password)
+        window.handleGoogleLogin = async (response) => {
+            const googleToken = response.credential;
+            try {
+                const res = await fetch(`${API_BASE_URL}/api/auth/google`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ token: googleToken })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    localStorage.setItem('poppyjeans_customer_token', data.token);
+                    localStorage.setItem('poppyjeans_customer', JSON.stringify(data.customer));
+                    showToast('¡Sesión iniciada con Google!', 'success');
+                    fillCustomerData(data.customer);
+                } else {
+                    showToast(data.error || 'Error al iniciar sesión con Google', 'error');
+                }
+            } catch (e) {
+                showToast('Error de conexión con el servidor', 'error');
+            }
+        };
+
+        window.openCheckoutLoginModal = () => {
+            const modal = document.getElementById('checkoutLoginModal');
+            if (!modal) return;
+            modal.classList.remove('hidden');
+            setTimeout(() => { modal.classList.remove('opacity-0'); }, 10);
+        };
+
+        window.closeCheckoutLoginModal = () => {
+            const modal = document.getElementById('checkoutLoginModal');
+            if (!modal) return;
+            modal.classList.add('opacity-0');
+            setTimeout(() => { modal.classList.add('hidden'); }, 300);
+        };
+
+        window.loginCustomerInCheckout = async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('checkoutLoginEmail').value.trim();
+            const password = document.getElementById('checkoutLoginPassword').value;
+            const errDiv = document.getElementById('checkoutLoginError');
+            const btn = document.getElementById('btnCheckoutLogin');
+
+            errDiv.classList.add('hidden');
+            btn.disabled = true;
+            btn.textContent = 'Verificando...';
+
+            try {
+                const res = await fetch(`${API_BASE_URL}/api/auth/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    localStorage.setItem('poppyjeans_customer_token', data.token);
+                    localStorage.setItem('poppyjeans_customer', JSON.stringify(data.customer));
+                    showToast('¡Bienvenida, ' + (data.customer.nombre || 'Cliente') + '!', 'success');
+                    closeCheckoutLoginModal();
+                    fillCustomerData(data.customer);
+                } else {
+                    errDiv.textContent = data.error || 'Correo o contraseña incorrectos';
+                    errDiv.classList.remove('hidden');
+                }
+            } catch(err) {
+                errDiv.textContent = 'Error de conexión con el servidor';
+                errDiv.classList.remove('hidden');
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'Iniciar Sesión';
+            }
+        };
+
+        window.logoutCheckoutCustomer = () => {
+            localStorage.removeItem('poppyjeans_customer');
+            localStorage.removeItem('poppyjeans_customer_token');
+            const alertBox = document.getElementById('loggedInAlert');
+            const promptBox = document.getElementById('guestLoginPrompt');
+            if (alertBox) alertBox.style.display = 'none';
+            if (promptBox) promptBox.style.display = 'flex';
+
+            document.getElementById('chkName').value = '';
+            document.getElementById('chkEmail').value = '';
+            document.getElementById('chkPhone').value = '';
+            showToast('Sesión cerrada', 'success');
+        };
+
+        function fillCustomerData(cust) {
+            if (!cust) return;
+            const alertBox = document.getElementById('loggedInAlert');
+            const promptBox = document.getElementById('guestLoginPrompt');
+            if (alertBox) alertBox.style.display = 'flex';
+            if (promptBox) promptBox.style.display = 'none';
+
+            const name = cust.nombre || cust.name || '';
+            const email = cust.email || '';
+            const phone = cust.telefono || cust.phone || '';
+
+            if (document.getElementById('loggedNameLabel')) document.getElementById('loggedNameLabel').textContent = name || 'Cliente';
+            if (document.getElementById('loggedEmailLabel')) document.getElementById('loggedEmailLabel').textContent = email;
+
+            if (name) document.getElementById('chkName').value = name;
+            if (email) document.getElementById('chkEmail').value = email;
+            if (phone) document.getElementById('chkPhone').value = phone;
+            if (cust.direccion && document.getElementById('chkAddress')) document.getElementById('chkAddress').value = cust.direccion;
+            if (cust.comuna && document.getElementById('chkComuna')) document.getElementById('chkComuna').value = cust.comuna;
+            if (cust.region && document.getElementById('chkRegion')) document.getElementById('chkRegion').value = cust.region;
+        }
+
+        // Inicializar si el cliente ya está logueado al cargar
+        const initialCustomer = JSON.parse(localStorage.getItem('poppyjeans_customer')) || null;
+        if (initialCustomer) {
+            fillCustomerData(initialCustomer);
+        }
     </script>
+
+    <!-- MODAL DE INICIO DE SESIÓN RÁPIDO EN CHECKOUT -->
+    <div id="checkoutLoginModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-[9999] flex items-center justify-center p-4 hidden opacity-0 transition-opacity duration-300">
+        <div class="bg-white w-full max-w-md rounded-3xl p-6 md:p-8 shadow-2xl border border-[#eedfdd] relative flex flex-col gap-5">
+            <button type="button" onclick="closeCheckoutLoginModal()" class="absolute top-5 right-5 w-8 h-8 rounded-full bg-[#f6f3f3] hover:bg-[#eedfdd] text-[#665c5b] flex items-center justify-center font-bold text-sm transition-all">✕</button>
+
+            <div class="text-center flex flex-col items-center gap-2">
+                <div class="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center text-primary mb-1">
+                    <span class="material-symbols-outlined text-[26px]">lock</span>
+                </div>
+                <h3 class="font-headline-sm text-xl font-bold text-[#191E2A]">Iniciar Sesión</h3>
+                <p class="text-xs text-[#665c5b]">Accede a tu cuenta Poppy Jeans para autocompletar tus datos</p>
+            </div>
+
+            <form onsubmit="loginCustomerInCheckout(event)" class="flex flex-col gap-4">
+                <div class="flex flex-col gap-1.5">
+                    <label class="text-xs font-bold text-[#665c5b]">Correo Electrónico</label>
+                    <input type="email" id="checkoutLoginEmail" required placeholder="correo@ejemplo.com" class="input-premium px-4 py-3 rounded-xl text-sm w-full">
+                </div>
+                <div class="flex flex-col gap-1.5">
+                    <label class="text-xs font-bold text-[#665c5b]">Contraseña</label>
+                    <input type="password" id="checkoutLoginPassword" required placeholder="••••••••" class="input-premium px-4 py-3 rounded-xl text-sm w-full">
+                </div>
+
+                <div id="checkoutLoginError" class="text-xs text-[#E74C3C] bg-[#FDEDEC] p-3 rounded-xl font-semibold hidden"></div>
+
+                <button type="submit" id="btnCheckoutLogin" class="w-full bg-primary text-white font-label-md text-xs py-3.5 rounded-full uppercase tracking-wider font-bold shadow-md hover:bg-primary/95 transition-all mt-1">
+                    Iniciar Sesión
+                </button>
+            </form>
+
+            <div class="text-center pt-2 border-t border-[#eedfdd]/60">
+                <span class="text-xs text-[#665c5b]">¿Aún no tienes cuenta? </span>
+                <a href="login.html" target="_blank" class="text-xs font-bold text-primary hover:underline">Crear Cuenta</a>
+            </div>
+        </div>
+    </div>
 </body>
 </html>

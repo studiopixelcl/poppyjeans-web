@@ -974,7 +974,7 @@ export default {
 
         // Crear transacción en Webpay Plus (Entorno INTEGRACIÓN / CERTIFICACIÓN: 597055555532).
         const TBK_API_KEY_ID = env.TBK_API_KEY_ID || '597055555532';
-        const TBK_API_KEY_SECRET = env.TBK_API_KEY_SECRET || '579B532A7440BB073079DED9C2057531B637B46CA258066D6F53892613F3751E';
+        const TBK_API_KEY_SECRET = env.TBK_API_KEY_SECRET || '579B532A7440BB0C9079DED94D31EA1615BACEB56610332264630D42D0A36B1C';
         const TBK_BASE = env.TBK_BASE_URL || 'https://webpay3gint.transbank.cl/rswebpaytransaction/api/webpay/v1.2/transactions';
 
         const tbkRes = await fetch(TBK_BASE, {
@@ -1022,7 +1022,7 @@ export default {
         }
 
         const TBK_API_KEY_ID = env.TBK_API_KEY_ID || '597055555532';
-        const TBK_API_KEY_SECRET = env.TBK_API_KEY_SECRET || '579B532A7440BB073079DED9C2057531B637B46CA258066D6F53892613F3751E';
+        const TBK_API_KEY_SECRET = env.TBK_API_KEY_SECRET || '579B532A7440BB0C9079DED94D31EA1615BACEB56610332264630D42D0A36B1C';
         const TBK_BASE = env.TBK_BASE_URL || 'https://webpay3gint.transbank.cl/rswebpaytransaction/api/webpay/v1.2/transactions';
 
         const confirmRes = await fetch(`${TBK_BASE}/${token_ws}`, {
