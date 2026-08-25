@@ -28,6 +28,8 @@
     <meta name="twitter:image" content="https://poppyjeans.cl/media/og-logo.jpg">
 
     <!-- Preconnect & Fonts -->
+    <link rel="preconnect" href="https://api.poppyjeans.cl">
+    <link rel="preconnect" href="https://images.poppyjeans.cl">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=Plus+Jakarta+Sans:ital,wght@0,200..800;1,200..800&display=swap" rel="stylesheet"/>
@@ -1143,7 +1145,7 @@
         function getVariantGalleryHTML(variant) {
             const images = [variant.imagen_1, variant.imagen_2, variant.imagen_3, variant.imagen_4, variant.imagen_5].filter(Boolean);
             if (images.length === 0) images.push('./ico.jpg');
-            return images.map(img => `<img src="${img}" alt="Prenda" loading="lazy" class="flex-none w-full h-full object-cover snap-start">`).join('');
+            return images.map(img => `<img src="${img}" alt="Prenda" loading="lazy" decoding="async" class="flex-none w-full h-full object-cover snap-start">`).join('');
         }
 
         window.playCardVideo = (card) => {

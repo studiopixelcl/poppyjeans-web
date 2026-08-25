@@ -468,57 +468,35 @@ let dbInitialized = false;
 async function ensureSchema(env) {
   if (dbInitialized) return;
   try {
-    // 1. Crear tabla Coupons
-    await env.DB.prepare(`
-      CREATE TABLE IF NOT EXISTS Coupons (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        codigo TEXT UNIQUE NOT NULL,
-        descuento_porcentaje REAL NOT NULL,
-        activo INTEGER DEFAULT 1,
-        mostrar_en_banner INTEGER DEFAULT 0,
-        fecha_inicio TEXT,
-        fecha_fin TEXT,
-        productos_ids TEXT,
-        fecha_creacion TEXT DEFAULT CURRENT_TIMESTAMP
-      )
-    `).run();
-
-    // 1.5. Crear tabla CustomerSessions
-    await env.DB.prepare(`
-      CREATE TABLE IF NOT EXISTS CustomerSessions (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        token TEXT NOT NULL UNIQUE,
-        customer_id INTEGER NOT NULL,
-        expires_at DATETIME NOT NULL,
-        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-        FOREIGN KEY (customer_id) REFERENCES Customers(id) ON DELETE CASCADE
-      )
-    `).run();
-
-    // 2. Modificar tabla Orders de forma defensiva
-    try {
-      await env.DB.prepare("ALTER TABLE Orders ADD COLUMN coupon_code TEXT").run();
-    } catch (_) {}
-    try {
-      await env.DB.prepare("ALTER TABLE Orders ADD COLUMN discount_amount REAL DEFAULT 0").run();
-    } catch (_) {}
-
-    try {
-      await env.DB.prepare("ALTER TABLE Products ADD COLUMN bestseller INTEGER DEFAULT 0").run();
-    } catch (_) {}
-    try {
-      await env.DB.prepare("ALTER TABLE Products ADD COLUMN video_url TEXT").run();
-    } catch (_) {}
-    try {
-      await env.DB.prepare("ALTER TABLE Products ADD COLUMN is_clearance INTEGER DEFAULT 0").run();
-    } catch (_) {}
-    try {
-      await env.DB.prepare("ALTER TABLE ProductVariants ADD COLUMN video_url TEXT").run();
-    } catch (_) {}
-
+    await env.DB.batch([
+      env.DB.prepare(`
+        CREATE TABLE IF NOT EXISTS Coupons (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          codigo TEXT UNIQUE NOT NULL,
+          descuento_porcentaje REAL NOT NULL,
+          activo INTEGER DEFAULT 1,
+          mostrar_en_banner INTEGER DEFAULT 0,
+          fecha_inicio TEXT,
+          fecha_fin TEXT,
+          productos_ids TEXT,
+          fecha_creacion TEXT DEFAULT CURRENT_TIMESTAMP
+        )
+      `),
+      env.DB.prepare(`
+        CREATE TABLE IF NOT EXISTS CustomerSessions (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          token TEXT NOT NULL UNIQUE,
+          customer_id INTEGER NOT NULL,
+          expires_at DATETIME NOT NULL,
+          created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+          FOREIGN KEY (customer_id) REFERENCES Customers(id) ON DELETE CASCADE
+        )
+      `)
+    ]);
     dbInitialized = true;
   } catch (err) {
     console.error("Error al inicializar esquema de base de datos:", err);
+    dbInitialized = true; // Evitar reintentar en cada sub-petición si ya existen
   }
 }
 
@@ -1464,7 +1442,9 @@ export default {
           const res2 = await env.DB.prepare("SELECT * FROM Categories").all();
           results = res2.results;
         }
-        return Response.json({ success: true, data: results }, { headers: corsHeaders });
+        return Response.json({ success: true, data: results }, {
+          headers: { ...corsHeaders, "Cache-Control": "public, max-age=300, s-maxage=600, stale-while-revalidate=1200" }
+        });
       } catch (error) { return Response.json({ success: false, error: error.message }, { status: 500, headers: corsHeaders }); }
     }
 
