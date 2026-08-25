@@ -1043,10 +1043,10 @@ export default {
           }
         }
 
-        // Crear transacción en Webpay Plus (Entorno INTEGRACIÓN / CERTIFICACIÓN: 597055555532).
-        const TBK_API_KEY_ID = env.TBK_API_KEY_ID || '597055555532';
-        const TBK_API_KEY_SECRET = env.TBK_API_KEY_SECRET || '579B532A7440BB0C9079DED94D31EA1615BACEB56610332264630D42D0A36B1C';
-        const TBK_BASE = env.TBK_BASE_URL || 'https://webpay3gint.transbank.cl/rswebpaytransaction/api/webpay/v1.2/transactions';
+        // Crear transacción en Webpay Plus (Entorno PRODUCCIÓN: 597053091377).
+        const TBK_API_KEY_ID = env.TBK_API_KEY_ID || '597053091377';
+        const TBK_API_KEY_SECRET = env.TBK_API_KEY_SECRET || '1ce60548-8540-4e82-960f-44851e27ca21';
+        const TBK_BASE = env.TBK_BASE_URL || 'https://webpay3g.transbank.cl/rswebpaytransaction/api/webpay/v1.2/transactions';
 
         const tbkRes = await fetch(TBK_BASE, {
           method: 'POST',
@@ -1092,9 +1092,9 @@ export default {
           return Response.redirect(FRONTEND_URL + "/checkout.html?status=aborted", 302);
         }
 
-        const TBK_API_KEY_ID = env.TBK_API_KEY_ID || '597055555532';
-        const TBK_API_KEY_SECRET = env.TBK_API_KEY_SECRET || '579B532A7440BB0C9079DED94D31EA1615BACEB56610332264630D42D0A36B1C';
-        const TBK_BASE = env.TBK_BASE_URL || 'https://webpay3gint.transbank.cl/rswebpaytransaction/api/webpay/v1.2/transactions';
+        const TBK_API_KEY_ID = env.TBK_API_KEY_ID || '597053091377';
+        const TBK_API_KEY_SECRET = env.TBK_API_KEY_SECRET || '1ce60548-8540-4e82-960f-44851e27ca21';
+        const TBK_BASE = env.TBK_BASE_URL || 'https://webpay3g.transbank.cl/rswebpaytransaction/api/webpay/v1.2/transactions';
 
         const confirmRes = await fetch(`${TBK_BASE}/${token_ws}`, {
           method: 'PUT',

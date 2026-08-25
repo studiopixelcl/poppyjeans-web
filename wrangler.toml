@@ -17,6 +17,8 @@ bucket_name = "poppyjeans-images"
 
 [vars]
 PUBLIC_IMAGES_URL = "https://images.poppyjeans.cl"
+TBK_API_KEY_ID = "597053091377"
+TBK_BASE_URL = "https://webpay3g.transbank.cl/rswebpaytransaction/api/webpay/v1.2/transactions"
 
 routes = [
   { pattern = "api.poppyjeans.cl", custom_domain = true }
