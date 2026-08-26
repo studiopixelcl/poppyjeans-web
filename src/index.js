@@ -220,8 +220,13 @@ async function sendWelcomeEmail(env, email, nombre) {
                   </td>
               </tr>
               <tr>
-                  <td align="center">
+                  <td align="center" style="padding-bottom: 12px;">
                       <a href="https://www.instagram.com/poppy_jeans3/" target="_blank" style="display: inline-block; background-color: #8a4d4e; color: #FFFFFF; text-decoration: none; padding: 12px 25px; border-radius: 50px; font-weight: bold; font-size: 14px; width: 220px; text-align: center;">📸 Seguir en Instagram</a>
+                  </td>
+              </tr>
+              <tr>
+                  <td align="center">
+                      <a href="https://www.tiktok.com/@poppyjeans3" target="_blank" style="display: inline-block; background-color: #000000; color: #FFFFFF; text-decoration: none; padding: 12px 25px; border-radius: 50px; font-weight: bold; font-size: 14px; width: 220px; text-align: center;">🎵 Seguir en TikTok</a>
                   </td>
               </tr>
           </table>
@@ -309,8 +314,13 @@ async function sendOrderConfirmationEmail(env, customer, orderId, cart, total) {
                     </td>
                 </tr>
                 <tr>
-                    <td align="center">
+                    <td align="center" style="padding-bottom: 15px;">
                         <a href="https://www.instagram.com/poppy_jeans3/" target="_blank" style="display: inline-block; background-color: #8a4d4e; color: #FFFFFF; text-decoration: none; padding: 14px 25px; border-radius: 50px; font-weight: bold; font-size: 14px; width: 220px; text-align: center;">📸 Seguir en Instagram</a>
+                    </td>
+                </tr>
+                <tr>
+                    <td align="center">
+                        <a href="https://www.tiktok.com/@poppyjeans3" target="_blank" style="display: inline-block; background-color: #000000; color: #FFFFFF; text-decoration: none; padding: 14px 25px; border-radius: 50px; font-weight: bold; font-size: 14px; width: 220px; text-align: center;">🎵 Seguir en TikTok</a>
                     </td>
                 </tr>
             </table>
@@ -442,8 +452,13 @@ async function sendOrderStatusChangeEmail(env, order, customerEmail, customerNam
                     </td>
                 </tr>
                 <tr>
-                    <td align="center">
+                    <td align="center" style="padding-bottom: 12px;">
                         <a href="https://www.instagram.com/poppy_jeans3/" target="_blank" style="display:inline-block; background-color:#8a4d4e; color:#FFFFFF; text-decoration:none; padding:14px 25px; border-radius:50px; font-weight:bold; font-size:14px; width:220px; text-align:center;">📸 Seguir en Instagram</a>
+                    </td>
+                </tr>
+                <tr>
+                    <td align="center">
+                        <a href="https://www.tiktok.com/@poppyjeans3" target="_blank" style="display:inline-block; background-color:#000000; color:#FFFFFF; text-decoration:none; padding:14px 25px; border-radius:50px; font-weight:bold; font-size:14px; width:220px; text-align:center;">🎵 Seguir en TikTok</a>
                     </td>
                 </tr>
             </table>
