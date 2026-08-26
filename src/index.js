@@ -211,8 +211,20 @@ async function sendWelcomeEmail(env, email, nombre) {
       </div>
       <div style="padding: 40px 30px; text-align: center;">
           <h2 style="color: #8a4d4e; font-size: 24px; margin-top: 0;">¡Bienvenida a nuestra familia, ${primerNombre}! ✨</h2>
-          <p style="color: #665c5b; font-size: 16px; line-height: 1.6; margin-bottom: 30px;">Tu cuenta ha sido creada con éxito. Desde ahora podrás guardar tus prendas favoritas en tu <b>Lista de Deseos</b>, agilizar tu paso por caja y hacer seguimiento a todos tus envíos en tiempo real.</p>
-          <a href="https://www.poppyjeans.cl" style="display: inline-block; background-color: #8a4d4e; color: #FFFFFF; text-decoration: none; padding: 14px 35px; border-radius: 50px; font-weight: bold; font-size: 16px; letter-spacing: 1px; text-transform: uppercase;">Ir de Shopping</a>
+          <p style="color: #665c5b; font-size: 16px; line-height: 1.6; margin-bottom: 25px;">Tu cuenta ha sido creada con éxito. Desde ahora podrás guardar tus prendas favoritas en tu <b>Lista de Deseos</b>, agilizar tu paso por caja y hacer seguimiento a todos tus envíos en tiempo real.</p>
+          <a href="https://www.poppyjeans.cl" style="display: inline-block; background-color: #8a4d4e; color: #FFFFFF; text-decoration: none; padding: 14px 35px; border-radius: 50px; font-weight: bold; font-size: 16px; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 25px;">Ir de Shopping</a>
+          <table width="100%" cellpadding="0" cellspacing="0" style="border-collapse: collapse;">
+              <tr>
+                  <td align="center" style="padding-bottom: 12px;">
+                      <a href="https://wa.me/56962661184" target="_blank" style="display: inline-block; background-color: #25D366; color: #FFFFFF; text-decoration: none; padding: 12px 25px; border-radius: 50px; font-weight: bold; font-size: 14px; width: 220px; text-align: center;">💬 Hablar por WhatsApp</a>
+                  </td>
+              </tr>
+              <tr>
+                  <td align="center">
+                      <a href="https://www.instagram.com/poppy_jeans3/" target="_blank" style="display: inline-block; background-color: #8a4d4e; color: #FFFFFF; text-decoration: none; padding: 12px 25px; border-radius: 50px; font-weight: bold; font-size: 14px; width: 220px; text-align: center;">📸 Seguir en Instagram</a>
+                  </td>
+              </tr>
+          </table>
       </div>
       <div style="background-color: #fcf9f9; padding: 20px; text-align: center;">
           <p style="color: #665c5b; font-size: 12px; margin: 0;">© 2026 PoppyJeans. Moda Femenina Premium.</p>
@@ -293,12 +305,12 @@ async function sendOrderConfirmationEmail(env, customer, orderId, cart, total) {
             <table width="100%" cellpadding="0" cellspacing="0" style="border-collapse: collapse; margin-bottom: 10px;">
                 <tr>
                     <td align="center" style="padding-bottom: 15px;">
-                        <a href="https://wa.me/56930338773" target="_blank" style="display: inline-block; background-color: #25D366; color: #FFFFFF; text-decoration: none; padding: 14px 25px; border-radius: 50px; font-weight: bold; font-size: 14px; width: 220px; text-align: center;">💬 Hablar por WhatsApp</a>
+                        <a href="https://wa.me/56962661184" target="_blank" style="display: inline-block; background-color: #25D366; color: #FFFFFF; text-decoration: none; padding: 14px 25px; border-radius: 50px; font-weight: bold; font-size: 14px; width: 220px; text-align: center;">💬 Hablar por WhatsApp</a>
                     </td>
                 </tr>
                 <tr>
                     <td align="center">
-                        <a href="https://www.instagram.com/poppyjeans/" target="_blank" style="display: inline-block; background-color: #8a4d4e; color: #FFFFFF; text-decoration: none; padding: 14px 25px; border-radius: 50px; font-weight: bold; font-size: 14px; width: 220px; text-align: center;">📸 Seguir en Instagram</a>
+                        <a href="https://www.instagram.com/poppy_jeans3/" target="_blank" style="display: inline-block; background-color: #8a4d4e; color: #FFFFFF; text-decoration: none; padding: 14px 25px; border-radius: 50px; font-weight: bold; font-size: 14px; width: 220px; text-align: center;">📸 Seguir en Instagram</a>
                     </td>
                 </tr>
             </table>
@@ -423,7 +435,18 @@ async function sendOrderStatusChangeEmail(env, order, customerEmail, customerNam
             ${trackingHtml}
         </div>
         <div style="padding:0 30px 30px 30px; text-align:center;">
-            <a href="https://wa.me/56930338773" target="_blank" style="display:inline-block; background-color:#25D366; color:#FFFFFF; text-decoration:none; padding:14px 25px; border-radius:50px; font-weight:bold; font-size:14px;">💬 ¿Tienes preguntas? Escríbenos</a>
+            <table width="100%" cellpadding="0" cellspacing="0" style="border-collapse: collapse; margin-bottom: 10px;">
+                <tr>
+                    <td align="center" style="padding-bottom: 12px;">
+                        <a href="https://wa.me/56962661184" target="_blank" style="display:inline-block; background-color:#25D366; color:#FFFFFF; text-decoration:none; padding:14px 25px; border-radius:50px; font-weight:bold; font-size:14px; width:220px; text-align:center;">💬 Hablar por WhatsApp</a>
+                    </td>
+                </tr>
+                <tr>
+                    <td align="center">
+                        <a href="https://www.instagram.com/poppy_jeans3/" target="_blank" style="display:inline-block; background-color:#8a4d4e; color:#FFFFFF; text-decoration:none; padding:14px 25px; border-radius:50px; font-weight:bold; font-size:14px; width:220px; text-align:center;">📸 Seguir en Instagram</a>
+                    </td>
+                </tr>
+            </table>
         </div>
         <div style="background-color:#fcf9f9; padding:20px; text-align:center;">
             <p style="color:#665c5b; font-size:12px; margin:0;">© 2026 PoppyJeans. Moda Femenina Premium.</p>
