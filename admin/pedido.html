@@ -574,6 +574,7 @@
                                 <option value="Pendiente">🟡 Sin Pagar / Pendiente</option>
                                 <option value="Pagado">🔵 Pagado</option>
                                 <option value="Preparando">🟣 Preparando</option>
+                                <option value="Listo para retirar">🏬 Listo para Retirar</option>
                                 <option value="En Tránsito">🚛 En Tránsito (¡Nuevo!)</option>
                                 <option value="Enviado">🟢 Enviado / Despachado</option>
                                 <option value="Entregado">✅ Entregado</option>
@@ -676,6 +677,7 @@
             if (s.includes('pendiente')) return { bg: '#FEF9E7', color: '#D4AC0D', border: '#F9E79F', label: '🟡 Sin Pagar' };
             if (s.includes('pagado')) return { bg: '#E0F6F5', color: '#0E8A7E', border: '#A3E4D7', label: '🔵 Pagado' };
             if (s.includes('preparan')) return { bg: '#F4ECF7', color: '#7D3C98', border: '#E8DAEF', label: '🟣 Preparando' };
+            if (s.includes('retirar') || s.includes('retiro') || s.includes('listo')) return { bg: '#FEF3C7', color: '#B45309', border: '#FDE68A', label: '🏬 Listo para Retirar' };
             if (s.includes('tránsito') || s.includes('transito')) return { bg: '#EBF5FB', color: '#2980B9', border: '#AED6F1', label: '🚛 En Tránsito' };
             if (s.includes('envia') || s.includes('despach')) return { bg: '#E8F8F5', color: '#1ABC9C', border: '#A3E4D7', label: '🟢 Enviado' };
             if (s.includes('entrega')) return { bg: '#EAFAF1', color: '#27AE60', border: '#D1F2EB', label: '✅ Entregado' };

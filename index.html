@@ -904,68 +904,52 @@
         </div>
     </aside>
 
-    <!-- ASISTENTE IA MODAL DERECHA -->
-    <div id="aiModalOverlay"
-        class="fixed inset-0 bg-[#211a19]/50 z-[120] opacity-0 pointer-events-none transition-all duration-300 flex items-center justify-center px-4 backdrop-blur-sm">
-        <div id="aiModalCard"
-            class="bg-[#FFFDF5] rounded-3xl max-w-lg w-full shadow-2xl overflow-hidden transform scale-95 transition-all duration-300 flex flex-col max-h-[90vh] border border-primary/10">
-            <div class="p-6 border-b border-[#eedfdd] bg-white flex justify-between items-center relative">
-                <div class="flex items-center gap-3">
-                    <div
-                        class="w-10 h-10 rounded-full bg-[#ffdad9] flex items-center justify-center text-[#8a4d4e] shadow-inner">
-                        <span class="material-symbols-outlined">auto_awesome</span>
-                    </div>
-                    <div>
-                        <h3 class="font-headline-sm text-base text-[#1b1b1c] font-bold italic">Asesoría Personalizada
-                        </h3>
-                        <p class="text-[10px] text-[#665c5b] uppercase tracking-wider font-semibold">Poppy Personal
-                            Shopper</p>
-                    </div>
-                </div>
-                <button id="aiModalCloseBtn" class="text-xl text-[#665c5b] hover:text-[#8a4d4e] transition-colors p-2"
-                    aria-label="Cerrar modal">✕</button>
+    <!-- BOTONES FLOTANTES REDES SOCIALES -->
+    <div class="fixed bottom-24 md:bottom-8 right-5 z-40 flex flex-col items-end gap-3 pointer-events-none select-none">
+        <!-- Instagram -->
+        <a href="https://www.instagram.com/poppy_jeans3/" target="_blank" rel="noopener noreferrer" aria-label="Instagram Poppy Jeans"
+           class="social-float-btn pointer-events-auto group flex items-center h-12 rounded-full shadow-lg hover:shadow-2xl transition-all duration-300 ease-out overflow-hidden hover:scale-105 active:scale-95"
+           style="background: linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%);">
+            <div class="w-12 h-12 flex items-center justify-center shrink-0 text-white">
+                <svg class="w-6 h-6 fill-none stroke-current stroke-[2]" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect>
+                    <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
+                    <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line>
+                </svg>
             </div>
+            <span class="max-w-0 opacity-0 group-hover:max-w-[120px] group-hover:opacity-100 group-hover:pr-4 transition-all duration-300 ease-out font-bold text-xs text-white whitespace-nowrap overflow-hidden">
+                Síguenos
+            </span>
+        </a>
 
-            <div class="p-6 overflow-y-auto flex-1 flex flex-col justify-center bg-[#FFFDF5]">
-                <!-- Phase 1: Input -->
-                <div id="aiInputPhase" class="flex flex-col gap-4">
-                    <p class="text-xs text-[#524343] leading-relaxed">Cuéntame, ¿qué estás buscando o a quién quieres
-                        sorprender hoy?</p>
-                    <textarea id="aiUserInput" rows="4"
-                        placeholder="Ej: Busco unos jeans oscuros de tiro alto que tengan buena elasticidad..."
-                        class="w-full bg-white border border-[#eedfdd] rounded-2xl p-4 text-sm focus:ring-1 focus:ring-[#8a4d4e] focus:border-[#8a4d4e] outline-none placeholder-[#665c5b]/50 resize-none text-[#1b1b1c] shadow-inner"></textarea>
-                    <button id="btnAskAI"
-                        class="w-full bg-[#8a4d4e] text-white py-3.5 rounded-full font-bold text-xs uppercase tracking-wider hover:bg-[#ffb3b3] hover:text-[#380c0f] transition-all shadow-md active:scale-95">
-                        Asesorarme ✨
-                    </button>
-                </div>
-
-                <!-- Phase 2: Loading -->
-                <div id="aiLoadingPhase" class="hidden flex flex-col items-center justify-center py-12 gap-4">
-                    <div class="w-10 h-10 border-4 border-[#eedfdd] border-t-[#8a4d4e] rounded-full animate-spin"></div>
-                    <p class="font-headline-sm text-sm text-[#8a4d4e] italic">Buscando la prenda perfecta...</p>
-                </div>
-
-                <!-- Phase 3: Response -->
-                <div id="aiResponsePhase" class="hidden flex flex-col gap-4">
-                    <div id="aiResponseText"
-                        class="text-xs text-[#524343] leading-relaxed prose max-w-none bg-white p-4 rounded-2xl border border-[#eedfdd] max-h-[300px] overflow-y-auto">
-                        <!-- Responses injected here -->
-                    </div>
-                    <button id="btnAIAgain"
-                        class="w-full bg-transparent text-[#8a4d4e] border border-[#eedfdd] py-3.5 rounded-full font-bold text-xs uppercase tracking-wider hover:bg-[#ffdad9] transition-all active:scale-95">
-                        Otra consulta
-                    </button>
-                </div>
+        <!-- TikTok -->
+        <a href="https://www.tiktok.com/@poppyjeans3" target="_blank" rel="noopener noreferrer" aria-label="TikTok Poppy Jeans"
+           class="social-float-btn pointer-events-auto group flex items-center h-12 rounded-full shadow-lg hover:shadow-2xl transition-all duration-300 ease-out overflow-hidden hover:scale-105 active:scale-95"
+           style="background: #000000;">
+            <div class="w-12 h-12 flex items-center justify-center shrink-0 text-white">
+                <svg class="w-5 h-5 fill-current" viewBox="0 0 24 24">
+                    <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64c.29 0 .58.04.85.12V9.41a6.33 6.33 0 0 0-.85-.06A6.34 6.34 0 0 0 3.14 15.7a6.34 6.34 0 0 0 10.82 4.46 6.27 6.27 0 0 0 1.86-4.46V8.75a8.28 8.28 0 0 0 4.77 1.48V6.78a4.85 4.85 0 0 1-1-.09z"/>
+                </svg>
             </div>
-        </div>
+            <span class="max-w-0 opacity-0 group-hover:max-w-[120px] group-hover:opacity-100 group-hover:pr-4 transition-all duration-300 ease-out font-bold text-xs text-white whitespace-nowrap overflow-hidden">
+                TikTok
+            </span>
+        </a>
+
+        <!-- WhatsApp -->
+        <a href="https://wa.me/56962661184" target="_blank" rel="noopener noreferrer" aria-label="WhatsApp Poppy Jeans"
+           class="social-float-btn pointer-events-auto group flex items-center h-12 rounded-full shadow-lg hover:shadow-2xl transition-all duration-300 ease-out overflow-hidden hover:scale-105 active:scale-95"
+           style="background: #25D366;">
+            <div class="w-12 h-12 flex items-center justify-center shrink-0 text-white">
+                <svg class="w-6 h-6 fill-current" viewBox="0 0 24 24">
+                    <path d="M20.52 3.48A11.93 11.93 0 0 0 12.06 0C5.46 0 .09 5.37.09 11.97c0 2.11.55 4.17 1.6 5.98L0 24l6.23-1.63a11.9 11.9 0 0 0 5.83 1.51h.01c6.6 0 11.97-5.37 11.97-11.97 0-3.2-1.25-6.21-3.52-8.43zM12.06 21.88h-.01c-1.8 0-3.56-.48-5.1-1.4l-.37-.22-3.78.99 1.01-3.68-.24-.38a9.88 9.88 0 0 1-1.52-5.22c0-5.46 4.45-9.91 9.92-9.91 2.65 0 5.14 1.03 7.01 2.9a9.85 9.85 0 0 1 2.9 7.01c0 5.46-4.45 9.91-9.92 9.91zm5.44-7.44c-.3-.15-1.77-.87-2.04-.97-.28-.1-.48-.15-.68.15-.2.3-.78.97-.95 1.17-.18.2-.35.22-.65.07-.3-.15-1.26-.46-2.4-1.48-.89-.79-1.49-1.77-1.66-2.07-.18-.3-.02-.46.13-.61.13-.14.3-.35.45-.52.15-.18.2-.3.3-.5.1-.2.05-.38-.02-.53-.08-.15-.68-1.64-.93-2.25-.24-.59-.49-.51-.68-.52h-.58c-.2 0-.53.07-.8.38-.28.3-1.05 1.03-1.05 2.51s1.08 2.92 1.23 3.12c.15.2 2.12 3.24 5.14 4.54.72.31 1.28.5 1.72.64.72.23 1.38.2 1.9.12.58-.09 1.77-.72 2.02-1.42.25-.7.25-1.3.18-1.42-.08-.13-.28-.2-.58-.35z"/>
+                </svg>
+            </div>
+            <span class="max-w-0 opacity-0 group-hover:max-w-[120px] group-hover:opacity-100 group-hover:pr-4 transition-all duration-300 ease-out font-bold text-xs text-white whitespace-nowrap overflow-hidden">
+                WhatsApp
+            </span>
+        </a>
     </div>
-
-    <!-- FLOATING AI ASSISTANT TRIGGER -->
-    <button id="btnOpenAI" aria-label="Personal Shopper"
-        class="fixed bottom-24 md:bottom-8 right-6 w-14 h-14 bg-[#8a4d4e] hover:bg-[#ffb3b3] hover:text-[#380c0f] text-white rounded-full flex items-center justify-center shadow-2xl active:scale-95 transition-all z-40 border border-white/20 hover:rotate-12 duration-300">
-        <span class="material-symbols-outlined text-[28px]">auto_awesome</span>
-    </button>
 
     <!-- BottomNavBar (Mobile Only) -->
     <nav
@@ -2039,77 +2023,6 @@
             searchByTag(savedSearch);
             localStorage.removeItem('poppyjeans_search');
         }
-
-        // =========================================================
-        // GEMINI AI PERSONAL SHOPPER INTEGRATION
-        // =========================================================
-        const btnOpenAI = document.getElementById('btnOpenAI');
-        const aiModalOverlay = document.getElementById('aiModalOverlay');
-        const aiModalCard = document.getElementById('aiModalCard');
-        const aiInputPhase = document.getElementById('aiInputPhase');
-        const aiLoadingPhase = document.getElementById('aiLoadingPhase');
-        const aiResponsePhase = document.getElementById('aiResponsePhase');
-        const aiUserInput = document.getElementById('aiUserInput');
-        const aiResponseText = document.getElementById('aiResponseText');
-
-        btnOpenAI.addEventListener('click', () => {
-            aiModalOverlay.classList.remove('opacity-0', 'pointer-events-none');
-            aiModalOverlay.classList.add('opacity-100');
-            aiModalCard.classList.remove('scale-95');
-            aiModalCard.classList.add('scale-100');
-            document.body.style.overflow = 'hidden';
-            aiInputPhase.style.display = 'block';
-            aiLoadingPhase.style.display = 'none';
-            aiResponsePhase.style.display = 'none';
-            aiUserInput.value = '';
-        });
-
-        const closeAIModal = () => {
-            aiModalOverlay.classList.remove('opacity-100');
-            aiModalOverlay.classList.add('opacity-0', 'pointer-events-none');
-            aiModalCard.classList.remove('scale-100');
-            aiModalCard.classList.add('scale-95');
-            document.body.style.overflow = '';
-        };
-        document.getElementById('aiModalCloseBtn').addEventListener('click', closeAIModal);
-        aiModalOverlay.addEventListener('click', (e) => { if (e.target === aiModalOverlay) closeAIModal(); });
-
-        document.getElementById('btnAIAgain').addEventListener('click', () => {
-            aiInputPhase.style.display = 'block';
-            aiResponsePhase.style.display = 'none';
-            aiUserInput.value = '';
-        });
-
-        document.getElementById('btnAskAI').addEventListener('click', async () => {
-            const userQuery = aiUserInput.value.trim();
-            if (!userQuery) return;
-            aiInputPhase.style.display = 'none';
-            aiLoadingPhase.style.display = 'block';
-
-            const catalog = storeCatalog.map(p => ({
-                nombre: p.nombre,
-                precio: p.precio_normal,
-                tallas_disponibles: p.variantes && p.variantes.length > 0 ? p.variantes.map(v => v.tallas).join(' | ') : 'Variadas',
-                colores_disponibles: p.variantes && p.variantes.length > 0 ? p.variantes.map(v => v.color_name).join(', ') : 'Único',
-                etiquetas: p.etiquetas
-            }));
-
-            try {
-                const response = await fetch(`${API_BASE_URL}/api/chat`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ message: userQuery, catalog })
-                });
-                const data = await response.json();
-                if (data.success && data.text) {
-                    aiResponseText.innerHTML = data.text;
-                } else throw new Error(data.error || 'Error al invocar chat proxy');
-            } catch (error) {
-                aiResponseText.innerHTML = "<p>Nuestros asesores están ocupados. Por favor, revisa la vitrina directamente.</p>";
-            }
-            aiLoadingPhase.style.display = 'none';
-            aiResponsePhase.style.display = 'block';
-        });
 
         // Mobile Menu trigger logic
         document.getElementById('mobileMenuBtn').addEventListener('click', () => {

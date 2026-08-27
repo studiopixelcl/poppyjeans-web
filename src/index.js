@@ -355,6 +355,7 @@ async function sendOrderStatusChangeEmail(env, order, customerEmail, customerNam
     'Pendiente': { label: 'Pendiente de Pago', emoji: '🟡', color: '#D4AC0D', bg: '#FEF9E7' },
     'Pagado': { label: 'Pago Confirmado', emoji: '🔵', color: '#8a4d4e', bg: '#ffdad9' },
     'Preparando': { label: 'En Preparación', emoji: '🟣', color: '#8E44AD', bg: '#F4ECF7' },
+    'Listo para retirar': { label: 'Listo para Retirar', emoji: '🏬', color: '#B45309', bg: '#FEF3C7' },
     'En Tránsito': { label: 'En Tránsito', emoji: '🚛', color: '#2980B9', bg: '#EBF5FB' },
     'Enviado': { label: 'En Camino', emoji: '🚚', color: '#1ABC9C', bg: '#E8F8F5' },
     'Entregado': { label: 'Entregado', emoji: '✅', color: '#27AE60', bg: '#EAFAF1' },
@@ -364,6 +365,7 @@ async function sendOrderStatusChangeEmail(env, order, customerEmail, customerNam
     'Pendiente': 'Tu pedido está pendiente de confirmación de pago.',
     'Pagado': '¡Tu pago ha sido confirmado! Ya comenzamos a revisar tu pedido.',
     'Preparando': '¡Estamos preparando tu pedido con mucho amor y cuidado!',
+    'Listo para retirar': '¡Tu pedido ya se encuentra empaquetado y listo para ser retirado en nuestra tienda! Puedes pasar por él en nuestro horario de atención.',
     'En Tránsito': '¡Tu pedido se encuentra en tránsito! Ya va en camino hacia la comuna de destino.',
     'Enviado': '¡Tu pedido fue despachado y pronto llegará a tus manos!',
     'Entregado': '¡Tu pedido fue entregado! Esperamos que les encanten las prendas.',
@@ -373,6 +375,7 @@ async function sendOrderStatusChangeEmail(env, order, customerEmail, customerNam
     'Pendiente': `Pedido #${orderId} — Pendiente de Pago`,
     'Pagado': `¡Pedido #${orderId} confirmado! 💖`,
     'Preparando': `Tu pedido #${orderId} está en preparación 🎀`,
+    'Listo para retirar': `¡Tu pedido #${orderId} está listo para retirar! 🏬🛍️`,
     'En Tránsito': `Tu pedido #${orderId} está en tránsito 🚛`,
     'Enviado': `¡Tu pedido #${orderId} está en camino! 🚚`,
     'Entregado': `¡Pedido #${orderId} entregado con éxito! ✨`,
@@ -382,6 +385,18 @@ async function sendOrderStatusChangeEmail(env, order, customerEmail, customerNam
   const si = statusLabels[estado] || { label: estado, emoji: '📦', color: '#8a4d4e', bg: '#FFFDF5' };
   const statusMsg = statusMessages[estado] || 'El estado de tu pedido ha sido actualizado.';
   const subject = subjectLabels[estado] || `Actualización de tu pedido #${orderId}`;
+
+  // Bloque de retiro en tienda si aplica
+  let pickupHtml = '';
+  if (estado === 'Listo para retirar' || (estado && estado.toLowerCase().includes('retirar'))) {
+    pickupHtml = `
+      <div style="background-color:#FFFDF5; border:1.5px solid #FDE68A; border-radius:12px; padding:20px; margin:20px 0; text-align:center;">
+          <p style="margin:0 0 6px 0; font-size:13px; font-weight:bold; color:#B45309; text-transform:uppercase; letter-spacing:1px;">🏬 Punto de Retiro:</p>
+          <p style="margin:0 0 4px 0; font-size:15px; font-weight:bold; color:#211a19;">Tienda Poppy Jeans Providencia</p>
+          <p style="margin:0 0 10px 0; font-size:14px; color:#665c5b;">Av. Ricardo Lyon 100, Local 50, Providencia, Región Metropolitana</p>
+          <p style="margin:0; font-size:12px; color:#857372;">(Recuerda indicar tu número de pedido <strong>#${orderId}</strong> al momento de retirar)</p>
+      </div>`;
+  }
 
   // Bloque de tracking — si está Enviado o En Tránsito y tiene número
   let trackingHtml = '';
@@ -441,6 +456,7 @@ async function sendOrderStatusChangeEmail(env, order, customerEmail, customerNam
             <h2 style="color:#8a4d4e; font-size:22px; margin-top:0;">Actualización de tu pedido #${orderId}</h2>
             <p style="color:#665c5b; font-size:16px; line-height:1.6; margin-bottom:10px;">Hola <strong style="color:#8a4d4e;">${primerNombre}</strong>,</p>
             <p style="color:#665c5b; font-size:15px; line-height:1.6; margin-bottom:15px;">${statusMsg}</p>
+            ${pickupHtml}
             ${customerNoteHtml}
             ${trackingHtml}
         </div>
