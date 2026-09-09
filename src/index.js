@@ -508,7 +508,7 @@ async function logActivity(env, adminName, action, entityType, entityId, details
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
-  "Access-Control-Allow-Headers": "Content-Type, Authorization, X-Customer-Token",
+  "Access-Control-Allow-Headers": "Content-Type, Authorization, X-Customer-Token, Cache-Control, Pragma",
 };
 
 // Respuesta de error de autenticación estándar
@@ -571,7 +571,7 @@ export default {
     const corsHeaders = {
       "Access-Control-Allow-Origin": allowedOrigin,
       "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
-      "Access-Control-Allow-Headers": "Content-Type, Authorization, X-Customer-Token",
+      "Access-Control-Allow-Headers": "Content-Type, Authorization, X-Customer-Token, Cache-Control, Pragma",
     };
 
     await ensureSchema(env);
