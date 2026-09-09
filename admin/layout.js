@@ -16,7 +16,6 @@ async function adminFetch(endpoint, options = {}) {
     const finalEndpoint = isGet ? `${endpoint}${sep}_t=${Date.now()}` : endpoint;
 
     const response = await fetch(`${API_BASE_URL}${finalEndpoint}`, {
-        cache: 'no-store',
         ...options,
         headers: {
             ...getAuthHeaders(),

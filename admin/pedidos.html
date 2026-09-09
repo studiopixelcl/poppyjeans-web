@@ -688,7 +688,8 @@
                     ordersTableBody.innerHTML = `<tr><td colspan="10" style="color:#888; text-align:center; padding: 2rem;">Esperando primer pedido.</td></tr>`;
                 }
             } catch (error) {
-                ordersTableBody.innerHTML = `<tr><td colspan="10" style="color:var(--danger-color); text-align:center; padding: 2rem;">Error de red. Verifica tu conexión a internet.</td></tr>`;
+                console.error('Error al cargar pedidos:', error);
+                ordersTableBody.innerHTML = `<tr><td colspan="10" style="color:var(--danger-color); text-align:center; padding: 2rem;">Error al cargar pedidos (${error.message || 'Verifica tu conexión'}).</td></tr>`;
             }
         }
 
