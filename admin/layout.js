@@ -11,9 +11,19 @@ function getAuthHeaders() {
 }
 
 async function adminFetch(endpoint, options = {}) {
-    const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+    const sep = endpoint.includes('?') ? '&' : '?';
+    const isGet = !options.method || options.method.toUpperCase() === 'GET';
+    const finalEndpoint = isGet ? `${endpoint}${sep}_t=${Date.now()}` : endpoint;
+
+    const response = await fetch(`${API_BASE_URL}${finalEndpoint}`, {
+        cache: 'no-store',
         ...options,
-        headers: { ...getAuthHeaders(), ...(options.headers || {}) }
+        headers: {
+            'Cache-Control': 'no-cache, no-store, must-revalidate',
+            'Pragma': 'no-cache',
+            ...getAuthHeaders(),
+            ...(options.headers || {})
+        }
     });
     if (response.status === 401) {
         if (localStorage.getItem('admin_token') !== null) {

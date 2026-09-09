@@ -898,6 +898,19 @@
                     } else {
                         alert('¡Pedido actualizado con éxito!');
                     }
+
+                    // Sincronizar automáticamente con el listado de pedidos en otras pestañas o al volver
+                    try {
+                        if (typeof BroadcastChannel !== 'undefined') {
+                            const ch = new BroadcastChannel('poppy_orders_channel');
+                            ch.postMessage({ type: 'ORDER_UPDATED', id: orderId, estado: estado, time: Date.now() });
+                            ch.close();
+                        }
+                    } catch (e) {}
+                    try {
+                        localStorage.setItem('poppy_order_updated', JSON.stringify({ id: orderId, estado: estado, time: Date.now() }));
+                    } catch (e) {}
+
                     loadOrderDetails();
                 } else {
                     alert('Error al guardar cambios: ' + (result.error || 'No se pudo actualizar'));

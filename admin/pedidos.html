@@ -255,6 +255,28 @@
         /* --- MANAGEMENT FORM --- */
         .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.2rem; }
 
+        /* --- SELECT DE ESTADO RÁPIDO EN TABLA DE PEDIDOS --- */
+        .status-badge-select {
+            font-family: inherit;
+            font-size: 0.76rem;
+            font-weight: 700;
+            padding: 4px 8px;
+            border-radius: 20px;
+            cursor: pointer;
+            border: 1px solid transparent;
+            outline: none;
+            transition: all 0.2s ease;
+            display: inline-block;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+        }
+        .status-badge-select:hover {
+            filter: brightness(0.96);
+            transform: translateY(-1px);
+        }
+        .status-badge-select:focus {
+            box-shadow: 0 0 0 2px rgba(138, 77, 78, 0.35);
+        }
+
     </style>
 </head>
 <body>
@@ -683,6 +705,128 @@
             return `<span class="badge" style="background:#f4f4f4; color:#666; border:1px solid #ddd;">${estado}</span>`;
         }
 
+        function getStatusSelectStyle(estado) {
+            const s = (estado || 'Pendiente').toLowerCase();
+            if (s.includes('pendiente'))  return 'background:#FEF9E7; color:#D4AC0D; border:1px solid #F9E79F;';
+            if (s.includes('pagado'))     return 'background:#E0F6F5; color:#13C2B3; border:1px solid #A3E4D7;';
+            if (s.includes('preparan'))   return 'background:#F4ECF7; color:#8E44AD; border:1px solid #E8DAEF;';
+            if (s.includes('retirar') || s.includes('retiro') || s.includes('listo')) return 'background:#FEF3C7; color:#B45309; border:1px solid #FDE68A;';
+            if (s.includes('tránsito') || s.includes('transito')) return 'background:#EBF5FB; color:#2980B9; border:1px solid #AED6F1;';
+            if (s.includes('envia') || s.includes('despach')) return 'background:#E8F8F5; color:#1ABC9C; border:1px solid #A3E4D7;';
+            if (s.includes('entrega'))    return 'background:#EAFAF1; color:#27AE60; border:1px solid #D1F2EB;';
+            if (s.includes('cancel'))     return 'background:#FDEDEC; color:#E74C3C; border:1px solid #F5B7B1;';
+            return 'background:#f4f4f4; color:#666; border:1px solid #ddd;';
+        }
+
+        function renderOrderStatusSelect(order) {
+            const cur = (order.estado || 'Pendiente').trim();
+            const normCur = cur.toLowerCase();
+            const options = [
+                { val: 'Pendiente', label: '🟡 Sin Pagar' },
+                { val: 'Pagado', label: '🔵 Pagado' },
+                { val: 'Preparando', label: '🟣 Preparando' },
+                { val: 'Listo para retirar', label: '🏬 Listo para Retirar' },
+                { val: 'En Tránsito', label: '🚛 En Tránsito' },
+                { val: 'Enviado', label: '🟢 Enviado' },
+                { val: 'Entregado', label: '✅ Entregado' },
+                { val: 'Cancelado', label: '🔴 Cancelado' }
+            ];
+
+            const optHtml = options.map(opt => {
+                const isSel = (opt.val.toLowerCase() === normCur 
+                    || (normCur.includes('prepar') && opt.val === 'Preparando') 
+                    || (normCur.includes('retir') && opt.val === 'Listo para retirar') 
+                    || (normCur.includes('transit') && opt.val === 'En Tránsito') 
+                    || (normCur.includes('entreg') && opt.val === 'Entregado') 
+                    || (normCur.includes('cancel') && opt.val === 'Cancelado') 
+                    || (normCur.includes('pend') && opt.val === 'Pendiente') 
+                    || (normCur.includes('pagad') && opt.val === 'Pagado') 
+                    || (normCur.includes('envi') && opt.val === 'Enviado'));
+                return `<option value="${opt.val}" ${isSel ? 'selected' : ''}>${opt.label}</option>`;
+            }).join('');
+
+            return `<select class="status-badge-select" data-order-id="${order.id}" onchange="quickUpdateOrderStatus(${order.id}, this)" data-prev="${cur}" style="${getStatusSelectStyle(cur)}" title="Haz clic para cambiar el estado inmediatamente">${optHtml}</select>`;
+        }
+
+        async function quickUpdateOrderStatus(id, selectEl) {
+            const newStatus = selectEl.value;
+            const prevStatus = selectEl.getAttribute('data-prev') || 'Pendiente';
+
+            // Actualizar estilo visual inmediatamente
+            selectEl.style.cssText = getStatusSelectStyle(newStatus);
+
+            try {
+                const response = await adminFetch(`/api/admin/orders/${id}`, {
+                    method: 'PUT',
+                    body: JSON.stringify({
+                        admin_name: localStorage.getItem('admin_name'),
+                        estado: newStatus,
+                        notify_customer: false
+                    })
+                });
+                if (!response) {
+                    selectEl.value = prevStatus;
+                    selectEl.style.cssText = getStatusSelectStyle(prevStatus);
+                    return;
+                }
+                const result = await response.json();
+                if (result.success) {
+                    selectEl.setAttribute('data-prev', newStatus);
+
+                    // Actualizar memoria local de pedidos
+                    const ord = allOrders.find(o => o.id === id);
+                    if (ord) ord.estado = newStatus;
+                    const fOrd = filteredOrders.find(o => o.id === id);
+                    if (fOrd) fOrd.estado = newStatus;
+
+                    // Si hay un filtro activo que excluye este estado, refrescar lista
+                    if (currentOrdersQuickFilter !== 'all') {
+                        loadOrders(ordersPage, ordersLimit, ordersSearch);
+                    }
+
+                    // Actualizar KPIs de cabecera
+                    loadOrdersSummaryStats();
+
+                    // Notificar a otras vistas/pestañas
+                    broadcastOrderUpdated(id, newStatus);
+
+                    if (typeof showToast === 'function') {
+                        showToast(`Estado del pedido #${id} cambiado a: ${newStatus}`, 'success');
+                    }
+                } else {
+                    selectEl.value = prevStatus;
+                    selectEl.style.cssText = getStatusSelectStyle(prevStatus);
+                    if (typeof showToast === 'function') {
+                        showToast('Error al actualizar estado: ' + (result.error || 'Error del servidor'), 'error');
+                    } else {
+                        alert('Error al actualizar: ' + result.error);
+                    }
+                }
+            } catch (error) {
+                console.error('Error al actualizar estado rápido:', error);
+                selectEl.value = prevStatus;
+                selectEl.style.cssText = getStatusSelectStyle(prevStatus);
+                if (typeof showToast === 'function') {
+                    showToast('Error de red al actualizar estado.', 'error');
+                } else {
+                    alert('Error de red al actualizar estado.');
+                }
+            }
+        }
+
+        function broadcastOrderUpdated(orderId, estado) {
+            try {
+                if (typeof BroadcastChannel !== 'undefined') {
+                    const ch = new BroadcastChannel('poppy_orders_channel');
+                    ch.postMessage({ type: 'ORDER_UPDATED', id: orderId, estado, time: Date.now() });
+                    ch.close();
+                }
+            } catch (e) {}
+            try {
+                localStorage.setItem('poppy_order_updated', JSON.stringify({ id: orderId, estado, time: Date.now() }));
+            } catch (e) {}
+        }
+
         /* Retorna { bg, color, text } para el badge del ticket header */
         function getTicketBadgeStyle(estado) {
             const s = (estado || '').toLowerCase();
@@ -764,7 +908,7 @@
                     <td style="max-width:240px;">${productsCell}</td>
                     <td><strong style="font-size:1.05rem; color: var(--teal-studio);">${formatCurrency(order.total)}</strong></td>
                     <td>${shippingCell}</td>
-                    <td>${getStatusBadge(order.estado)}</td>
+                    <td>${renderOrderStatusSelect(order)}</td>
                     <td style="font-size:0.85rem;">${trackingHtml}</td>
                     <td>
                         <a href="pedido.html?id=${order.id}" class="action-btn" style="text-decoration:none; display:inline-block; font-weight:700; border-radius:20px; padding:6px 14px; background:rgba(186, 107, 107, 0.1); color:#8a4d4e;">Gestionar ➔</a>
@@ -1150,7 +1294,12 @@
                 const result = await response.json();
                 if (result.success) {
                     closeOrderModal();
-                    loadOrders();
+                    loadOrders(ordersPage, ordersLimit, ordersSearch);
+                    loadOrdersSummaryStats();
+                    broadcastOrderUpdated(editingOrderId, estado);
+                    if (typeof showToast === 'function') {
+                        showToast(`Pedido #${editingOrderId} actualizado con éxito`, 'success');
+                    }
                 } else {
                     alert('Error del servidor: ' + result.error);
                 }
@@ -1160,6 +1309,75 @@
                 btnSave.textContent = 'Actualizar Pedido';
                 btnSave.disabled = false;
             }
+        });
+
+        // ==========================================
+        // SINCRONIZACIÓN AUTOMÁTICA DE PEDIDOS
+        // ==========================================
+        function checkAndApplyPendingOrderUpdates() {
+            try {
+                const raw = localStorage.getItem('poppy_order_updated');
+                if (!raw) return;
+                const info = JSON.parse(raw);
+                if (info && info.id && info.estado) {
+                    const idNum = Number(info.id);
+                    const ord = allOrders.find(o => Number(o.id) === idNum);
+                    if (ord) ord.estado = info.estado;
+                    const fOrd = filteredOrders.find(o => Number(o.id) === idNum);
+                    if (fOrd) fOrd.estado = info.estado;
+
+                    const selectEl = document.querySelector(`select.status-badge-select[data-order-id="${info.id}"]`);
+                    if (selectEl) {
+                        selectEl.value = info.estado;
+                        selectEl.setAttribute('data-prev', info.estado);
+                        selectEl.style.cssText = getStatusSelectStyle(info.estado);
+                    }
+                }
+            } catch (e) {}
+        }
+
+        function refreshOrdersView() {
+            checkAndApplyPendingOrderUpdates();
+            loadOrders(ordersPage, ordersLimit, ordersSearch);
+            loadOrdersSummaryStats();
+        }
+
+        // 1. Comunicación entre pestañas/ventanas
+        if (typeof BroadcastChannel !== 'undefined') {
+            try {
+                const ordersChannel = new BroadcastChannel('poppy_orders_channel');
+                ordersChannel.onmessage = (event) => {
+                    if (event.data && event.data.type === 'ORDER_UPDATED') {
+                        refreshOrdersView();
+                    }
+                };
+            } catch (e) {}
+        }
+
+        // 2. Storage event como fallback entre pestañas
+        window.addEventListener('storage', (e) => {
+            if (e.key === 'poppy_order_updated') {
+                refreshOrdersView();
+            }
+        });
+
+        // 3. Al volver con botón atrás (BFCache en tablets/iPad/Android) o reactivar pestaña
+        window.addEventListener('pageshow', (event) => {
+            refreshOrdersView();
+        });
+
+        window.addEventListener('popstate', () => {
+            refreshOrdersView();
+        });
+
+        document.addEventListener('visibilitychange', () => {
+            if (document.visibilityState === 'visible') {
+                refreshOrdersView();
+            }
+        });
+
+        window.addEventListener('focus', () => {
+            refreshOrdersView();
         });
         // --- EXPORTAR PEDIDOS A CSV ---
         window.exportOrdersToCSV = async () => {
