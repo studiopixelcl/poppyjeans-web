@@ -2308,13 +2308,20 @@ export default {
             const body = await request.json();
 
             // Capturar estado anterior antes de aplicar cambios
-            const oldOrder = await env.DB.prepare(`SELECT estado FROM Orders WHERE id = ?`).bind(oId).first();
-            const oldEstado = oldOrder?.estado;
+            const oldOrder = await env.DB.prepare(`SELECT estado, courier, tracking_code, notas FROM Orders WHERE id = ?`).bind(oId).first();
+            if (!oldOrder) return Response.json({ success: false, error: "Pedido no encontrado" }, { status: 404, headers: corsHeaders });
+            const oldEstado = oldOrder.estado;
+
+            // Si el campo viene en el body se actualiza; si no viene (undefined), se preserva el valor existente
+            const newEstado = body.estado !== undefined ? body.estado : oldOrder.estado;
+            const newTracking = body.tracking_code !== undefined ? (body.tracking_code || null) : oldOrder.tracking_code;
+            const newCourier = body.courier !== undefined ? (body.courier || null) : oldOrder.courier;
+            const newNotas = body.notas !== undefined ? (body.notas || null) : oldOrder.notas;
 
             await env.DB.prepare(`UPDATE Orders SET estado = ?, tracking_code = ?, courier = ?, notas = ? WHERE id = ?`)
-              .bind(body.estado, body.tracking_code || null, body.courier || null, body.notas || null, oId).run();
+              .bind(newEstado, newTracking, newCourier, newNotas, oId).run();
 
-            const logDetails = `Estado: ${body.estado} | Courier: ${body.courier || 'Sin asignar'} | Tracking: ${body.tracking_code || 'Sin asignar'}`;
+            const logDetails = `Estado: ${newEstado} | Courier: ${newCourier || 'Sin asignar'} | Tracking: ${newTracking || 'Sin asignar'}`;
             ctx.waitUntil(logActivity(env, adminName, 'EDITAR', 'Pedido', oId, logDetails));
 
             // Notificar al cliente si la opción está activa
