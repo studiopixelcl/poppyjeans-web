@@ -616,6 +616,18 @@
                     updateDiscountCounts();
                     updateDiscountButtonsState();
                     applyFilters();
+
+                    // Si se aplicó algún filtro por URL en vista móvil, desplazar suavemente a los filtros/productos
+                    if (window.innerWidth < 768 && (catParam || clearanceParam || offerParam || bestsellerParam || sizeParam || styleParam || searchParam)) {
+                        setTimeout(() => {
+                            const target = document.getElementById('activeFiltersContainer') || document.getElementById('productsGrid');
+                            if (target) {
+                                const yOffset = -90;
+                                const y = target.getBoundingClientRect().top + window.pageYOffset + yOffset;
+                                window.scrollTo({ top: Math.max(0, y), behavior: 'smooth' });
+                            }
+                        }, 250);
+                    }
                 } else {
                     throw new Error('Respuesta inválida o catálogo vacío');
                 }
@@ -685,19 +697,80 @@
             updateSidebarCategoryActiveState();
         }
 
+        // Control de Drawer Móvil de Filtros
+        function closeMobileFilters() {
+            const aside = document.getElementById('sidebarFilters');
+            const overlay = document.getElementById('filterOverlay');
+            if (aside && !aside.classList.contains('-translate-x-full')) {
+                aside.classList.add('-translate-x-full');
+            }
+            if (overlay) {
+                overlay.classList.add('opacity-0', 'pointer-events-none');
+                overlay.classList.remove('opacity-100');
+            }
+            document.body.style.overflow = '';
+        }
+        window.closeMobileFilters = closeMobileFilters;
+
+        function toggleMobileFilters() {
+            const aside = document.getElementById('sidebarFilters');
+            const overlay = document.getElementById('filterOverlay');
+            if (aside && overlay) {
+                aside.classList.toggle('-translate-x-full');
+                overlay.classList.toggle('opacity-0');
+                overlay.classList.toggle('pointer-events-none');
+                overlay.classList.toggle('opacity-100');
+                const isOpened = !aside.classList.contains('-translate-x-full');
+                document.body.style.overflow = isOpened ? 'hidden' : '';
+            }
+        }
+        window.toggleMobileFilters = toggleMobileFilters;
+
+        // Selección de Categoría
         function selectCategory(catId) {
             activeFilters.category = catId;
             updateSidebarCategoryActiveState();
             applyFilters();
+            
+            // Ocultar la ventana de filtros en dispositivos móviles
+            closeMobileFilters();
+
+            // En dispositivos móviles, hacer scroll suave al filtro aplicado y la lista de productos
+            if (window.innerWidth < 768) {
+                setTimeout(() => {
+                    const target = document.getElementById('activeFiltersContainer') || document.getElementById('productsGrid');
+                    if (target) {
+                        const yOffset = -90; // compensar header fijo
+                        const y = target.getBoundingClientRect().top + window.pageYOffset + yOffset;
+                        window.scrollTo({ top: Math.max(0, y), behavior: 'smooth' });
+                    }
+                }, 120);
+            }
         }
+        window.selectCategory = selectCategory;
 
         function updateSidebarCategoryActiveState() {
-            const allBtns = document.querySelectorAll('#categoriesContainer button');
-            allBtns.forEach(btn => {
-                btn.classList.remove('border-primary', 'text-primary', 'font-bold');
-            });
-            const activeBtn = document.getElementById(`cat-btn-${activeFilters.category}`);
-            if (activeBtn) activeBtn.classList.add('border-primary', 'text-primary', 'font-bold');
+            const btnAll = document.getElementById('cat-btn-all');
+            if (btnAll) {
+                if (activeFilters.category === 'all') {
+                    btnAll.className = 'text-left text-xs font-bold text-primary py-1 border-l-2 border-primary pl-2 transition-all';
+                } else {
+                    btnAll.className = 'text-left text-xs text-[#665c5b] py-1 border-l-2 border-transparent pl-2 hover:text-primary transition-all';
+                }
+            }
+            
+            if (Array.isArray(categoriesList)) {
+                categoriesList.forEach(cat => {
+                    const btn = document.getElementById(`cat-btn-${cat.id}`);
+                    if (btn) {
+                        if (String(activeFilters.category) === String(cat.id)) {
+                            btn.className = 'text-left text-xs font-bold text-primary py-1 border-l-2 border-primary pl-2 transition-all';
+                        } else {
+                            btn.className = 'text-left text-xs text-[#665c5b] py-1 border-l-2 border-transparent pl-2 hover:text-primary transition-all';
+                        }
+                    }
+                });
+            }
         }
 
         function renderSizesFilter() {
@@ -730,6 +803,38 @@
             applyFilters();
         }
 
+        // Toggle Size Filter
+        function toggleSizeFilter(size, elem) {
+            const index = activeFilters.sizes.indexOf(size);
+            if (index > -1) {
+                activeFilters.sizes.splice(index, 1);
+                elem.classList.remove('bg-primary', 'text-white', 'border-primary');
+                elem.classList.add('bg-[#fcf9f9]', 'text-[#665c5b]', 'border-[#eedfdd]');
+            } else {
+                activeFilters.sizes.push(size);
+                elem.classList.add('bg-primary', 'text-white', 'border-primary');
+                elem.classList.remove('bg-[#fcf9f9]', 'text-[#665c5b]', 'border-[#eedfdd]');
+            }
+            applyFilters();
+        }
+
+        // Toggle Style Checkboxes
+        function toggleStyleFilter(checkbox) {
+            const style = checkbox.value;
+            if (checkbox.checked) {
+                activeFilters.styles.push(style);
+            } else {
+                activeFilters.styles = activeFilters.styles.filter(s => s !== style);
+            }
+            applyFilters();
+        }
+
+        // Text Search Trigger
+        function triggerSearch(term) {
+            activeFilters.search = term.trim();
+            applyFilters();
+        }
+
         function clearFilters() {
             activeFilters = {
                 category: 'all',
@@ -740,14 +845,35 @@
                 sizes: [],
                 styles: []
             };
+
+            // Reset UI States
+            const sInp = document.getElementById('searchInput');
+            if (sInp) sInp.value = '';
+            const mInp = document.getElementById('mobileSearchInput');
+            if (mInp) mInp.value = '';
+
             document.querySelectorAll('.style-checkbox').forEach(cb => cb.checked = false);
-            const searchInp = document.getElementById('searchInput');
-            if (searchInp) searchInp.value = '';
+
+            activeSizeType = 'letras';
+            const btnLetras = document.getElementById('size-type-letras');
+            const btnNumericas = document.getElementById('size-type-numericas');
+            if (btnLetras) {
+                btnLetras.className = 'flex-1 text-[10px] font-bold py-1.5 rounded-md bg-white text-primary shadow-sm transition-all';
+            }
+            if (btnNumericas) {
+                btnNumericas.className = 'flex-1 text-[10px] font-bold py-1.5 rounded-md text-[#665c5b] hover:text-primary transition-all';
+            }
+
+            renderSizesFilter();
             updateSidebarCategoryActiveState();
             updateDiscountButtonsState();
-            renderSizesFilter();
             applyFilters();
+
+            if (window.innerWidth < 768) {
+                closeMobileFilters();
+            }
         }
+        window.clearFilters = clearFilters;
 
         // Apply Filters and Rerender
         function applyFilters() {
@@ -905,9 +1031,9 @@
                     if (catObj) catName = catObj.nombre;
                 }
                 pillsHTML += `
-                    <span class="inline-flex items-center gap-1.5 bg-[#f6f3f3] text-[#8a4d4e] border border-[#eedfdd] text-xs font-semibold px-3 py-1 rounded-full shadow-2xs">
-                        <span>Categoría: <strong>${catName}</strong></span>
-                        <button type="button" onclick="selectCategory('all')" class="hover:bg-[#eedfdd] rounded-full w-4 h-4 inline-flex items-center justify-center text-[11px] font-bold leading-none transition-colors cursor-pointer" title="Quitar filtro">✕</button>
+                    <span class="inline-flex items-center gap-1.5 bg-[#8a4d4e]/10 text-[#8a4d4e] border border-[#8a4d4e]/30 text-xs font-semibold px-3 py-1 rounded-full shadow-2xs">
+                        <span>Categoría: <strong class="font-bold text-[#8a4d4e]">${catName}</strong></span>
+                        <button type="button" onclick="selectCategory('all')" class="hover:bg-[#8a4d4e]/20 rounded-full w-4 h-4 inline-flex items-center justify-center text-[11px] font-bold leading-none transition-colors cursor-pointer" title="Quitar filtro">✕</button>
                     </span>`;
             }
 
@@ -1317,112 +1443,7 @@
             localStorage.setItem('poppyjeans_favorites', JSON.stringify(favList));
         };
 
-        // Sidebar Category Selector
-        function selectCategory(cat) {
-            activeFilters.category = cat;
-            updateSidebarCategoryActiveState();
-            applyFilters();
-        }
 
-        function updateSidebarCategoryActiveState() {
-            const btnAll = document.getElementById('cat-btn-all');
-            if (btnAll) {
-                if (activeFilters.category === 'all') {
-                    btnAll.className = 'text-left text-xs font-bold text-primary py-1 border-l-2 border-primary pl-2 transition-all';
-                } else {
-                    btnAll.className = 'text-left text-xs text-[#665c5b] py-1 border-l-2 border-transparent pl-2 hover:text-primary transition-all';
-                }
-            }
-            
-            if (Array.isArray(categoriesList)) {
-                categoriesList.forEach(cat => {
-                    const btn = document.getElementById(`cat-btn-${cat.id}`);
-                    if (btn) {
-                        if (activeFilters.category == cat.id) {
-                            btn.className = 'text-left text-xs font-bold text-primary py-1 border-l-2 border-primary pl-2 transition-all';
-                        } else {
-                            btn.className = 'text-left text-xs text-[#665c5b] py-1 border-l-2 border-transparent pl-2 hover:text-primary transition-all';
-                        }
-                    }
-                });
-            }
-        }
-
-        // Toggle Size Filter
-        function toggleSizeFilter(size, elem) {
-            const index = activeFilters.sizes.indexOf(size);
-            if (index > -1) {
-                activeFilters.sizes.splice(index, 1);
-                elem.classList.remove('bg-primary', 'text-white', 'border-primary');
-                elem.classList.add('bg-[#fcf9f9]', 'text-[#665c5b]', 'border-[#eedfdd]');
-            } else {
-                activeFilters.sizes.push(size);
-                elem.classList.add('bg-primary', 'text-white', 'border-primary');
-                elem.classList.remove('bg-[#fcf9f9]', 'text-[#665c5b]', 'border-[#eedfdd]');
-            }
-            applyFilters();
-        }
-
-        // Toggle Style Checkboxes
-        function toggleStyleFilter(checkbox) {
-            const style = checkbox.value;
-            if (checkbox.checked) {
-                activeFilters.styles.push(style);
-            } else {
-                activeFilters.styles = activeFilters.styles.filter(s => s !== style);
-            }
-            applyFilters();
-        }
-
-        // Clear All Filters
-        function clearFilters() {
-            activeFilters = {
-                category: 'all',
-                search: '',
-                sizes: [],
-                styles: []
-            };
-
-            // Reset UI States
-            document.getElementById('searchInput').value = '';
-            document.getElementById('mobileSearchInput').value = '';
-            
-            const checkboxes = document.querySelectorAll('.style-checkbox');
-            checkboxes.forEach(cb => cb.checked = false);
-
-            activeSizeType = 'letras';
-            const btnLetras = document.getElementById('size-type-letras');
-            const btnNumericas = document.getElementById('size-type-numericas');
-            if (btnLetras) {
-                btnLetras.className = 'flex-1 text-[10px] font-bold py-1.5 rounded-md bg-white text-primary shadow-sm transition-all';
-                btnNumericas.className = 'flex-1 text-[10px] font-bold py-1.5 rounded-md text-[#665c5b] hover:text-primary transition-all';
-            }
-
-            renderSizesFilter();
-            updateSidebarCategoryActiveState();
-            applyFilters();
-        }
-
-        // Text Search Trigger
-        function triggerSearch(term) {
-            activeFilters.search = term.trim();
-            applyFilters();
-        }
-
-        // Toggle Mobile Filters Drawer
-        function toggleMobileFilters() {
-            const aside = document.getElementById('sidebarFilters');
-            const overlay = document.getElementById('filterOverlay');
-            if (aside && overlay) {
-                aside.classList.toggle('-translate-x-full');
-                overlay.classList.toggle('opacity-0');
-                overlay.classList.toggle('pointer-events-none');
-                overlay.classList.toggle('opacity-100');
-                const isOpened = !aside.classList.contains('-translate-x-full');
-                document.body.style.overflow = isOpened ? 'hidden' : '';
-            }
-        }
-        window.toggleMobileFilters = toggleMobileFilters;
 
         // =========================================================
         // SHOPPING CART CONTROLLER

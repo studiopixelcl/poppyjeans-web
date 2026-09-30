@@ -232,8 +232,8 @@
     <!-- Header / Nav bar (Responsive) -->
     <header class="fixed top-0 w-full z-50 glass-nav shadow-sm h-16 md:h-20">
         <div class="max-w-[1280px] mx-auto w-full h-full flex justify-between items-center px-margin-mobile md:px-margin-desktop">
-            <button id="mobileMenuBtn" aria-label="Menu" class="md:hidden text-[#665c5b] hover:opacity-80 transition-opacity active:scale-95 transition-transform flex items-center justify-center">
-                <span class="material-symbols-outlined">menu</span>
+            <button id="mobileMenuBtn" aria-label="Filtros" class="md:hidden text-[#8a4d4e] hover:opacity-80 transition-opacity active:scale-95 flex items-center justify-center p-2 rounded-full bg-[#8a4d4e]/10 border border-[#8a4d4e]/20 shadow-sm">
+                <span class="material-symbols-outlined text-[20px]">tune</span>
             </button>
             <div class="flex-1 md:flex-initial flex items-center justify-center md:justify-start">
                 <a href="index.html" class="inline-flex items-center gap-2.5 group cursor-pointer py-1 select-none" aria-label="Poppy Jeans Inicio">
@@ -277,21 +277,99 @@
         </div>
     </div>
 
-    <!-- Mobile Menu Drawer -->
-    <div id="mobileMenuOverlay" class="fixed inset-0 bg-[#211a19]/50 z-[90] opacity-0 pointer-events-none transition-all duration-300"></div>
-    <nav id="mobileMenuDrawer" class="fixed top-0 left-0 w-[280px] h-full bg-[#faf0f0] z-[91] -translate-x-full transition-transform duration-300 p-6 flex flex-col gap-8 shadow-2xl">
-        <div class="flex items-center justify-between border-b border-[#eedfdd]/60 pb-4">
-            <a href="index.html" class="inline-flex items-center gap-2">
-                <img src="./poppyjeanslogo.png" alt="Poppy Jeans" class="h-8 w-8 rounded-full object-cover shadow-sm ring-1 ring-[#8a4d4e]/30">
-                <img src="./media/poppyjeans_logo_script.png" alt="Poppy Jeans" class="h-6 object-contain">
-            </a>
-            <button class="text-2xl text-[#665c5b] hover:text-[#8a4d4e] transition-colors" id="closeMenuBtn">✕</button>
+    <!-- Mobile Filters Drawer -->
+    <div id="mobileMenuOverlay"
+        class="fixed inset-0 bg-[#211a19]/50 z-[90] opacity-0 pointer-events-none transition-all duration-300 backdrop-blur-sm md:hidden"></div>
+    <aside id="mobileMenuDrawer"
+        class="fixed inset-y-0 left-0 w-[300px] h-full bg-white z-[91] -translate-x-full transition-transform duration-300 p-6 flex flex-col gap-6 shadow-2xl overflow-y-auto border-r border-[#eedfdd]">
+        <!-- Top Drawer Header -->
+        <div class="flex justify-between items-center pb-4 border-b border-[#eedfdd]">
+            <div class="flex items-center gap-2">
+                <button id="closeMenuBtn" class="text-[#665c5b] hover:text-[#8a4d4e] transition-colors pr-1 flex items-center justify-center" aria-label="Cerrar filtros">
+                    <span class="material-symbols-outlined text-[20px]">arrow_back</span>
+                </button>
+                <h2 class="font-headline-sm text-lg text-on-surface font-bold">Filtros</h2>
+            </div>
+            <a href="shop.html" class="text-xs text-[#8a4d4e] font-bold hover:underline">Limpiar</a>
         </div>
-        <div class="flex flex-col gap-6 text-lg font-bold">
-            <a href="index.html" class="text-[#1b1b1c] hover:text-[#8a4d4e] transition-colors">Inicio</a>
-            <a href="shop.html" class="text-[#8a4d4e] hover:text-[#ffb3b3] transition-colors">Catálogo</a>
+
+        <!-- Oportunidades & Descuentos Activation Buttons -->
+        <div class="border-b border-[#eedfdd] pb-5">
+            <h3 class="font-label-md text-xs font-bold text-on-surface mb-3 uppercase tracking-wider">Oportunidades</h3>
+            <div class="flex flex-col gap-2">
+                <a href="shop.html?oferta=1" class="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl border text-xs font-bold transition-all duration-300 bg-[#fff5f5] text-[#ba1a1a] border-[#ffdad6] hover:bg-[#ffdad6] active:scale-95">
+                    <span class="flex items-center gap-1.5">🔥 En Oferta</span>
+                    <span id="badge-count-offer-drawer" class="text-[10px] bg-white text-[#ba1a1a] px-2 py-0.5 rounded-full font-extrabold shadow-xs">0</span>
+                </a>
+                <a href="shop.html?clearance=1" class="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl border text-xs font-bold transition-all duration-300 bg-[#fef2f2] text-[#dc3545] border-[#fecaca] hover:bg-[#fecaca] active:scale-95">
+                    <span class="flex items-center gap-1.5">⚡ Liquidación</span>
+                    <span id="badge-count-clearance-drawer" class="text-[10px] bg-white text-[#dc3545] px-2 py-0.5 rounded-full font-extrabold shadow-xs">0</span>
+                </a>
+            </div>
         </div>
-    </nav>
+
+        <!-- Categories Toggle Filters -->
+        <div class="border-b border-[#eedfdd] pb-5">
+            <h3 class="font-label-md text-xs font-bold text-on-surface mb-3 uppercase tracking-wider">Categoría</h3>
+            <div class="flex flex-col gap-2" id="drawerCategoriesContainer">
+                <a href="shop.html" class="text-left text-xs font-bold text-[#8a4d4e] py-1 border-l-2 border-[#8a4d4e] pl-2 transition-all">Todos los productos</a>
+                <!-- Dynamically populated from API -->
+            </div>
+        </div>
+
+        <!-- Size Filter -->
+        <div class="border-b border-[#eedfdd] pb-5">
+            <h3 class="font-label-md text-xs font-bold text-on-surface mb-3 uppercase tracking-wider">Talla</h3>
+            <!-- Size Type Selector Tabs -->
+            <div class="flex gap-1.5 mb-3 p-1 bg-surface-container rounded-lg">
+                <button type="button" onclick="selectDrawerSizeType('letras')" id="drawer-size-type-letras" class="flex-1 text-[10px] font-bold py-1.5 rounded-md bg-white text-[#8a4d4e] shadow-sm transition-all">Letras</button>
+                <button type="button" onclick="selectDrawerSizeType('numericas')" id="drawer-size-type-numericas" class="flex-1 text-[10px] font-bold py-1.5 rounded-md text-[#665c5b] hover:text-[#8a4d4e] transition-all">Numéricas</button>
+            </div>
+            <!-- Sizes Pills Container -->
+            <div class="flex flex-wrap gap-2" id="drawerSizesContainer">
+            </div>
+        </div>
+
+        <!-- Style Filter -->
+        <div>
+            <h3 class="font-label-md text-xs font-bold text-on-surface mb-3 uppercase tracking-wider">Estilo</h3>
+            <div class="flex flex-col gap-2">
+                <a href="shop.html?estilo=Flare" class="flex items-center justify-between text-xs text-[#665c5b] hover:text-[#8a4d4e] transition-colors py-1 group">
+                    <span>Flare</span>
+                    <span class="material-symbols-outlined text-[16px] text-[#eedfdd] group-hover:text-[#8a4d4e] transition-colors">chevron_right</span>
+                </a>
+                <a href="shop.html?estilo=Yoga" class="flex items-center justify-between text-xs text-[#665c5b] hover:text-[#8a4d4e] transition-colors py-1 group">
+                    <span>Yoga</span>
+                    <span class="material-symbols-outlined text-[16px] text-[#eedfdd] group-hover:text-[#8a4d4e] transition-colors">chevron_right</span>
+                </a>
+                <a href="shop.html?estilo=Palazo" class="flex items-center justify-between text-xs text-[#665c5b] hover:text-[#8a4d4e] transition-colors py-1 group">
+                    <span>Palazo</span>
+                    <span class="material-symbols-outlined text-[16px] text-[#eedfdd] group-hover:text-[#8a4d4e] transition-colors">chevron_right</span>
+                </a>
+                <a href="shop.html?estilo=Mom" class="flex items-center justify-between text-xs text-[#665c5b] hover:text-[#8a4d4e] transition-colors py-1 group">
+                    <span>Mom</span>
+                    <span class="material-symbols-outlined text-[16px] text-[#eedfdd] group-hover:text-[#8a4d4e] transition-colors">chevron_right</span>
+                </a>
+                <a href="shop.html?estilo=Cargo" class="flex items-center justify-between text-xs text-[#665c5b] hover:text-[#8a4d4e] transition-colors py-1 group">
+                    <span>Cargo</span>
+                    <span class="material-symbols-outlined text-[16px] text-[#eedfdd] group-hover:text-[#8a4d4e] transition-colors">chevron_right</span>
+                </a>
+                <a href="shop.html?estilo=Brasileño" class="flex items-center justify-between text-xs text-[#665c5b] hover:text-[#8a4d4e] transition-colors py-1 group">
+                    <span>Brasileño</span>
+                    <span class="material-symbols-outlined text-[16px] text-[#eedfdd] group-hover:text-[#8a4d4e] transition-colors">chevron_right</span>
+                </a>
+                <a href="shop.html?estilo=Elegante" class="flex items-center justify-between text-xs text-[#665c5b] hover:text-[#8a4d4e] transition-colors py-1 group">
+                    <span>Elegante</span>
+                    <span class="material-symbols-outlined text-[16px] text-[#eedfdd] group-hover:text-[#8a4d4e] transition-colors">chevron_right</span>
+                </a>
+            </div>
+        </div>
+
+        <!-- Apply Button for mobile -->
+        <a href="shop.html" class="mt-auto w-full bg-[#8a4d4e] text-white py-3.5 rounded-full font-bold text-xs uppercase tracking-wider hover:bg-[#ffb3b3] hover:text-[#380c0f] transition-all shadow-md active:scale-95 flex items-center justify-center gap-1.5 text-center">
+            Ver Catálogo Completo
+        </a>
+    </aside>
 
     <main class="flex-1 w-full max-w-[1280px] mx-auto px-margin-mobile md:px-margin-desktop py-stack-md flex flex-col gap-8">
         <!-- BREADCRUMBS -->
@@ -836,6 +914,7 @@
 
         document.addEventListener('DOMContentLoaded', () => {
             updateAuthHeader();
+            initDrawerFilters();
             const urlParams = new URLSearchParams(window.location.search);
             const productId = parseInt(urlParams.get('id'));
 
@@ -1910,6 +1989,77 @@
         };
         document.getElementById('closeMenuBtn').addEventListener('click', closeMenu);
         document.getElementById('mobileMenuOverlay').addEventListener('click', closeMenu);
+
+        // =========================================================
+        // MOBILE FILTERS DRAWER CONTROLLER
+        // =========================================================
+        let drawerSizeType = 'letras';
+        const drawerTallasLetras = ['S', 'M', 'L', 'XL', 'S/M', 'L/XL'];
+        const drawerTallasNumericas = ['34', '36', '38', '40', '42', '44', '46', '48', '50'];
+
+        function renderDrawerSizes() {
+            const container = document.getElementById('drawerSizesContainer');
+            if (!container) return;
+            const list = drawerSizeType === 'letras' ? drawerTallasLetras : drawerTallasNumericas;
+            container.innerHTML = list.map(size => {
+                return `<a href="shop.html?talla=${encodeURIComponent(size)}" class="px-3.5 py-1.5 rounded-full border border-[#eedfdd] bg-[#fcf9f9] text-[#665c5b] text-xs font-semibold hover:border-primary hover:text-primary transition-all active:scale-95">${size}</a>`;
+            }).join('');
+        }
+
+        function selectDrawerSizeType(type) {
+            drawerSizeType = type;
+            const btnLetras = document.getElementById('drawer-size-type-letras');
+            const btnNumericas = document.getElementById('drawer-size-type-numericas');
+            if (type === 'letras') {
+                if (btnLetras) btnLetras.className = 'flex-1 text-[10px] font-bold py-1.5 rounded-md bg-white text-primary shadow-sm transition-all';
+                if (btnNumericas) btnNumericas.className = 'flex-1 text-[10px] font-bold py-1.5 rounded-md text-[#665c5b] hover:text-primary transition-all';
+            } else {
+                if (btnLetras) btnLetras.className = 'flex-1 text-[10px] font-bold py-1.5 rounded-md text-[#665c5b] hover:text-primary transition-all';
+                if (btnNumericas) btnNumericas.className = 'flex-1 text-[10px] font-bold py-1.5 rounded-md bg-white text-primary shadow-sm transition-all';
+            }
+            renderDrawerSizes();
+        }
+
+        async function initDrawerFilters() {
+            renderDrawerSizes();
+            try {
+                const [rCat, rOffer, rClear] = await Promise.all([
+                    fetchWithRetry(`${API_BASE_URL}/api/categories`),
+                    fetchWithRetry(`${API_BASE_URL}/api/products?oferta=1&limit=1`),
+                    fetchWithRetry(`${API_BASE_URL}/api/products?clearance=1&limit=1`)
+                ]);
+
+                if (rCat && rCat.ok) {
+                    const res = await rCat.json();
+                    if (res.success && Array.isArray(res.data)) {
+                        const container = document.getElementById('drawerCategoriesContainer');
+                        if (container) {
+                            let html = `<a href="shop.html" class="text-left text-xs font-bold text-primary py-1 border-l-2 border-primary pl-2 transition-all">Todos los productos</a>`;
+                            res.data.forEach(cat => {
+                                const slugOrId = cat.slug || cat.id;
+                                html += `<a href="shop.html?categoria=${encodeURIComponent(slugOrId)}" class="text-left text-xs text-[#665c5b] py-1 border-l-2 border-transparent pl-2 hover:text-primary hover:border-primary transition-all">${cat.nombre}</a>`;
+                            });
+                            container.innerHTML = html;
+                        }
+                    }
+                }
+
+                if (rOffer && rOffer.ok) {
+                    const oData = await rOffer.json();
+                    const badgeOffer = document.getElementById('badge-count-offer-drawer');
+                    if (badgeOffer && oData.total !== undefined) badgeOffer.textContent = oData.total;
+                    else if (badgeOffer && Array.isArray(oData.data)) badgeOffer.textContent = oData.data.length;
+                }
+                if (rClear && rClear.ok) {
+                    const cData = await rClear.json();
+                    const badgeClear = document.getElementById('badge-count-clearance-drawer');
+                    if (badgeClear && cData.total !== undefined) badgeClear.textContent = cData.total;
+                    else if (badgeClear && Array.isArray(cData.data)) badgeClear.textContent = cData.data.length;
+                }
+            } catch (e) {
+                console.warn('No se pudieron cargar categorías en drawer:', e);
+            }
+        }
 
         // Mobile Search drop bar controls
         const mobileSearchBtn = document.getElementById('mobileSearchBtn');
