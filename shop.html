@@ -576,7 +576,9 @@
                     }
                     const catParam = urlParams.get('categoria') || urlParams.get('category');
                     if (catParam) {
-                        const matchedCat = categoriesList.find(c => c.slug === catParam.toLowerCase() || c.id == catParam || c.nombre.toLowerCase() === catParam.toLowerCase());
+                        const norm = (str) => (str || '').normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim();
+                        const searchCat = norm(catParam);
+                        const matchedCat = categoriesList.find(c => norm(c.slug) === searchCat || String(c.id) === searchCat || norm(c.nombre) === searchCat);
                         if (matchedCat) {
                             activeFilters.category = matchedCat.id;
                         }
@@ -584,7 +586,29 @@
                     const searchParam = urlParams.get('search') || urlParams.get('q');
                     if (searchParam) {
                         activeFilters.search = searchParam.trim();
-                        document.getElementById('searchInput').value = activeFilters.search;
+                        const sInp = document.getElementById('searchInput');
+                        if (sInp) sInp.value = activeFilters.search;
+                    }
+                    const sizeParam = urlParams.get('talla') || urlParams.get('size');
+                    if (sizeParam) {
+                        const cleanSize = sizeParam.trim().toUpperCase();
+                        if (tallasNumericas.includes(cleanSize)) {
+                            activeSizeType = 'numericas';
+                            const btnLetras = document.getElementById('size-type-letras');
+                            const btnNumericas = document.getElementById('size-type-numericas');
+                            if (btnLetras && btnNumericas) {
+                                btnLetras.className = 'flex-1 text-[10px] font-bold py-1.5 rounded-md text-[#665c5b] hover:text-primary transition-all';
+                                btnNumericas.className = 'flex-1 text-[10px] font-bold py-1.5 rounded-md bg-white text-primary shadow-sm transition-all';
+                            }
+                        }
+                        activeFilters.sizes = [cleanSize];
+                    }
+                    const styleParam = urlParams.get('estilo') || urlParams.get('style');
+                    if (styleParam) {
+                        const cleanStyle = styleParam.trim();
+                        activeFilters.styles = [cleanStyle];
+                        const cb = document.querySelector(`.style-checkbox[value="${cleanStyle}"]`);
+                        if (cb) cb.checked = true;
                     }
 
                     renderSizesFilter();
