@@ -1552,7 +1552,7 @@
                     <button type="button" class="cat-pill bulk-cat-pill" data-id="5">Pantalones</button>
                     <button type="button" class="cat-pill bulk-cat-pill" data-id="6">Poleras</button>
                     <button type="button" class="cat-pill bulk-cat-pill" data-id="7">Bodys</button>
-                    <button type="button" class="cat-pill bulk-cat-pill" data-id="8">MAN</button>
+                    <button type="button" class="cat-pill bulk-cat-pill" data-id="8">MEN</button>
                 </div>
                 <small style="color: #888;">Si no seleccionas ninguna, se mantendrán las actuales.</small>
             </div>
@@ -1641,8 +1641,8 @@
                 if (!CATEGORIAS_LIST.some(c => Number(c.id) === 7 || (c.nombre && c.nombre.toLowerCase() === 'bodys'))) {
                     CATEGORIAS_LIST.push({ id: 7, nombre: 'Bodys', slug: 'bodys' });
                 }
-                if (!CATEGORIAS_LIST.some(c => Number(c.id) === 8 || (c.nombre && c.nombre.toLowerCase() === 'man'))) {
-                    CATEGORIAS_LIST.push({ id: 8, nombre: 'MAN', slug: 'man' });
+                if (!CATEGORIAS_LIST.some(c => Number(c.id) === 8 || (c.nombre && c.nombre.toLowerCase() === 'men'))) {
+                    CATEGORIAS_LIST.push({ id: 8, nombre: 'MEN', slug: 'men' });
                 }
                 CATEGORIAS_MAP = {};
                 CATEGORIAS_LIST.forEach(c => { CATEGORIAS_MAP[Number(c.id)] = c.nombre; });
@@ -1657,7 +1657,7 @@
                     { id: 5, nombre: 'Pantalones' },
                     { id: 6, nombre: 'Poleras' },
                     { id: 7, nombre: 'Bodys' },
-                    { id: 8, nombre: 'MAN' }
+                    { id: 8, nombre: 'MEN' }
                 ];
                 CATEGORIAS_LIST.forEach(c => { CATEGORIAS_MAP[c.id] = c.nombre; });
             }
