@@ -1493,6 +1493,9 @@ export default {
           if (!results.some(c => Number(c.id) === 7 || (c.slug && c.slug.toLowerCase() === 'bodys'))) {
             try { await env.DB.prepare("INSERT INTO Categories (id, nombre, slug) VALUES (7, 'Bodys', 'bodys')").run(); } catch(e) {}
           }
+          if (!results.some(c => Number(c.id) === 8 || (c.slug && c.slug.toLowerCase() === 'man'))) {
+            try { await env.DB.prepare("INSERT INTO Categories (id, nombre, slug) VALUES (8, 'MAN', 'man')").run(); } catch(e) {}
+          }
           const res2 = await env.DB.prepare("SELECT * FROM Categories").all();
           results = res2.results;
         }
@@ -1928,6 +1931,9 @@ export default {
             }
             if (!results.some(c => Number(c.id) === 7 || (c.slug && c.slug.toLowerCase() === 'bodys'))) {
               try { await env.DB.prepare("INSERT INTO Categories (id, nombre, slug) VALUES (7, 'Bodys', 'bodys')").run(); } catch(e) {}
+            }
+            if (!results.some(c => Number(c.id) === 8 || (c.slug && c.slug.toLowerCase() === 'man'))) {
+              try { await env.DB.prepare("INSERT INTO Categories (id, nombre, slug) VALUES (8, 'MAN', 'man')").run(); } catch(e) {}
             }
             const res2 = await env.DB.prepare("SELECT * FROM Categories").all();
             results = res2.results;

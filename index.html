@@ -2158,20 +2158,36 @@
         async function initDrawerFilters() {
             renderDrawerSizes();
             try {
-                const resp = await fetchWithRetry(`${API_BASE_URL}/api/categories`);
-                if (resp && resp.ok) {
-                    const res = await resp.json();
-                    if (res.success && Array.isArray(res.data)) {
-                        const container = document.getElementById('drawerCategoriesContainer');
-                        if (container) {
-                            let html = `<a href="shop.html" class="text-left text-xs font-bold text-primary py-1 border-l-2 border-primary pl-2 transition-all">Todos los productos</a>`;
-                            res.data.forEach(cat => {
-                                const slugOrId = cat.slug || cat.id;
-                                html += `<a href="shop.html?categoria=${encodeURIComponent(slugOrId)}" class="text-left text-xs text-[#665c5b] py-1 border-l-2 border-transparent pl-2 hover:text-primary hover:border-primary transition-all">${cat.nombre}</a>`;
-                            });
-                            container.innerHTML = html;
+                let cats = [
+                    { id: 1, nombre: 'Calza', slug: 'calza' },
+                    { id: 2, nombre: 'Jeans', slug: 'jeans' },
+                    { id: 3, nombre: 'Conjunto', slug: 'conjunto' },
+                    { id: 4, nombre: 'Enterito', slug: 'enterito' },
+                    { id: 5, nombre: 'Pantalones', slug: 'pantalones' },
+                    { id: 6, nombre: 'Poleras', slug: 'poleras' },
+                    { id: 7, nombre: 'Bodys', slug: 'bodys' },
+                    { id: 8, nombre: 'MAN', slug: 'man' }
+                ];
+                try {
+                    const resp = await fetchWithRetry(`${API_BASE_URL}/api/categories`);
+                    if (resp && resp.ok) {
+                        const res = await resp.json();
+                        if (res.success && Array.isArray(res.data) && res.data.length > 0) {
+                            cats = res.data;
                         }
                     }
+                } catch (fetchErr) {
+                    console.warn('Usando categorías predeterminadas en drawer:', fetchErr);
+                }
+
+                const container = document.getElementById('drawerCategoriesContainer');
+                if (container) {
+                    let html = `<a href="shop.html" class="text-left text-xs font-bold text-primary py-1 border-l-2 border-primary pl-2 transition-all">Todos los productos</a>`;
+                    cats.forEach(cat => {
+                        const slugOrId = cat.slug || cat.id;
+                        html += `<a href="shop.html?categoria=${encodeURIComponent(slugOrId)}" class="text-left text-xs text-[#665c5b] py-1 border-l-2 border-transparent pl-2 hover:text-primary hover:border-primary transition-all">${cat.nombre}</a>`;
+                    });
+                    container.innerHTML = html;
                 }
             } catch (e) {
                 console.warn('No se pudieron cargar categorías en drawer:', e);

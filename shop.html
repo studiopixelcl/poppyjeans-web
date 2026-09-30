@@ -548,10 +548,21 @@
                 const res2 = await r2.json();
                 const resCat = await rCat.json();
                 
-                if (resCat.success && Array.isArray(resCat.data)) {
+                if (resCat && resCat.success && Array.isArray(resCat.data)) {
                     categoriesList = resCat.data;
-                    renderCategoriesSidebar();
+                } else {
+                    categoriesList = [
+                        { id: 1, nombre: 'Calza', slug: 'calza' },
+                        { id: 2, nombre: 'Jeans', slug: 'jeans' },
+                        { id: 3, nombre: 'Conjunto', slug: 'conjunto' },
+                        { id: 4, nombre: 'Enterito', slug: 'enterito' },
+                        { id: 5, nombre: 'Pantalones', slug: 'pantalones' },
+                        { id: 6, nombre: 'Poleras', slug: 'poleras' },
+                        { id: 7, nombre: 'Bodys', slug: 'bodys' },
+                        { id: 8, nombre: 'MAN', slug: 'man' }
+                    ];
                 }
+                renderCategoriesSidebar();
                 
                 let combinedData = [];
                 if (res1.success && res1.data) combinedData = combinedData.concat(res1.data);
